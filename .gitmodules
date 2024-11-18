@@ -1,0 +1,12 @@
+[submodule "host_vars"]
+	path = host_vars
+	url = https://github.com/espresso-software/homelab-host-vars
+	branch = main
+[submodule "group_vars"]
+	path = group_vars
+	url = https://github.com/espresso-software/homelab-group-vars
+	branch = main
+[submodule "inventory"]
+	path = inventory
+	url = https://github.com/espresso-software/homelab-hosts
+	branch = main
