@@ -1,0 +1,14 @@
+frontend k3s-frontend
+    bind *:{{ k3s_port }}
+    mode tcp
+    option tcplog
+    default_backend k3s-backend
+
+backend k3s-backend
+    mode tcp
+    option tcp-check
+    balance roundrobin
+    default-server inter 10s downinter 5s
+    server k3s-1 {{ hostvars[groups['k3s_managers'][0]]['ansible_default_ipv4']['address'] }}:6443 check
+    server k3s-2 {{ hostvars[groups['k3s_managers'][1]]['ansible_default_ipv4']['address'] }}:6443 check
+    server k3s-3 {{ hostvars[groups['k3s_managers'][2]]['ansible_default_ipv4']['address'] }}:6443 check

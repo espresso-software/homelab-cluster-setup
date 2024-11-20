@@ -1,0 +1,9 @@
+---
+- name: Reboot
+  ansible.builtin.reboot:
+    msg: "[ANSIBLE] Rebooting to apply changes"
+    post_reboot_delay: 30
+    
+- name: update grub
+  ansible.builtin.command: update-grub
+  notify: Reboot

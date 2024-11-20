@@ -1,0 +1,111 @@
+---
+- name: Install k3s server binaries
+  ansible.builtin.command: 
+    cmd: /usr/local/bin/k3s-install.sh
+  environment: 
+    INSTALL_K3S_SKIP_START: "true"
+  changed_when: true
+
+- name: Install Ansible K3S dependencies
+  block:
+    - name: Install pip
+      ansible.builtin.package:
+        name: python3-pip
+        state: latest
+    - name: Install Ansible dependencies
+      ansible.builtin.pip:
+        name: 
+          - pyyaml
+          - kubernetes
+        break_system_packages: yes
+        state: latest
+  rescue:
+    - name: '[WARNING] Failed to install Ansible dependencies'
+      debug:
+        msg: 'Failed to install Ansible dependencies, check logs'
+
+- name: Init first k3s server
+  when: inventory_hostname == groups['k3s_managers'][0]
+  block:  
+    - name: Copy k3s service file [HA]
+      ansible.builtin.template:
+        src: k3s-init.service.j2
+        dest: /etc/systemd/system/k3s.service
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Add service environment variables
+      when: extra_service_envs is defined
+      ansible.builtin.lineinfile:
+        path: "/etc/systemd/system/k3s.service.env"
+        line: "{{ item }}"
+      with_items: "{{ extra_service_envs }}"
+      no_log: true
+
+    - name: Enable and check K3s service
+      ansible.builtin.systemd:
+        name: k3s
+        daemon_reload: true
+        state: started
+        enabled: true
+    
+    - name: Pause to allow first server startup
+      ansible.builtin.pause:
+        seconds: 10
+      when: groups['k3s_managers'][0] | length > 1
+
+    - name: Get CA Agent Token from file
+      ansible.builtin.shell: cat /var/lib/rancher/k3s/server/agent-token
+      register: ca_token
+      changed_when: false
+      no_log: true
+
+    - name: Set fact for CA Agent Token
+      ansible.builtin.set_fact:
+        agent_token: "{{ ca_token.stdout }}"
+      changed_when: false
+      no_log: true
+
+
+- name: Start other servers
+  when:
+    - groups['k3s_managers'] | length > 1 
+    - inventory_hostname != groups['k3s_managers'][0]
+  block:
+    - name: Copy k3s service file [HA]
+      ansible.builtin.template:
+        src: k3s-ha.service.j2
+        dest: /etc/systemd/system/k3s.service
+        owner: root
+        group: root
+        mode: 0644
+    
+    - name: Add service environment variables
+      when: extra_service_envs is defined
+      ansible.builtin.lineinfile:
+        path: "/etc/systemd/system/k3s.service.env"
+        line: "{{ item }}"
+      with_items: "{{ extra_service_envs }}"
+      no_log: true
+
+    - name: Enable and check K3s service
+      ansible.builtin.systemd:
+        name: k3s
+        daemon_reload: true
+        state: started
+        enabled: true
+
+    - name: Verify that all server nodes joined
+      when: (groups['k3s_managers'] | length) > 1
+      ansible.builtin.command:
+        cmd: >
+          k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
+      register: nodes
+      until: nodes.rc == 0 and (nodes.stdout.split() | length) == (groups['k3s_managers'] | length)
+      retries: 20
+      delay: 10
+      changed_when: false
+    
+
+

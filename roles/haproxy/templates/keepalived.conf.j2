@@ -1,0 +1,20 @@
+vrrp_script chk_haproxy {
+    script "killall -0 haproxy"
+    interval 2
+}
+
+vrrp_instance k3s-vip {
+    state {{ k3s_vip_state }}
+    interface {{ ethernet.device }}
+    priority {{ k3s_vip_priority }}
+
+    virtual_router_id 51
+
+    virtual_ipaddress {
+        {{ k3s_vip_address }}
+    }
+
+    track_script {
+        chk_haproxy
+    }
+}

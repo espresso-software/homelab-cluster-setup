@@ -1,0 +1,97 @@
+---
+- name: Configure k3s vip
+  hosts: k3s_managers
+  gather_facts: true
+  tags:
+    - k3s
+    - kubernetes
+  roles:
+    - haproxy
+
+- name: Complete k3s prereqs
+  hosts: k3s
+  gather_facts: true
+  become: true
+  tags:
+    - k3s
+    - kubernetes
+  roles:
+    - k3s-prereq
+
+- name: Initialize k3s servers
+  hosts: k3s_managers
+  gather_facts: true
+  tags:
+    - k3s
+    - kubernetes
+  vars:
+    api_endpoint: "{{ hostvars[groups['k3s_managers'][0]]['ansible_default_ipv4']['address'] }}"
+    api_port: "{{ k3s_port | default(6443) }}"
+    extra_service_envs:
+      - "K3S_TOKEN='{{ k3s_token }}'"
+      - "K3S_AGENT_TOKEN='{{ k3s_agent_token }}'"
+    extra_server_args: "--write-kubeconfig-group k3s --disable servicelb --disable traefik --flannel-backend=wireguard-native --secrets-encryption --tls-san={{ k3s_vip_address }}"
+  roles:
+    - k3s-server
+
+- name: Join k3s - workers
+  hosts: k3s_workers
+  gather_facts: true
+  tags:
+    - k3s
+    - kubernetes
+  vars:
+    api_endpoint: "{{ k3s_vip_address }}"
+    api_port: "{{ k3s_port | default(6443) }}"
+  roles:
+    - k3s-agent
+
+- name: Label nodes
+  hosts: k3s_managers
+  gather_facts: true
+  become: true
+  run_once: true
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  tags:
+    - k3s
+    - kubernetes
+    - config
+  tasks:
+    - name: Label nodes
+      # no_log: true
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Node
+          metadata:
+            labels:
+              kubernetes.io/role: "{{ item.role }}"
+        name: "{{ item.name }}"
+      with_items:
+        - name: keylimepi
+          role: worker
+        - name: pumpkinpi
+          role: worker
+        # TODO: setup raspberrypi as k3s worker
+        # - name: raspberrypi
+        #   role: infra
+        - name: vwkr01
+          role: worker
+        - name: vgmr01
+          role: gamer
+
+- name: Restrict kube-system pods to managers
+  hosts: k3s_managers
+  gather_facts: true
+  become: true
+  run_once: true
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  tags:
+    - k3s
+    - kubernetes
+    - config
+  roles:
+    - k3s-config

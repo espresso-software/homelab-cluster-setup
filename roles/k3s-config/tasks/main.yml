@@ -1,0 +1,78 @@
+---
+- name: restrict kube-system pods to managers
+  with_items:
+    - coredns
+    - local-path-provisioner
+    - metrics-server
+  kubernetes.core.k8s:
+    state: patched
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: "{{ item }}"
+        namespace: kube-system
+      spec:
+        template:
+          spec:
+            nodeSelector:
+              node-role.kubernetes.io/control-plane: "true"
+
+- name: set coredns to forward to internal DNS servers
+  kubernetes.core.k8s:
+    state: patched
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: coredns
+        namespace: kube-system
+      spec:
+        template:
+          spec:
+            dnsConfig:
+              nameservers:
+                - "{{ network.gateway }}"
+                - '1.1.1.1'
+                - '1.0.0.1'
+
+- name: Set LimitRange for kube-system
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: LimitRange
+      metadata:
+        name: kube-system-limits
+        namespace: kube-system
+      spec:
+        limits:
+          - default:
+              memory: 256Mi
+              cpu: 250m
+            defaultRequest:
+              memory: 64Mi
+              cpu: 100m
+            max:
+              memory: 512Mi
+              cpu: 500m
+            min:
+              memory: 64Mi
+              cpu: 100m
+            type: Container
+
+- name: Set ResourceQuota for kube-system
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ResourceQuota
+      metadata:
+        name: kube-system-quota
+        namespace: kube-system
+      spec:
+        hard:
+          requests.cpu: "500m"
+          requests.memory: 1Gi
+          limits.cpu: "1500m"
+          limits.memory: 3Gi

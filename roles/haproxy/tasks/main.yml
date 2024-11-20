@@ -1,0 +1,25 @@
+---
+- name: Install Dependencies
+  ansible.builtin.apt:
+    name:
+      - haproxy
+      - keepalived
+    state: present
+
+- name: Configure HAProxy
+  ansible.builtin.template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: 0640
+  notify: Restart HAProxy
+
+- name: Configure Keepalived
+  ansible.builtin.template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+    owner: root
+    group: root
+    mode: 0640
+  notify: Restart Keepalived
