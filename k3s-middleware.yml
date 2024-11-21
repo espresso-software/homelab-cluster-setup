@@ -1,0 +1,127 @@
+---
+#TODO: do not use role: infra node
+- name: Install MetalLB
+  hosts: k3s_managers
+  become: yes
+  run_once: true
+  tags:
+    - metallb
+    - kubernetes
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  vars:
+    kubernetes_deploy: true
+  roles:
+    - metallb
+
+#TODO: do not use role: infra node
+- name: Open L2 Ports between nodes
+  hosts: k3s
+  become: yes
+  gather_facts: true
+  tags:
+    - firewall
+    - metallb
+    - kubernetes
+  vars:
+    kubernetes_firewall: true
+  roles:
+    - metallb
+
+#TODO: do not use role: infra node
+- name: Install NFS
+  hosts: k3s
+  become: yes
+  tags:
+    - nfs
+    - longhorn
+    - kubernetes
+  tasks:
+    - name: Install NFS
+      ansible.builtin.apt:
+        name: nfs-common
+        state: present
+
+#TODO: do not use role: infra node
+- name: Install Longhorn
+  hosts: k3s_managers
+  become: yes
+  tags:
+    - longhorn
+    - kubernetes
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  vars:
+    kubernetes_deploy: true
+  roles:
+    - longhorn
+
+- name: Install cert-manager
+  hosts: k3s_managers
+  become: yes
+  run_once: true
+  tags:
+    - cert-manager
+    - kubernetes
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  vars:
+    kubernetes_deploy: true
+  roles:
+    - cert-manager
+
+#TODO: HA setup
+- name: Install Traefik
+  hosts: k3s_managers
+  become: yes
+  run_once: true
+  tags:
+    - traefik
+    - kubernetes
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  vars:
+    kubernetes_deploy: true
+  roles:
+    - traefik
+
+- name: Setup Traefik FW Rules
+  hosts: k3s
+  become: yes
+  gather_facts: true
+  tags:
+    - firewall
+    - traefik
+    - kubernetes
+  vars:
+    kubernetes_firewall: true
+  roles:
+    - traefik
+
+#TODO: one on a worker, one on infra node
+- name: Install Pi-hole
+  hosts: k3s_managers
+  become: yes
+  run_once: true
+  tags:
+    - pihole
+    - kubernetes
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  vars:
+    kubernetes_deploy: true
+  roles:
+    - pihole
+
+- name: Setup Pi-hole FW Rules
+  hosts: k3s
+  become: yes
+  gather_facts: true
+  tags:
+    - firewall
+    - pihole
+    - kubernetes
+  vars:
+    kubernetes_firewall: true
+  roles:
+    - pihole

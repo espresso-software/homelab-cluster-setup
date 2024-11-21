@@ -1,0 +1,105 @@
+---
+- name: Deploy Kubernetes Pihole
+  when: kubernetes_deploy | default(false)
+  block:
+    - name: Create pihole namespace
+      run_once: true
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: pihole
+    
+    - name: Create LimitRange
+      run_once: true
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: LimitRange
+          metadata:
+            name: pihole-limits
+            namespace: pihole
+          spec:
+            limits:
+              - default:
+                  memory: 1Gi
+                  cpu: 1000m
+                defaultRequest:
+                  memory: 256Mi
+                  cpu: 200m
+                max:
+                  memory: 2Gi
+                  cpu: 2000m
+                min:
+                  memory: 64Mi
+                  cpu: 25m
+                type: Container
+  
+    - name: Create ResourceQuota
+      run_once: true
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ResourceQuota
+          metadata:
+            name: pihole-quota
+            namespace: pihole
+          spec:
+            hard:
+              requests.cpu: "2"
+              requests.memory: 2Gi
+              limits.cpu: "4"
+              limits.memory: 4Gi
+
+    - name: Add Password Secrets
+      run_once: true
+      no_log: true
+      kubernetes.core.k8s:
+        state: present
+        apply: true
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: pihole-secrets
+            namespace: pihole
+          data:
+            WEBPASSWORD: "{{ pihole_web_password | b64encode }}"
+
+    - name: Create tmp file for Pihole Deployment
+      ansible.builtin.tempfile:
+        suffix: '.yml'
+      register: deployment
+
+    - name: Template Pihole Deployment
+      ansible.builtin.template:
+        src: "templates/primary.yml.j2"
+        dest: "{{ deployment.path }}"
+    
+    - name: Deploy Pihole
+      kubernetes.core.k8s:
+        src: "{{ deployment.path }}"
+        apply: yes
+
+#TODO: use physical firewall device
+- name: Setup k3s FW Rules
+  when: kubernetes_firewall | default(false)
+  community.general.ufw:
+    rule: allow
+    direction: in
+    src: "{{ network.identifier }}.{{ network.subnet }}"
+    dest: "{{ network.identifier }}.3.69"
+    port: 53
+    proto: "{{ item.proto }}"
+    comment: "{{ item.comment }}"
+  with_items:
+    - proto: 'udp'
+      comment: 'DNS UDP'
+    - proto: 'tcp'
+      comment: 'DNS TCP'
+
+    

@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: Job
+metadata:
+  name: force-sync
+  namespace: "{{ pihole_namesapce }}"
+spec:
+  template:
+    {{ sync_job_template }}

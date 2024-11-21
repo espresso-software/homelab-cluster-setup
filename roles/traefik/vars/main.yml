@@ -1,0 +1,76 @@
+---
+version: 'v3.1'
+
+proxmox_ip: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  38666464323237303931666531396433343364303831363334383566343436313332326334626637
+  3165393036646438333730336534613932353334366331350a636535333834643339343631663262
+  33653231313132666136633238353834636539386232343331383466636265356433353366653838
+  3761366233646632650a316662386139643836373866613464306138383534663031353934343838
+  6566
+
+traefik_lb_ip: "{{ network.identifier }}.{{ network.subnets.prod_lb | split ('/') | first }}"
+uat_traefik_lb_ip: "{{ network.identifier }}.{{ network.subnets.uat_lb | split ('/') | first }}"
+
+namespace: traefik-system
+
+namespace_yaml:
+  apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: "{{ namespace }}"
+
+limitrange_yaml:
+  apiVersion: v1
+  kind: LimitRange
+  metadata:
+    name: traefik-limits
+    namespace: "{{ namespace }}"
+  spec:
+    limits:
+      - default:
+          memory: 2Gi
+          cpu: 1000m
+        defaultRequest:
+          memory: 256Mi
+          cpu: 250m
+        max:
+          memory: 4Gi
+          cpu: 2000m
+        min:
+          memory: 128Mi
+          cpu: 100m
+        type: Container
+
+quota_yaml:
+  apiVersion: v1
+  kind: ResourceQuota
+  metadata:
+    name: traefik-quota
+    namespace: "{{ namespace }}"
+  spec:
+    hard:
+      requests.cpu: "1000m"
+      requests.memory: 2Gi
+      limits.cpu: "4000m"
+      limits.memory: 8Gi
+
+service_uat_yaml:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: traefik-uat
+    namespace: "{{ namespace }}"
+    annotations:
+      metallb.universe.tf/loadBalancerIps: "{{ uat_traefik_lb_ip }}"
+  spec:
+    selector:
+      app: traefik
+    ports:
+      - name: web
+        port: 80
+        targetPort: 80
+      - name: websecure
+        port: 443
+        targetPort: 443
+    type: LoadBalancer

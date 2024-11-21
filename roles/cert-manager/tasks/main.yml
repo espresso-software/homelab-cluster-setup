@@ -1,0 +1,127 @@
+---
+- name: Add Helm repository
+  kubernetes.core.helm_repository:
+    name: jetstack
+    repo_url: https://charts.jetstack.io
+    state: present
+
+- name: Create cert-manager namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: cert-manager
+
+#TODO: -name: Create LimitRange
+
+#TODO: -name: Create ResourceQuota
+
+- name: Install cert-manager
+  kubernetes.core.helm:
+    name: cert-manager
+    namespace: cert-manager
+    chart_ref: jetstack/cert-manager
+    chart_version: v1.15.2
+    values:
+      crds:
+        enabled: true
+      dns01RecursiveNameservers: '1.1.1.1:53,1.0.0.1:53'
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      nodeSelector:
+        kubernetes.io/os: linux
+        kubernetes.io/role: worker
+      webhook:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        nodeSelector:
+          kubernetes.io/os: linux
+          kubernetes.io/role: worker
+      cainjector:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        nodeSelector:
+          kubernetes.io/os: linux
+          kubernetes.io/role: worker
+      startupapicheck:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+        nodeSelector:
+          kubernetes.io/os: linux
+          kubernetes.io/role: worker
+      
+- name: Create Cloudflare API Token Secret
+  no_log: true
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: cloudflare-api-token
+        namespace: cert-manager
+      type: Opaque
+      stringData:
+        api-token: "{{ cloudflare_token }}"
+
+- name: Create ClusterIssuer (Staging)
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: letsencrypt-staging
+      spec:
+        acme:
+          email: "tyfoster@outlook.com"
+          privateKeySecretRef:
+            name: letsencrypt-staging
+          server: https://acme-staging-v02.api.letsencrypt.org/directory
+          solvers:
+            - dns01:
+                cloudflare:
+                  apiTokenSecretRef:
+                    name: cloudflare-api-token
+                    key: api-token
+              selector: 
+                dnsZones:
+                  - "{{ local_domain }}"
+                  - "{{ domain }}"
+                  - "{{ dns.k3s }}"
+
+- name: Create ClusterIssuer (Production)
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: letsencrypt-prod
+      spec:
+        acme:
+          email: "tyfoster@outlook.com"
+          privateKeySecretRef:
+            name: letsencrypt-prod
+          server: https://acme-v02.api.letsencrypt.org/directory
+          solvers:
+            - dns01:
+                cloudflare:
+                  apiTokenSecretRef:
+                    name: cloudflare-api-token
+                    key: api-token
+              selector: 
+                dnsZones:
+                  - "{{ local_domain }}"
+                  - "{{ domain }}"
+                  - "{{ dns.k3s }}"

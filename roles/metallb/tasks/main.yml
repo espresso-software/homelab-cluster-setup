@@ -1,0 +1,126 @@
+---
+- name: Deploy MetalLB
+  when: kubernetes_deploy | default(false)
+  block: 
+    - name: Add MetalLB Helm Repo
+      kubernetes.core.helm_repository:
+        name: metallb
+        repo_url: https://metallb.github.io/metallb
+        state: present
+    
+    - name: Create MetalLB Namespace
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: metallb
+        state: present
+    
+    - name: Create MetalLB LimitRange
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: v1
+          kind: LimitRange
+          metadata:
+            name: metallb-limits
+            namespace: metallb
+          spec:
+            limits:
+              - default:
+                  memory: 256Mi
+                  cpu: 200m
+                defaultRequest:
+                  memory: 16Mi
+                  cpu: 10m
+                type: Container
+        state: present
+    
+    - name: Create MetalLB ResourceQuota
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: v1
+          kind: ResourceQuota
+          metadata:
+            name: metallb-quota
+            namespace: metallb
+          spec:
+            hard:
+              requests.cpu: "500m"
+              requests.memory: 1Gi
+              limits.cpu: "2000m"
+              limits.memory: 3Gi
+        state: present
+  
+    - name: Install MetalLB
+      run_once: true
+      kubernetes.core.helm:
+        name: metallb
+        chart_ref: metallb/metallb
+        release_namespace: metallb
+        values:
+          controller:
+            nodeSelector:
+              node-role.kubernetes.io/control-plane: "true" 
+    
+    # FIXME - name: Wait for metallb to be ready
+
+    - name: Setup IP Address Pools
+      run_once: true
+      kubernetes.core.k8s:
+        apply: yes
+        definition:
+          apiVersion: metallb.io/v1beta1
+          kind: IPAddressPool
+          metadata:
+            name: "{{ item.name }}"
+            namespace: metallb
+          spec:
+            addresses:
+              - "{{ item.addresses }}"
+      with_items:
+        - name: "uat"
+          addresses: "{{ network.identifier }}.{{ network.subnets.uat_lb }}"
+        - name: "prod"
+          addresses: "{{ network.identifier }}.{{ network.subnets.prod_lb }}"
+    
+    - name: Ensure MetalLB has L2Advertisement
+      run_once: true
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: metallb.io/v1beta1
+          kind: L2Advertisement
+          metadata:
+            name: prod
+            namespace: metallb
+          spec:
+            ipAddressePools:
+              - prod
+              - uat
+
+#TODO: handle with physical firewall device
+- name: Open FW Connectivity
+  no_log: true
+  when: kubernetes_firewall | default(false)
+  ansible.builtin.ufw:
+    rule: allow
+    direction: in
+    src: "{{ item.source }}"
+    dest: "{{ static_ip }}"
+    port: "7946"
+    proto: "{{ item.proto }}"
+    comment: "{{ item.comment }}"
+  with_items:
+    - proto: tcp
+      source: "{{ network.identifier }}.{{ network.subnets.managers }}"
+      comment: MetalLB memberlist
+    - proto: udp
+      source: "{{ network.identifier }}.{{ network.subnets.managers }}"
+      comment: MetalLB memberlist
+    - proto: tcp
+      source: "{{ network.identifier }}.{{ network.subnets.workers }}"
+      comment: MetalLB memberlist
+    - proto: udp
+      source: "{{ network.identifier }}.{{ network.subnets.workers }}"
+      comment: MetalLB memberlist
