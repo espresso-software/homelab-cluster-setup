@@ -1,0 +1,21 @@
+---
+- name: Reset k3s
+  hosts: k3s
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Uninstall k3s
+      when: 
+        - "'k3s_managers' in group_names"
+      ansible.builtin.command: /usr/local/bin/k3s-uninstall.sh
+      failed_when: false
+
+    - name: Uninstall k3s agent
+      when: "'k3s_workers' in group_names"
+      ansible.builtin.command: /usr/local/bin/k3s-agent-uninstall.sh agent --uninstall
+      failed_when: false
+
+    - name: Remove k3s data
+      ansible.builtin.file:
+        path: /var/lib/rancher/k3s
+        state: absent
