@@ -1,0 +1,132 @@
+configmapReload:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+server:
+  global:
+    scrape_interval: 5s
+    scrape_timeout: 3s
+    evaluation_interval: 1m
+
+  ingress:
+    enabled: true
+    annotations: 
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      cert-manager.io/duration: 2160h
+      cert-manager.io/renew-before: 360h
+    hosts:
+      - prometheus.{{ local_domain }}
+    tls:
+      - secretName: prometheus-tls
+        hosts:
+          - prometheus.{{ local_domain }}
+
+  nodeSelector:
+    kubernetes.io/role: worker
+
+  persistentVolume:
+    size: 16Gi
+
+  resources:
+    limits:
+      cpu: 1500m
+      memory: 2Gi
+    requests:
+      cpu: 200m
+      memory: 1Gi
+
+  retentionSize: "14GB"
+
+## Prometheus server ConfigMap entries for scrape_config_files
+## (allows scrape configs defined in additional files)
+##
+scrapeConfigFiles: []
+
+# adds additional scrape configs to prometheus.yml
+# must be a string so you have to add a | after extraScrapeConfigs:
+# example adds prometheus-blackbox-exporter scrape config
+extraScrapeConfigs: |
+    - job_name: docker-node-exporter
+      static_configs:
+        - targets: 
+          - node.{{ dns.docker }}
+      scheme: https
+    - job_name: docker-cadvisor
+      static_configs:
+        - targets: 
+          - cadvisor.{{ dns.docker }}
+      scheme: https
+    - job_name: traefik-exporter
+      static_configs:
+        - targets: 
+          - prod.{{ dns.k3s }}:8090
+          - {{ dns.docker }}:8090
+      scheme: http
+    - job_name: http-node-exporter
+      static_configs:
+        - targets: 
+          - {{ network.identifier }}.3.23:9100
+      scheme: http
+
+# Configuration of subcharts defined in Chart.yaml
+
+## alertmanager sub-chart configurable values
+## Please see https://github.com/prometheus-community/helm-charts/tree/main/charts/alertmanager
+##
+alertmanager:
+  nodeSelector:
+    kubernetes.io/role: "worker"
+  resources:
+    limits:
+      cpu: 250m
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+## kube-state-metrics sub-chart configurable values
+## Please see https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-state-metrics
+##
+kube-state-metrics:
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: "true"
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 32Mi
+
+## prometheus-node-exporter sub-chart configurable values
+## Please see https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-node-exporter
+##
+prometheus-node-exporter:
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+## prometheus-pushgateway sub-chart configurable values
+## Please see https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-pushgateway
+##
+prometheus-pushgateway:
+  nodeSelector:
+    kubernetes.io/role: "worker"
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 32Mi

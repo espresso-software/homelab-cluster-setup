@@ -1,0 +1,306 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-data
+  namespace: "{{ grafana_namespace }}"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-plugins
+  namespace: "{{ grafana_namespace }}"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-provisioning
+  namespace: "{{ grafana_namespace }}"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: "{{ grafana_namespace }}"
+data:
+  dashboards.yml: |
+    apiVersion: 1
+    providers:
+    - name: 'default'
+      orgId: 1
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: true
+      allowUiUpdates: true
+      updateIntervalSeconds: 10
+      options:
+        path: "{{ grafana_dirs.data }}/dashboards"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasource
+  namespace: "{{ grafana_namespace }}"
+data:
+  datasource.yml: |
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      orgId: 1
+      url: http://prometheus-server.monitoring.svc.cluster.local
+      basicAuth: false
+      isDefault: true
+      jsonData:
+        graphiteVersion: "1.1"
+        tlsAuth: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-http
+  namespace: "{{ grafana_namespace }}"
+spec:
+  selector:
+    app: grafana
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: "{{ grafana_namespace }}"
+  labels:
+    app: grafana
+    namespace: "{{ grafana_namespace }}"
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    cert-manager.io/duration: 2160h
+    cert-manager.io/renew-before: 360h
+spec:
+  rules:
+    - host: "{{ dns.grafana }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana-http
+                port:
+                  number: 80
+    - host: "grafana.{{ domain }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana-http
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - "{{ dns.grafana }}"
+        - "grafana.{{ domain }}"
+      secretName: grafana-http-proxy-tls
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: "{{ grafana_namespace }}"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    strategy:
+      type: Recreate
+    spec:
+      nodeSelector:
+        kubernetes.io/role: worker
+      strategy:
+        type: Recreate
+      containers:
+        - name: grafana
+          env:
+          - name: GF_SECURITY_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: grafana-admin
+          - name: GF_SECURITY_ADMIN_USER
+            valueFrom:
+              secretKeyRef:
+                key: user
+                name: grafana-admin
+          - name: GF_USERS_ALLOW_SIGN_UP
+            value: 'true'
+          - name: GF_SERVER_DOMAIN
+            value: grafana.local.espresso.software
+          - name: GF_PATHS_CONFIG
+            value: /etc/grafana/grafana.ini
+          - name: GF_PATHS_DATA
+            value: /var/lib/grafana
+          - name: GF_PATHS_HOME
+            value: /usr/share/grafana
+          - name: GF_PATHS_LOGS
+            value: /var/log/grafana
+          - name: GF_PATHS_PLUGINS
+            value: /var/lib/grafana/plugins
+          - name: GF_PATHS_PROVISIONING
+            value: /etc/grafana/provisioning
+          image: grafana/grafana:latest
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /api/health
+              port: 3000
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /api/health
+              port: 3000
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            fsGroup: 472
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /var/lib/grafana
+              name: grafana-data
+            - mountPath: /var/lib/grafana/plugins
+              name: grafana-plugins
+            - mountPath: /var/lib/grafana/dashboards/dashboards.yml
+              name: grafana-dashboards
+              subPath: dashboards.yml
+            - mountPath: /var/lib/grafana/provisioning/datasources/datasource.yml
+              name: grafana-datasource
+              subPath: datasource.yml
+            - mountPath: /var/log/grafana
+              name: grafana-logs
+            - mountPath: /etc/grafana/provisioning
+              name: grafana-provisioning
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext:
+        fsGroup: 472
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: grafana-data
+          persistentVolumeClaim:
+            claimName: grafana-data
+        - name: grafana-plugins
+          persistentVolumeClaim:
+            claimName: grafana-plugins
+        - name: grafana-provisioning
+          persistentVolumeClaim:
+            claimName: grafana-provisioning
+        - configMap:
+            name: grafana-dashboards
+          name: grafana-dashboards
+        - configMap:
+            name: grafana-datasource
+          name: grafana-datasource
+        - emptyDir: {}
+          name: grafana-logs
+---
+apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: grafana-tunnel
+    namespace: cloudflare
+    labels:
+      app: grafana-tunnel
+  spec:
+    replicas: 2
+    selector:
+      matchLabels:
+        app: grafana-tunnel
+    template:
+      metadata:
+        labels:
+          app: grafana-tunnel
+      spec:
+        nodeSelector:
+          kubernetes.io/role: worker
+        strategy:
+          type: RollingUpdate
+          rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 0
+        containers:
+        - name: cloudflared
+          image: cloudflare/cloudflared:latest
+          command:
+          - cloudflared
+          - tunnel
+          - --metrics
+          - 0.0.0.0:2000
+          - --no-autoupdate
+          - run
+          args:
+          - --token
+          - {{ token.json.result | trim }}
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 2000
+            failureThreshold: 1
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 64Mi

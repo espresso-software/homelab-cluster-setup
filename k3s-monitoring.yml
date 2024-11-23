@@ -1,0 +1,210 @@
+---
+# TODO: Move to role
+- name: Deploy Dashboard
+  hosts: k3s_managers
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  tags:
+    - dashboard
+    - kubernetes
+  tasks:
+    - name: Add helm chart
+      kubernetes.core.helm_repository:
+        url: https://kubernetes.github.io/dashboard/
+        name: kubernetes-dashboard
+    
+    - name: Create Kubernetes Dashboard Namespace
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: kubernetes-dashboard
+    
+    - name: Create Kubernetes Dashboard LimitRange
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: LimitRange
+          metadata:
+            name: dashboard-limits
+            namespace: kubernetes-dashboard
+          spec:
+            limits:
+              - default:
+                  memory: 512Mi
+                  cpu: 250m
+                defaultRequest:
+                  memory: 256Mi
+                  cpu: 100m
+                type: Container
+    
+    - name: Create Kubernetes Dashboard ResourceQuota
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ResourceQuota
+          metadata: 
+            name: dashboard-quota
+            namespace: kubernetes-dashboard
+          spec:
+            hard:
+              requests.cpu: "2"
+              requests.memory: 4Gi
+              limits.cpu: "4"
+              limits.memory: 8Gi
+
+    #TODO: determine proxy requests and limits
+    - name: Deploy
+      run_once: true
+      kubernetes.core.helm:
+        name: dashboard
+        chart_ref: kubernetes-dashboard/kubernetes-dashboard
+        release_namespace: kubernetes-dashboard
+        create_namespace: yes
+        values:
+          app:
+            scheduling:
+              nodeSelector:
+                kubernetes.io/role: worker
+            ingress:
+              enabled: false
+          web:
+            containers:
+              args: []
+            scheduling:
+              nodeSelector:
+                kubernetes.io/role: worker
+    
+    - name: Use MetalLB for Service
+      run_once: true
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: dashboard-kong-proxy
+            namespace: kubernetes-dashboard
+            annotations:
+              metallb.universe.tf/address-pool: prod
+          spec:
+            type: LoadBalancer
+            ports:
+              - name: kong-proxy-tls
+                port: 443
+                targetPort: 8443
+                protocol: TCP
+
+    - name: Create Service Account Levels
+      run_once: true
+      vars:
+        service_accounts:
+          - name: dashboard-admin
+            role: cluster-admin
+          - name: dashboard-editor
+            role: edit
+          - name: dashboard-viewer
+            role: view
+      block:
+        - name: Create Service Account
+          with_items: "{{ service_accounts }}"
+          kubernetes.core.k8s:
+            definition:
+              apiVersion: v1
+              kind: ServiceAccount
+              metadata:
+                name: "{{ item.name }}"
+                namespace: kubernetes-dashboard
+          
+        
+        - name: Create Cluster Role Binding
+          with_items: "{{ service_accounts }}"
+          kubernetes.core.k8s:
+            definition:
+              apiVersion: rbac.authorization.k8s.io/v1
+              kind: ClusterRoleBinding
+              metadata:
+                name: "{{ item.name }}"
+              roleRef:
+                apiGroup: rbac.authorization.k8s.io
+                kind: ClusterRole
+                name: "{{ item.role }}"
+              subjects:
+                - kind: ServiceAccount
+                  name: "{{ item.name }}"
+                  namespace: kubernetes-dashboard
+
+#TODO: deploy PVE exporter to hypervisors
+# https://github.com/prometheus-pve/prometheus-pve-exporter
+
+#TODO: deploy node exporter to hypervisors, jumpboxes, and tunnels
+# https://github.com/prometheus/node_exporter
+
+#TODO: deploy to jumpboxes
+- name: Open Node Exporter Ports
+  hosts: k3s
+  become: yes
+  tags:
+    - prometheus
+    - firewall
+    - kubernetes
+  tasks:
+    - name: Open Node Exporter Ports
+      ansible.builtin.ufw:
+        rule: allow
+        port: 9100
+        proto: tcp
+        comment: "{{ item.comment }}"
+        src: "{{ item.source_ip }}"
+        dest: "{{ static_ip }}"
+        direction: in
+      with_items:
+        - source_ip: "{{ network.identifier }}.{{ network.subnets.managers }}"
+          comment: "Node Exporter - managers"
+        - source_ip: "{{ network.identifier }}.{{ network.subnets.workers }}"
+          comment: "Node Exporter - workers"
+
+- name: Deploy Prometheus Stack
+  hosts: k3s_managers
+  run_once: true
+  become: yes
+  tags:
+    - prometheus
+    - kubernetes
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  vars:
+    kubernetes_deploy: true
+  roles:
+    - prometheus
+
+#TODO: update configmap for primary DNS
+- name: Add Grafana DNS (Docker)
+  hosts: raspberrypi
+  become: yes
+  tags:
+    - grafana
+    - docker
+  vars:
+    docker_deploy: true
+  roles:
+    - grafana
+
+- name: Deploy Grafana
+  hosts: k3s_managers
+  run_once: true
+  become: yes
+  tags:
+    - grafana
+    - kubernetes
+    - cloudflare
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  vars:
+    kubernetes_deploy: true
+  roles:
+    - grafana

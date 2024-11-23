@@ -1,0 +1,80 @@
+configmapReload:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+server:
+  global:
+    scrape_interval: 15s
+    scrape_timeout: 3s
+    evaluation_interval: 1m
+
+  ingress:
+    enabled: true
+    annotations: 
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      cert-manager.io/duration: 2160h
+      cert-manager.io/renew-before: 360h
+    hosts:
+      - game-prometheus.{{ local_domain }}
+    tls:
+      - secretName: game-prometheus-tls
+        hosts:
+          - game-prometheus.{{ local_domain }}
+
+  nodeSelector:
+    kubernetes.io/role: worker
+
+  persistentVolume:
+    size: 16Gi
+
+  resources:
+    limits:
+      cpu: 1500m
+      memory: 2Gi
+    requests:
+      cpu: 200m
+      memory: 1Gi
+
+  retentionSize: "14GB"
+
+serverFiles:
+  prometheus.yml:
+    scrape_configs:
+      - job_name: minecraft-exporter
+        static_configs:
+          - targets: 
+            - prominence-ii-exporter.minecraft.svc.cluster.local
+            - atm9-tts-exporter.minecraft.svc.cluster.local
+            - mc-uat-exporter.minecraft.svc.cluster.local
+        scheme: http
+
+## Prometheus server ConfigMap entries for scrape_config_files
+## (allows scrape configs defined in additional files)
+##
+scrapeConfigFiles: []
+
+# adds additional scrape configs to prometheus.yml
+# must be a string so you have to add a | after extraScrapeConfigs:
+# example adds prometheus-blackbox-exporter scrape config
+extraScrapeConfigs: ""
+
+# Disable subcharts (come in from main prometheus server)
+
+alertmanager:
+  enabled: false
+
+kube-state-metrics:
+  enabled: false
+
+prometheus-node-exporter:
+  enabled: false
+
+prometheus-pushgateway:
+  enabled: false
