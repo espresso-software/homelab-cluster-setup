@@ -14,7 +14,7 @@ on:
       playbook:
         description: 'The playbook to run'
         required: true
-        default: 'k3s-nodes.yml'
+        default: 'k3s-nodes'
   
   # Triggers the workflow on push or pull request events but only for the main branch
   # push:
