@@ -1,0 +1,47 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Run Playbook
+
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      host:
+        description: 'The host to run the playbook on'
+        required: true
+        default: 'raspberry'
+      playbook:
+        description: 'The playbook to run'
+        required: true
+        default: 'k3s-nodes.yml'
+  
+  # Triggers the workflow on push or pull request events but only for the main branch
+  # push:
+  #   branches:
+  #     - main
+
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  deploy:
+    # The type of runner that the job will run on
+    runs-on: 
+      - self-hosted
+      - ansible-runner
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+
+      # Runs a single command using the runners shell
+      - name: Run plabook
+        # do not run with k3s-reset, k3s-rolling-restart, or k3s-patching
+        when: ${{ github.event.inputs.playbook }} != 'k3s-reset' && ${{ github.event.inputs.playbook }} != 'k3s-rolling-restart' && ${{ github.event.inputs.playbook }} != 'k3s-patching'
+        run: |
+          ansible-playbook -i inventory/hosts.ini -l ${{ github.event.inputs.host }} ${{ github.events.inputs.playbook }}.yml
