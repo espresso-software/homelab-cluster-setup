@@ -10,15 +10,15 @@ on:
       playbook:
         description: 'The playbook to run'
         required: true
-        default: 'k3s-nodes'
+        default: 'k3s-middleware'
       host:
         description: 'The host to run the playbook on'
         required: false
-        default: ''
+        default: 'raspberrypi'
       tags:
         description: 'The tags to run'
         required: false
-        default: ''
+        default: 'firewall'
       extra_vars:
         description: 'Extra vars to pass to the playbook'
         required: false
