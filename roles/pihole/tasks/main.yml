@@ -84,6 +84,16 @@
       kubernetes.core.k8s:
         src: "{{ deployment.path }}"
         apply: yes
+    
+    - name: Template secondary deployment
+      ansible.builtin.template:
+        src: "templates/secondary.yml.j2"
+        dest: "{{ deployment.path }}"
+    
+    - name: Deploy secondary Pihole
+      kubernetes.core.k8s:
+        src: "{{ deployment.path }}"
+        apply: yes
 
 #TODO: use physical firewall device
 - name: Setup k3s FW Rules
