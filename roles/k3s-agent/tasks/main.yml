@@ -18,6 +18,7 @@
 
     - name: Copy k3s agent service file
       become: true
+      register: k3s_agent_service_task
       ansible.builtin.template:
         src: k3s-agent.service.j2
         dest: /etc/systemd/system/k3s-agent.service
@@ -28,14 +29,15 @@
     - name: Add service environment variables
       become: true
       when: extra_service_envs is defined
+      register: extra_service_envs_task
       ansible.builtin.lineinfile:
         path: "/etc/systemd/system/k3s-agent.service.env"
         line: "{{ item }}"
       with_items: "{{ extra_service_envs }}"
       no_log: true
-
     
     - name: Reload systemd
+      when: k3s_agent_service_task.changed or extra_service_envs_task.changed
       ansible.builtin.command:
         cmd: systemctl daemon-reload
 
