@@ -53,7 +53,7 @@ data:
 apiVersion: v1
 kind: Service
 metadata:
-  name: pihole-dns-tcp
+  name: primary-dns-tcp
   namespace: {{ pihole_namespace }}
   annotations:
     metallb.universe.tf/allow-shared-ip: "pihole-dns"
@@ -73,7 +73,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: pihole-dns-udp
+  name: primary-dns-udp
   namespace: {{ pihole_namespace }}
   annotations:
     metallb.universe.tf/allow-shared-ip: "pihole-dns"
@@ -93,7 +93,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: pihole-http
+  name: primary-http
   namespace: {{ pihole_namespace }}
 spec:
   selector:
@@ -107,7 +107,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: pihole
+  name: primary
   namespace: pihole
   labels:
     app: pihole
@@ -138,17 +138,19 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: pihole
+  name: primary
   namespace: {{ pihole_namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: pihole
+      version: primary
   template:
     metadata:
       labels:
         app: pihole
+        version: primary
     spec:
       nodeSelector:
         kubernetes.io/role: worker
