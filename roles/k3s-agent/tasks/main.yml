@@ -1,32 +1,40 @@
 ---
-- name: Install k3s server binaries
-  ansible.builtin.command: 
-    cmd: /usr/local/bin/k3s-install.sh
-  environment: 
-    INSTALL_K3S_SKIP_START: "true"
-    INSTALL_K3S_EXEC: "agent"
-  changed_when: true
-
-
-- name: Copy k3s agent service file
-  ansible.builtin.template:
-    src: k3s-agent.service.j2
-    dest: /etc/systemd/system/k3s-agent.service
-    owner: root
-    group: root
-    mode: 0644
-
-- name: Add service environment variables
-  when: extra_service_envs is defined
-  ansible.builtin.lineinfile:
-    path: "/etc/systemd/system/k3s-agent.service.env"
-    line: "{{ item }}"
-  with_items: "{{ extra_service_envs }}"
-  no_log: true
-
-- name: Enable and check K3s service
+- name: Check if K3s is already running
   ansible.builtin.systemd:
     name: k3s-agent
-    daemon_reload: true
-    state: started
-    enabled: true
+  register: k3s_status
+  changed_when: false
+
+- name: Setup k3s if not running
+  when: k3s_status.status != 'running'
+  block:
+    - name: Install k3s server binaries
+      ansible.builtin.command: 
+        cmd: /usr/local/bin/k3s-install.sh
+      environment: 
+        INSTALL_K3S_SKIP_START: "true"
+        INSTALL_K3S_EXEC: "agent"
+      changed_when: true
+
+    - name: Copy k3s agent service file
+      ansible.builtin.template:
+        src: k3s-agent.service.j2
+        dest: /etc/systemd/system/k3s-agent.service
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Add service environment variables
+      when: extra_service_envs is defined
+      ansible.builtin.lineinfile:
+        path: "/etc/systemd/system/k3s-agent.service.env"
+        line: "{{ item }}"
+      with_items: "{{ extra_service_envs }}"
+      no_log: true
+
+    - name: Enable and check K3s service
+      ansible.builtin.systemd:
+        name: k3s-agent
+        daemon_reload: true
+        state: started
+        enabled: true

@@ -7,11 +7,11 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
-      host:
+      hosts_file:
         description: 'The host to run the playbook on'
         required: true
-        default: 'raspberrypi'
-      playbook:
+        default: 'hosts'
+      playbook_file:
         description: 'The playbook to run'
         required: true
         default: 'k3s-nodes'
@@ -44,4 +44,4 @@ jobs:
         # do not run with k3s-reset, k3s-rolling-restart, or k3s-patching
         if: ${{ github.event.inputs.playbook }} != 'k3s-reset' && ${{ github.event.inputs.playbook }} != 'k3s-rolling-restart' && ${{ github.event.inputs.playbook }} != 'k3s-patching'
         run: |
-          ansible-playbook -i inventory/hosts.ini -l ${{ github.event.inputs.host }} ${{ github.event.inputs.playbook }}.yml
+          ansible-playbook -i inventory/${{ github.event.inputs.hosts_file }}.ini ${{ github.event.inputs.playbook_file }}.yml
