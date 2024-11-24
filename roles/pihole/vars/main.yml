@@ -1,8 +1,4 @@
 ---
-pihole_network: pihole
-
-pihole_alias: pihole.swarm.local
-
 pihole_web_password: !vault |
   $ANSIBLE_VAULT;1.1;AES256
   30643239633437363433623838656565613536363763326536373562333333613262393837306365
@@ -24,14 +20,14 @@ sync_job_template:
         image: mattwebbio/orbital-sync:1
         env:
           - name: PRIMARY_HOST_BASE_URL
-            value: 'https://{{ dns.d4r_pihole }}'
+            value: 'https://{{ dns.secondary_pihole }}'
           - name: PRIMARY_HOST_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: pihole-secrets
                 key: WEBPASSWORD
           - name: SECONDARY_HOSTS_1_BASE_URL
-            value: 'https://{{ dns.k8s_pihole }}'
+            value: 'https://{{ dns.primary_pihole }}'
           - name: SECONDARY_HOSTS_1_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -42,10 +38,10 @@ sync_job_template:
     restartPolicy: OnFailure
     hostAliases:
       - hostnames:
-          - "{{ dns.d4r_pihole}}"
-        ip: "{{ network.identifier }}.3.200"
+          - "{{ dns.secondary_pihole}}"
+        ip: "{{ network.identifier }}.3.64"
       - hostnames:
-          - "{{ dns.k8s_pihole }}"
+          - "{{ dns.primary_pihole }}"
         ip: "{{ network.identifier }}.3.64"
     affinity:
       nodeAffinity:

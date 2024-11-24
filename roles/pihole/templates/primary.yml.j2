@@ -46,7 +46,7 @@ metadata:
   namespace: {{ pihole_namespace }}
 data:
   TZ: America/Los_Angeles
-  VIRTUAL_HOST: "{{ dns.k8s_pihole }}"
+  VIRTUAL_HOST: "{{ dns.primary_pihole }}"
   PROXY_LOCATION: "pi.hole"
   FTL_CONF_LOCAL_IPV4: "127.0.0.1"
 ---
@@ -61,6 +61,7 @@ metadata:
 spec:
   selector:
     app: pihole
+    version: primary
   ports:
     - name: dns
       port: 53
@@ -80,6 +81,7 @@ metadata:
 spec:
   selector:
     app: pihole
+    version: primary
   ports:
     - name: dns
       port: 53
@@ -96,6 +98,7 @@ metadata:
 spec:
   selector:
     app: pihole
+    version: primary
   ports:
     - name: http
       port: 80
@@ -109,6 +112,7 @@ metadata:
   labels:
     app: pihole
     namespace: pihole
+    versoin: primary
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -116,7 +120,7 @@ metadata:
     cert-manager.io/renew-before: 360h
 spec:
   rules:
-    - host: "{{ dns.k8s_pihole }}"
+    - host: "{{ dns.primary_pihole }}"
       http:
         paths:
           - path: /
@@ -128,7 +132,7 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - "{{ dns.k8s_pihole }}"
+        - "{{ dns.primary_pihole }}"
       secretName: pihole-tls
 ---
 apiVersion: apps/v1
