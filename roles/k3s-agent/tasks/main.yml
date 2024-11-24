@@ -17,7 +17,6 @@
       changed_when: true
 
     - name: Copy k3s agent service file
-      become: true
       register: k3s_agent_service_task
       ansible.builtin.template:
         src: k3s-agent.service.j2
@@ -27,7 +26,6 @@
         mode: 0600
 
     - name: Add service environment variables
-      become: true
       when: extra_service_envs is defined
       register: extra_service_envs_task
       ansible.builtin.lineinfile:
@@ -37,7 +35,6 @@
       no_log: true
 
     - name: Enable and check K3s service
-      become: true
       ansible.builtin.systemd:
         name: k3s-agent
         daemon_reload: true
