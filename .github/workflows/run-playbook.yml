@@ -40,6 +40,6 @@ jobs:
           token: ${{ secrets.READ_ACCESS_TOKEN }}
 
       # Runs a single command using the runners shell
-      - name: Run ping check
+      - name: Run plabook
         run: |
           ansible-playbook -i inventory/hosts.ini -l ${{ github.event.inputs.host }} ${{ github.events.inputs.playbook }}.yml
