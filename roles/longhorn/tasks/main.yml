@@ -40,10 +40,6 @@
         tolerations:
           - key: kubernetes.io/role
             operator: Equal
-            value: gamer
-            effect: NoSchedule
-          - key: kubernetes.io/role
-            operator: Equal
             value: infra
             effect: NoSchedule
       persistence:
@@ -56,5 +52,9 @@
           - key: kubernetes.io/role
             operator: Equal
             value: gamer
+            effect: NoSchedule
+          - key: kubernetes.io/role
+            operator: Equal
+            value: infra
             effect: NoSchedule
   run_once: true
