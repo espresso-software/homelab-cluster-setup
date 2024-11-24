@@ -15,6 +15,14 @@ on:
         description: 'The playbook to run'
         required: true
         default: 'k3s-nodes'
+      tags:
+        description: 'The tags to run'
+        required: false
+        default: ''
+      extra_vars:
+        description: 'Extra vars to pass to the playbook'
+        required: false
+        default: ''
   
   # Triggers the workflow on push or pull request events but only for the main branch
   # push:
@@ -39,13 +47,25 @@ jobs:
           submodules: 'true'
           token: ${{ secrets.READ_ACCESS_TOKEN }}
 
+      - name: Set extra_args
+        id: set_extra_args
+        run: echo "::set-output name=extra_args::"
+    
+      - name: Add tags to extra_args
+        if: ${{ github.event.inputs.tags }} != ''
+        run: echo "::set-output name=extra_args::--tags ${{ github.event.inputs.tags }}"
+
+      - name: Add vars to extra_args
+        if: ${{ github.event.inputs.extra_vars }} != ''
+        run: echo "::set-output name=extra_args::${{ steps.set_extra_args.outputs.extra_args }} --extra-vars '${{ github.event.inputs.extra_vars }}'"
+
       # Runs a single command using the runners shell
       - name: Run plabook
         # do not run with k3s-reset, k3s-rolling-restart, or k3s-patching
         if: ${{ github.event.inputs.playbook }} != 'k3s-reset' && ${{ github.event.inputs.playbook }} != 'k3s-rolling-restart' && ${{ github.event.inputs.playbook }} != 'k3s-patching'
         run: |
           echo "${{ secrets.VAULT_DECRYPT_TOKEN }}" > /tmp/vault_pass
-          ansible-playbook -i inventory/hosts.ini -l ${{ github.event.inputs.host }} ${{ github.event.inputs.playbook }}.yml -v --vault-password-file /tmp/vault_pass
+          ansible-playbook -i inventory/hosts.ini -l ${{ github.event.inputs.host }} ${{ github.event.inputs.playbook }}.yml -v --vault-password-file /tmp/vault_pass ${{ steps.set_extra_args.outputs.extra_args }}
       
       - name: Remove vault pass
         if: always()
