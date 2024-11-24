@@ -1,5 +1,4 @@
 ---
-#TODO: do not use role: infra node
 - name: Install MetalLB
   hosts: k3s_managers
   become: yes
@@ -14,7 +13,6 @@
   roles:
     - metallb
 
-#TODO: do not use role: infra node
 - name: Open L2 Ports between nodes
   hosts: k3s
   become: yes
@@ -28,7 +26,6 @@
   roles:
     - metallb
 
-#TODO: do not use role: infra node
 - name: Install NFS
   hosts: k3s
   become: yes
@@ -42,7 +39,6 @@
         name: nfs-common
         state: present
 
-#TODO: do not use role: infra node
 - name: Install Longhorn
   hosts: k3s_managers
   become: yes

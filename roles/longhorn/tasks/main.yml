@@ -41,7 +41,7 @@
           - key: kubernetes.io/role
             operator: Equal
             value: infra
-            effect: NoSchedule
+            effect: NoExecute
       persistence:
         defaultDataLocality: "best-effort"
       longhornDriver:
@@ -56,5 +56,5 @@
           - key: kubernetes.io/role
             operator: Equal
             value: infra
-            effect: NoSchedule
+            effect: NoExecute
   run_once: true
