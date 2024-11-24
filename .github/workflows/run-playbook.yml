@@ -49,15 +49,15 @@ jobs:
 
       - name: Set extra_args
         id: set_extra_args
-        run: echo "::set-output name=extra_args::"
-    
-      - name: Add tags to extra_args
-        if: ${{ github.event.inputs.tags }} != ''
-        run: echo "::set-output name=extra_args::--tags ${{ github.event.inputs.tags }}"
-
-      - name: Add vars to extra_args
-        if: ${{ github.event.inputs.extra_vars }} != ''
-        run: echo "::set-output name=extra_args::${{ steps.set_extra_args.outputs.extra_args }} --extra-vars '${{ github.event.inputs.extra_vars }}'"
+        run: |
+          args_string=""
+          if [ -n "${{ github.event.inputs.tags }}" ]; then
+            args_string="${args_string} --tags ${{ github.event.inputs.tags }}"
+          fi
+          if [ -n "${{ github.event.inputs.extra_vars }}" ]; then
+            args_string="${args_string} --extra-vars '${{ github.event.inputs.extra_vars }}'"
+          fi
+          echo "::set-output name=extra_args::${args_string}"
 
       # Runs a single command using the runners shell
       - name: Run plabook
