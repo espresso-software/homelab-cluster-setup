@@ -47,8 +47,6 @@
     - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-  vars:
-    kubernetes_deploy: true
   roles:
     - longhorn
 
@@ -61,8 +59,6 @@
     - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-  vars:
-    kubernetes_deploy: true
   roles:
     - cert-manager
 
