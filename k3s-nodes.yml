@@ -74,9 +74,8 @@
           role: worker
         - name: pumpkinpi
           role: worker
-        # TODO: setup raspberrypi as k3s worker
-        # - name: raspberrypi
-        #   role: infra
+        - name: raspberrypi
+          role: infra
         - name: vwkr01
           role: worker
         - name: vgmr01
