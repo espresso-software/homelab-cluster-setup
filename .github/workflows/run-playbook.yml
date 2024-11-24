@@ -10,7 +10,7 @@ on:
       host:
         description: 'The host to run the playbook on'
         required: true
-        default: 'raspberry'
+        default: 'raspberrypi'
       playbook:
         description: 'The playbook to run'
         required: true
