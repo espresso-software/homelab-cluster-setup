@@ -26,7 +26,7 @@
   roles:
     - metallb
 
-- name: Install NFS
+- name: Longhorn prereqs
   hosts: k3s
   become: yes
   tags:
@@ -38,6 +38,22 @@
       ansible.builtin.apt:
         name: nfs-common
         state: present
+    - name: Create default multipath.conf
+      ansible.builtin.copy:
+        dest: /etc/multipath.conf
+        content: |
+          defaults {
+            user_friendly_names yes
+          }
+          blacklist {
+            devnode "^sd[a-z0-9]+"
+          }
+      register: multipath_conf
+    - name: Reload multipathd
+      ansible.builtin.systemd:
+        name: multipathd
+        state: restarted
+      when: multipath_conf.changed
 
 - name: Install Longhorn
   hosts: k3s_managers
