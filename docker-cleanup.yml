@@ -3,17 +3,6 @@
   hosts:
     - raspberry
   tasks:
-    - name: uninstall pip dependencies
-      become: yes
-      ansible.builtin.pip:
-        name: 
-          - docker
-          - pyyaml
-          - requests
-          - jsondiff
-        state: absent
-        break_system_packages: yes
-
     - name: Stop docker service
       become: yes
       ansible.builtin.systemd:
