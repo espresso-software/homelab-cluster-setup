@@ -36,6 +36,16 @@
     chart_ref: longhorn/longhorn
     release_namespace: longhorn-system
     values:
+      global:
+        tolerations:
+          - key: kubernetes.io/role
+            operator: Equal
+            value: gamer
+            effect: NoSchedule
+          - key: kubernetes.io/role
+            operator: Equal
+            value: infra
+            effect: NoSchedule
       persistence:
         defaultDataLocality: "best-effort"
       longhornDriver:
@@ -47,9 +57,4 @@
             operator: Equal
             value: gamer
             effect: NoSchedule
-          # - key: kubernetes.io/role
-          #   operator: Equal
-          #   value: infra
-          #   effect: NoSchedule
-      #TODO: do not schedule storage on infra nodes
   run_once: true

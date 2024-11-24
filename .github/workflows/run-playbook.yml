@@ -10,7 +10,7 @@ on:
       playbook:
         description: 'The playbook to run'
         required: true
-        default: 'docker-cleanup'
+        default: 'k3s-middleware'
       host:
         description: 'The host to run the playbook on'
         required: false
