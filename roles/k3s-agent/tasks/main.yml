@@ -36,8 +36,8 @@
 
     
     - name: Reload systemd
-      ansible.builtin.systemd:
-        daemon_reload: yes
+      ansible.builtin.command:
+        cmd: systemctl daemon-reload
 
     - name: Enable and check K3s service
       ansible.builtin.systemd:
