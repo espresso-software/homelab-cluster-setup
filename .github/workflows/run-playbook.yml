@@ -14,7 +14,7 @@ on:
       host:
         description: 'The host to run the playbook on'
         required: false
-        default: 'raspberrypi'
+        default: ''
       tags:
         description: 'The tags to run'
         required: false
