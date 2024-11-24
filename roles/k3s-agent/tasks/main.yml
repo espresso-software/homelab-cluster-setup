@@ -35,15 +35,11 @@
         line: "{{ item }}"
       with_items: "{{ extra_service_envs }}"
       no_log: true
-    
-    - name: reboot
-      when: k3s_agent_service_task.changed or extra_service_envs_task.changed
-      ansible.builtin.reboot:
-        reboot_timeout: 300
-        msg: "Rebooting to apply changes"
 
     - name: Enable and check K3s service
+      become: true
       ansible.builtin.systemd:
         name: k3s-agent
+        daemon_reload: true
         state: started
         enabled: true
