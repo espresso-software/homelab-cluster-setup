@@ -45,7 +45,7 @@ jobs:
         if: ${{ github.event.inputs.playbook }} != 'k3s-reset' && ${{ github.event.inputs.playbook }} != 'k3s-rolling-restart' && ${{ github.event.inputs.playbook }} != 'k3s-patching'
         run: |
           echo "${{ secrets.VAULT_DECRYPT_TOKEN }}" > /tmp/vault_pass
-          ansible-playbook -i inventory/hosts.ini -l ${{ github.event.inputs.host }} ${{ github.event.inputs.playbook }}.yml
+          ansible-playbook -i inventory/hosts.ini -l ${{ github.event.inputs.host }} ${{ github.event.inputs.playbook }}.yml -v --vault-password-file /tmp/vault_pass
       
       - name: Remove vault pass
         if: always()
