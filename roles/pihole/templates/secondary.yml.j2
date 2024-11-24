@@ -120,7 +120,7 @@ spec:
         kubernetes.io/role: infra
       containers:
         - name: pihole
-          image: "{{ pihole_image }}"
+          image: pihole/pihole:{{ version | default("latest") }}
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
