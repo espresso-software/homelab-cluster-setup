@@ -34,9 +34,13 @@
       with_items: "{{ extra_service_envs }}"
       no_log: true
 
+    
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: yes
+
     - name: Enable and check K3s service
       ansible.builtin.systemd:
         name: k3s-agent
-        daemon_reload: true
         state: started
         enabled: true
