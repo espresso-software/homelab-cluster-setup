@@ -41,5 +41,7 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Run plabook
+        # do not run with k3s-reset, k3s-rolling-restart, or k3s-patching
+        when: ${{ github.event.inputs.playbook }} != 'k3s-reset' && ${{ github.event.inputs.playbook }} != 'k3s-rolling-restart' && ${{ github.event.inputs.playbook }} != 'k3s-patching'
         run: |
           ansible-playbook -i inventory/hosts.ini -l ${{ github.event.inputs.host }} ${{ github.events.inputs.playbook }}.yml
