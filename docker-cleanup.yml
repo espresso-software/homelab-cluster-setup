@@ -12,6 +12,7 @@
           - requests
           - jsondiff
         state: absent
+        break_system_packages: yes
 
     - name: Stop docker service
       become: yes
