@@ -42,7 +42,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: pihole-config
+  name: primary-config
   namespace: {{ pihole_namespace }}
 data:
   TZ: America/Los_Angeles
@@ -57,7 +57,7 @@ metadata:
   namespace: {{ pihole_namespace }}
   annotations:
     metallb.universe.tf/allow-shared-ip: "pihole-dns"
-    metallb.universe.tf/loadBalancerIPs: "{{ network.identifier }}.3.69"
+    metallb.universe.tf/loadBalancerIPs: "{{ network.dns1 }}"
 spec:
   selector:
     app: pihole
@@ -77,7 +77,7 @@ metadata:
   namespace: {{ pihole_namespace }}
   annotations:
     metallb.universe.tf/allow-shared-ip: "pihole-dns"
-    metallb.universe.tf/loadBalancerIPs: "{{ network.identifier }}.3.69"
+    metallb.universe.tf/loadBalancerIPs: "{{ network.dns1 }}"
 spec:
   selector:
     app: pihole
