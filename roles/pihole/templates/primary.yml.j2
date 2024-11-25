@@ -112,7 +112,7 @@ metadata:
   labels:
     app: pihole
     namespace: pihole
-    versoin: primary
+    version: primary
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -127,7 +127,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: pihole-http
+                name: primary-http
                 port:
                   number: 80
   tls:
