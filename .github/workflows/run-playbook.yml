@@ -10,7 +10,7 @@ on:
       playbook:
         description: 'The playbook to run'
         required: true
-        default: 'k3s-middleware'
+        default: 'k3s-monitoring'
       host:
         description: 'The host to run the playbook on'
         required: false
@@ -18,7 +18,7 @@ on:
       tags:
         description: 'The tags to run'
         required: false
-        default: 'pihole'
+        default: ''
       extra_vars:
         description: 'Extra vars to pass to the playbook'
         required: false
