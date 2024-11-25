@@ -2,6 +2,7 @@
 # TODO: Move to role
 - name: Deploy Dashboard
   hosts: k3s_managers
+  become: yes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
   tags:
