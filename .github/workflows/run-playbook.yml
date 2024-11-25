@@ -10,7 +10,7 @@ on:
       playbook:
         description: 'The playbook to run'
         required: true
-        default: 'dns-update'
+        default: 'k3s-middleware'
       host:
         description: 'The host to run the playbook on'
         required: false
@@ -18,7 +18,7 @@ on:
       tags:
         description: 'The tags to run'
         required: false
-        default: ''
+        default: 'pihole'
       extra_vars:
         description: 'Extra vars to pass to the playbook'
         required: false
