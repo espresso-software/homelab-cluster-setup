@@ -1,5 +1,7 @@
 ---
 - name: Uninstall docker
+  gather_facts: true
+  become: yes
   hosts:
     - lab
   tasks:
