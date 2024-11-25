@@ -97,17 +97,23 @@ metadata:
     app: pihole
     namespace: pihole
     version: secondary
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    cert-manager.io/duration: 2160h
+    cert-manager.io/renew-before: 360h
 spec:
   rules:
     - host: "{{ dns.secondary_pihole }}"
       http:
-        path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: secondary-http
-            port:
-              number: 80
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: secondary-http
+                port:
+                  number: 80
   tls:
     - hosts:
         - "{{ dns.secondary_pihole }}"
