@@ -27,7 +27,7 @@ sync_job_template:
                 name: pihole-secrets
                 key: WEBPASSWORD
           - name: SECONDARY_HOSTS_1_BASE_URL
-            value: 'https://{{ dns.secondary_pihole }}'
+            value: 'http://secondary-http.pihole.svc.cluster.local'
           - name: SECONDARY_HOSTS_1_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -37,9 +37,6 @@ sync_job_template:
             value: "true"
     restartPolicy: OnFailure
     hostAliases:
-      - hostnames:
-          - "{{ dns.secondary_pihole}}"
-        ip: "{{ network.identifier }}.3.64"
       - hostnames:
           - "{{ dns.primary_pihole }}"
         ip: "{{ network.identifier }}.3.64"
