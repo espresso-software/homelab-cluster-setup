@@ -66,11 +66,15 @@ jobs:
       - name: Setup vault token
         run: |
           echo "${{ secrets.VAULT_DECRYPT_TOKEN }}" > /tmp/vault_pass
-      
-      - name: Run firewall setup
+
+      - name: Run playbook
         run: |
-          ansible-playbook -i inventory/hosts.ini k3s-middleware.yml -v --vault-password-file /tmp/vault_pass --tags firewall,longhorn ${{ steps.set_extra_args.outputs.extra_args }}
-          ansible-playbook -i inventory/hosts.ini k3s-monitoring.yml -v --vault-password-file /tmp/vault_pass --tags firewall ${{ steps.set_extra_args.outputs.extra_args }}
+          ansible-playbook -i inventory/hosts.ini k3s-middleware.yml -v --vault-password-file /tmp/vault_pass --tags metallb ${{ steps.set_extra_args.outputs.extra_args }}
+      
+      # - name: Run firewall setup
+      #   run: |
+      #     ansible-playbook -i inventory/hosts.ini k3s-middleware.yml -v --vault-password-file /tmp/vault_pass --tags firewall,longhorn ${{ steps.set_extra_args.outputs.extra_args }}
+      #     ansible-playbook -i inventory/hosts.ini k3s-monitoring.yml -v --vault-password-file /tmp/vault_pass --tags firewall ${{ steps.set_extra_args.outputs.extra_args }}
 
       # - name: Run kubernetes setup
       #   run: |
