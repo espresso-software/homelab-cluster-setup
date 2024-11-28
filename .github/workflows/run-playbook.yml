@@ -63,15 +63,19 @@ jobs:
           echo "::set-output name=extra_args::${args_string}"
 
       # Runs a single command using the runners shell
-      - name: Run k3s install
+      - name: Setup vault token
         run: |
           echo "${{ secrets.VAULT_DECRYPT_TOKEN }}" > /tmp/vault_pass
-      #     ansible-playbook -i inventory/hosts.ini k3s-nodes.yml -v --vault-password-file /tmp/vault_pass ${{ steps.set_extra_args.outputs.extra_args }}
       
-      - name: Run firewall setup
+      # - name: Run firewall setup
+      #   run: |
+      #     ansible-playbook -i inventory/hosts.ini k3s-middleware.yml -v --vault-password-file /tmp/vault_pass --tags firewall ${{ steps.set_extra_args.outputs.extra_args }}
+      #     ansible-playbook -i inventory/hosts.ini k3s-monitoring.yml -v --vault-password-file /tmp/vault_pass --tags firewall ${{ steps.set_extra_args.outputs.extra_args }}
+
+      - name: Run kubernetes setup
         run: |
-          ansible-playbook -i inventory/hosts.ini k3s-middleware.yml -v --vault-password-file /tmp/vault_pass --tags firewall ${{ steps.set_extra_args.outputs.extra_args }}
-          ansible-playbook -i inventory/hosts.ini k3s-monitoring.yml -v --vault-password-file /tmp/vault_pass --tags firewall ${{ steps.set_extra_args.outputs.extra_args }}
+          ansible-playbook -i inventory/hosts.ini k3s-nodes.yml -v --vault-password-file /tmp/vault_pass ${{ steps.set_extra_args.outputs.extra_args }}
+          ansible-playbook -i inventory/hosts.ini k3s-nodes.yml -v --vault-password-file /tmp/vault_pass --tags config
       
       - name: Remove vault pass
         if: always()

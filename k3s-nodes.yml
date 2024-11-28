@@ -81,7 +81,7 @@
           role: infra
         - name: vwkr01
           role: worker
-        - name: vgmr01
+        - name: gmr01pl
           role: gamer
 
 - name: Restrict kube-system pods to managers
