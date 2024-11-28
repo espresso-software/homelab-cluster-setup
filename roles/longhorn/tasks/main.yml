@@ -49,6 +49,7 @@
     - vwkr01
     - vgmr01
     - vmgr01
+    - gmr01pl
 
 - name: Install Longhorn
   kubernetes.core.helm:
