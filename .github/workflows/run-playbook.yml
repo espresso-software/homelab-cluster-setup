@@ -14,7 +14,12 @@ on:
       playbook:
         description: 'The playbook to run'
         required: true
-        default: 'k3s-nodes.yml'
+        options:
+          - helm
+          - middleware
+          - monitoring
+          - nodes
+          
   
   # Triggers the workflow on push or pull request events but only for the main branch
   # push:
@@ -42,6 +47,5 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run plabook
         # do not run with k3s-reset, k3s-rolling-restart, or k3s-patching
-        when: ${{ github.event.inputs.playbook }} != 'k3s-reset' && ${{ github.event.inputs.playbook }} != 'k3s-rolling-restart' && ${{ github.event.inputs.playbook }} != 'k3s-patching'
         run: |
-          ansible-playbook -i inventory/hosts.ini -l ${{ github.event.inputs.host }} ${{ github.events.inputs.playbook }}.yml
+          ansible-playbook -i inventory/hosts.ini -l ${{ github.event.inputs.host }} k3s-${{ github.events.inputs.playbook }}.yml
