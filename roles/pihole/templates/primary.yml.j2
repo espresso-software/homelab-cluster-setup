@@ -42,25 +42,26 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: pihole-config
+  name: primary-config
   namespace: {{ pihole_namespace }}
 data:
   TZ: America/Los_Angeles
-  VIRTUAL_HOST: "{{ dns.k8s_pihole }}"
+  VIRTUAL_HOST: "{{ dns.primary_pihole }}"
   PROXY_LOCATION: "pi.hole"
   FTL_CONF_LOCAL_IPV4: "127.0.0.1"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: pihole-dns-tcp
+  name: primary-dns-tcp
   namespace: {{ pihole_namespace }}
   annotations:
     metallb.universe.tf/allow-shared-ip: "pihole-dns"
-    metallb.universe.tf/loadBalancerIPs: "{{ network.identifier }}.3.69"
+    metallb.universe.tf/loadBalancerIPs: "{{ network.dns1 }}"
 spec:
   selector:
     app: pihole
+    version: primary
   ports:
     - name: dns
       port: 53
@@ -72,14 +73,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: pihole-dns-udp
+  name: primary-dns-udp
   namespace: {{ pihole_namespace }}
   annotations:
     metallb.universe.tf/allow-shared-ip: "pihole-dns"
-    metallb.universe.tf/loadBalancerIPs: "{{ network.identifier }}.3.69"
+    metallb.universe.tf/loadBalancerIPs: "{{ network.dns1 }}"
 spec:
   selector:
     app: pihole
+    version: primary
   ports:
     - name: dns
       port: 53
@@ -91,11 +93,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: pihole-http
+  name: primary-http
   namespace: {{ pihole_namespace }}
 spec:
   selector:
     app: pihole
+    version: primary
   ports:
     - name: http
       port: 80
@@ -104,11 +107,12 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: pihole
+  name: primary
   namespace: pihole
   labels:
     app: pihole
     namespace: pihole
+    version: primary
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -116,35 +120,37 @@ metadata:
     cert-manager.io/renew-before: 360h
 spec:
   rules:
-    - host: "{{ dns.k8s_pihole }}"
+    - host: "{{ dns.primary_pihole }}"
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: pihole-http
+                name: primary-http
                 port:
                   number: 80
   tls:
     - hosts:
-        - "{{ dns.k8s_pihole }}"
+        - "{{ dns.primary_pihole }}"
       secretName: pihole-tls
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: pihole
+  name: primary
   namespace: {{ pihole_namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: pihole
+      version: primary
   template:
     metadata:
       labels:
         app: pihole
+        version: primary
     spec:
       nodeSelector:
         kubernetes.io/role: worker

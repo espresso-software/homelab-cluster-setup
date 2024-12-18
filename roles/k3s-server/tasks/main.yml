@@ -1,5 +1,12 @@
 ---
+- name: Check if K3s is already running
+  ansible.builtin.systemd:
+    name: k3s
+  register: k3s_status
+  changed_when: false
+
 - name: Install k3s server binaries
+  when: k3s_status.status != 'running'
   ansible.builtin.command: 
     cmd: /usr/local/bin/k3s-install.sh
   environment: 
@@ -27,33 +34,36 @@
 - name: Init first k3s server
   when: inventory_hostname == groups['k3s_managers'][0]
   block:  
-    - name: Copy k3s service file [HA]
-      ansible.builtin.template:
-        src: k3s-init.service.j2
-        dest: /etc/systemd/system/k3s.service
-        owner: root
-        group: root
-        mode: 0644
+    - name: Setup k3s if not running
+      when: k3s_status.status != 'running'
+      block:
+        - name: Copy k3s service file [HA]
+          ansible.builtin.template:
+            src: k3s-init.service.j2
+            dest: /etc/systemd/system/k3s.service
+            owner: root
+            group: root
+            mode: 0644
 
-    - name: Add service environment variables
-      when: extra_service_envs is defined
-      ansible.builtin.lineinfile:
-        path: "/etc/systemd/system/k3s.service.env"
-        line: "{{ item }}"
-      with_items: "{{ extra_service_envs }}"
-      no_log: true
+        - name: Add service environment variables
+          when: extra_service_envs is defined
+          ansible.builtin.lineinfile:
+            path: "/etc/systemd/system/k3s.service.env"
+            line: "{{ item }}"
+          with_items: "{{ extra_service_envs }}"
+          no_log: true
 
-    - name: Enable and check K3s service
-      ansible.builtin.systemd:
-        name: k3s
-        daemon_reload: true
-        state: started
-        enabled: true
-    
-    - name: Pause to allow first server startup
-      ansible.builtin.pause:
-        seconds: 10
-      when: groups['k3s_managers'][0] | length > 1
+        - name: Enable and check K3s service
+          ansible.builtin.systemd:
+            name: k3s
+            daemon_reload: true
+            state: started
+            enabled: true
+        
+        - name: Pause to allow first server startup
+          ansible.builtin.pause:
+            seconds: 10
+          when: groups['k3s_managers'][0] | length > 1
 
     - name: Get CA Agent Token from file
       ansible.builtin.shell: cat /var/lib/rancher/k3s/server/agent-token
@@ -73,28 +83,31 @@
     - groups['k3s_managers'] | length > 1 
     - inventory_hostname != groups['k3s_managers'][0]
   block:
-    - name: Copy k3s service file [HA]
-      ansible.builtin.template:
-        src: k3s-ha.service.j2
-        dest: /etc/systemd/system/k3s.service
-        owner: root
-        group: root
-        mode: 0644
-    
-    - name: Add service environment variables
-      when: extra_service_envs is defined
-      ansible.builtin.lineinfile:
-        path: "/etc/systemd/system/k3s.service.env"
-        line: "{{ item }}"
-      with_items: "{{ extra_service_envs }}"
-      no_log: true
+    - name: Setup k3s if not running
+      when: k3s_status.status != 'running'
+      block:
+        - name: Copy k3s service file [HA]
+          ansible.builtin.template:
+            src: k3s-ha.service.j2
+            dest: /etc/systemd/system/k3s.service
+            owner: root
+            group: root
+            mode: 0644
+        
+        - name: Add service environment variables
+          when: extra_service_envs is defined
+          ansible.builtin.lineinfile:
+            path: "/etc/systemd/system/k3s.service.env"
+            line: "{{ item }}"
+          with_items: "{{ extra_service_envs }}"
+          no_log: true
 
-    - name: Enable and check K3s service
-      ansible.builtin.systemd:
-        name: k3s
-        daemon_reload: true
-        state: started
-        enabled: true
+        - name: Enable and check K3s service
+          ansible.builtin.systemd:
+            name: k3s
+            daemon_reload: true
+            state: started
+            enabled: true
 
     - name: Verify that all server nodes joined
       when: (groups['k3s_managers'] | length) > 1

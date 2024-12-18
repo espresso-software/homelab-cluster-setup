@@ -2,6 +2,7 @@
 - name: Configure k3s vip
   hosts: k3s_managers
   gather_facts: true
+  become: true
   tags:
     - k3s
     - kubernetes
@@ -21,6 +22,7 @@
 - name: Initialize k3s servers
   hosts: k3s_managers
   gather_facts: true
+  become: true
   tags:
     - k3s
     - kubernetes
@@ -37,6 +39,7 @@
 - name: Join k3s - workers
   hosts: k3s_workers
   gather_facts: true
+  become: true
   tags:
     - k3s
     - kubernetes
@@ -74,12 +77,11 @@
           role: worker
         - name: pumpkinpi
           role: worker
-        # TODO: setup raspberrypi as k3s worker
-        # - name: raspberrypi
-        #   role: infra
+        - name: raspberrypi
+          role: infra
         - name: vwkr01
           role: worker
-        - name: vgmr01
+        - name: gmr01pl
           role: gamer
 
 - name: Restrict kube-system pods to managers

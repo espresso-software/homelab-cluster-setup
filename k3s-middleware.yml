@@ -1,5 +1,4 @@
 ---
-#TODO: do not use role: infra node
 - name: Install MetalLB
   hosts: k3s_managers
   become: yes
@@ -14,7 +13,6 @@
   roles:
     - metallb
 
-#TODO: do not use role: infra node
 - name: Open L2 Ports between nodes
   hosts: k3s
   become: yes
@@ -28,8 +26,7 @@
   roles:
     - metallb
 
-#TODO: do not use role: infra node
-- name: Install NFS
+- name: Longhorn prereqs
   hosts: k3s
   become: yes
   tags:
@@ -41,8 +38,23 @@
       ansible.builtin.apt:
         name: nfs-common
         state: present
+    - name: Create default multipath.conf
+      ansible.builtin.copy:
+        dest: /etc/multipath.conf
+        content: |
+          defaults {
+            user_friendly_names yes
+          }
+          blacklist {
+            devnode "^sd[a-z0-9]+"
+          }
+      register: multipath_conf
+    - name: Reload multipathd
+      ansible.builtin.systemd:
+        name: multipathd
+        state: restarted
+      when: multipath_conf.changed
 
-#TODO: do not use role: infra node
 - name: Install Longhorn
   hosts: k3s_managers
   become: yes
@@ -51,8 +63,6 @@
     - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-  vars:
-    kubernetes_deploy: true
   roles:
     - longhorn
 
@@ -65,8 +75,6 @@
     - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-  vars:
-    kubernetes_deploy: true
   roles:
     - cert-manager
 
@@ -125,3 +133,27 @@
     kubernetes_firewall: true
   roles:
     - pihole
+
+- name: Setup secondary Pi-hole FW Rules
+  hosts: k3s
+  become: yes
+  gather_facts: true
+  tags:
+    - firewall
+    - pihole
+    - kubernetes
+  tasks:
+    - name: Setup k3s FW Rules
+      community.general.ufw:
+        rule: allow
+        direction: in
+        src: "{{ network.identifier }}.{{ network.subnet }}"
+        dest: "{{ network.identifier }}.3.69"
+        port: 53
+        proto: "{{ item.proto }}"
+        comment: "{{ item.comment }}"
+      with_items:
+        - proto: 'udp'
+          comment: 'DNS UDP'
+        - proto: 'tcp'
+          comment: 'DNS TCP'
