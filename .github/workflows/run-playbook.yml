@@ -19,7 +19,7 @@ on:
       host:
         description: 'The host to run the playbook on'
         required: false
-        default: ''
+        default: 'all'
       tags:
         description: 'The tags to run'
         required: false
