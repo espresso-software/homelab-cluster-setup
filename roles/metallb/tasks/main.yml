@@ -35,22 +35,6 @@
                   cpu: 10m
                 type: Container
         state: present
-    
-    - name: Create MetalLB ResourceQuota
-      kubernetes.core.k8s:
-        definition:
-          apiVersion: v1
-          kind: ResourceQuota
-          metadata:
-            name: metallb-quota
-            namespace: metallb
-          spec:
-            hard:
-              requests.cpu: "1000m"
-              requests.memory: 2Gi
-              limits.cpu: "4000m"
-              limits.memory: 6Gi
-        state: present
   
     - name: Install MetalLB
       run_once: true
