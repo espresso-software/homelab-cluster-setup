@@ -47,9 +47,11 @@
     - keylimepi
     - pumpkinpi
     - vwkr01
+    - wkr02vl
     - vgmr01
     - vmgr01
     - gmr01pl
+    - gmr02vl
 
 - name: Install Longhorn
   kubernetes.core.helm:
