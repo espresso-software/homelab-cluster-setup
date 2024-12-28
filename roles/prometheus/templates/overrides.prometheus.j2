@@ -53,22 +53,6 @@ scrapeConfigFiles: []
 # must be a string so you have to add a | after extraScrapeConfigs:
 # example adds prometheus-blackbox-exporter scrape config
 extraScrapeConfigs: |
-    - job_name: docker-node-exporter
-      static_configs:
-        - targets: 
-          - node.{{ dns.docker }}
-      scheme: https
-    - job_name: docker-cadvisor
-      static_configs:
-        - targets: 
-          - cadvisor.{{ dns.docker }}
-      scheme: https
-    - job_name: traefik-exporter
-      static_configs:
-        - targets: 
-          - prod.{{ dns.k3s }}:8090
-          - {{ dns.docker }}:8090
-      scheme: http
     - job_name: http-node-exporter
       static_configs:
         - targets: 

@@ -30,12 +30,36 @@
             type: Container
     state: present
 
+- name: Add labels to nodes
+  # no_log: true
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Node
+      metadata:
+        labels:
+          espresso.software/longhorn: "true"
+    name: "{{ item }}"
+  with_items:
+    - applepi
+    - blackberrypi
+    - keylimepi
+    - pumpkinpi
+    - vwkr01
+    - vgmr01
+    - vmgr01
+    - gmr01pl
+
 - name: Install Longhorn
   kubernetes.core.helm:
     name: longhorn
     chart_ref: longhorn/longhorn
     release_namespace: longhorn-system
     values:
+      global:
+        nodeSelector:
+          espresso.software/longhorn: "true"
       persistence:
         defaultDataLocality: "best-effort"
       longhornDriver:
@@ -47,9 +71,4 @@
             operator: Equal
             value: gamer
             effect: NoSchedule
-          # - key: kubernetes.io/role
-          #   operator: Equal
-          #   value: infra
-          #   effect: NoSchedule
-      #TODO: do not schedule storage on infra nodes
   run_once: true

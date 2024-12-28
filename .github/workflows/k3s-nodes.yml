@@ -1,25 +1,16 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Run Playbook
+name: k3s Install
 
 # Controls when the workflow will run
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
-      playbook:
-        description: 'The playbook to run'
-        required: true
-        type: choice
-        options:
-          - helm
-          - middleware
-          - monitoring
-          - nodes
       host:
         description: 'The host to run the playbook on'
         required: false
-        default: 'all'
+        default: ''
       tags:
         description: 'The tags to run'
         required: false
@@ -68,13 +59,11 @@ jobs:
           echo "::set-output name=extra_args::${args_string}"
 
       # Runs a single command using the runners shell
-      - name: Setup vault token
+      - name: Run plabook
+        # do not run with k3s-reset, k3s-rolling-restart, or k3s-patching
         run: |
           echo "${{ secrets.VAULT_DECRYPT_TOKEN }}" > /tmp/vault_pass
-      
-      - name: Run playbook
-        run: |
-          ansible-playbook -i inventory/hosts.ini -l ${{ github.event.inputs.host }} k3s-${{ github.event.inputs.playbook }}.yml -v --vault-password-file /tmp/vault_pass ${{ steps.set_extra_args.outputs.extra_args }}
+          ansible-playbook -i inventory/hosts.ini k3s-nodes.yml -v --vault-password-file /tmp/vault_pass ${{ steps.set_extra_args.outputs.extra_args }}
       
       - name: Remove vault pass
         if: always()

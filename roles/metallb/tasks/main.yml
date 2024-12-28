@@ -46,10 +46,10 @@
             namespace: metallb
           spec:
             hard:
-              requests.cpu: "500m"
-              requests.memory: 1Gi
-              limits.cpu: "2000m"
-              limits.memory: 3Gi
+              requests.cpu: "1000m"
+              requests.memory: 2Gi
+              limits.cpu: "4000m"
+              limits.memory: 6Gi
         state: present
   
     - name: Install MetalLB

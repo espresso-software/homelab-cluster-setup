@@ -74,6 +74,16 @@
       ansible.builtin.tempfile:
         suffix: '.yml'
       register: deployment
+    
+    - name: Template secondary deployment
+      ansible.builtin.template:
+        src: "templates/secondary.yml.j2"
+        dest: "{{ deployment.path }}"
+    
+    - name: Deploy secondary Pihole
+      kubernetes.core.k8s:
+        src: "{{ deployment.path }}"
+        apply: yes
 
     - name: Template Pihole Deployment
       ansible.builtin.template:
@@ -92,7 +102,23 @@
     rule: allow
     direction: in
     src: "{{ network.identifier }}.{{ network.subnet }}"
-    dest: "{{ network.identifier }}.3.69"
+    dest: "{{ network.dns1 }}"
+    port: 53
+    proto: "{{ item.proto }}"
+    comment: "{{ item.comment }}"
+  with_items:
+    - proto: 'udp'
+      comment: 'DNS UDP'
+    - proto: 'tcp'
+      comment: 'DNS TCP'
+
+- name: Setup k3s FW Rules
+  when: kubernetes_firewall | default(false)
+  community.general.ufw:
+    rule: allow
+    direction: in
+    src: "{{ network.identifier }}.{{ network.subnet }}"
+    dest: "{{ network.dns2 }}"
     port: 53
     proto: "{{ item.proto }}"
     comment: "{{ item.comment }}"
