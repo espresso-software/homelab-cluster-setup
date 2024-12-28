@@ -14,6 +14,7 @@
       environment: 
         INSTALL_K3S_SKIP_START: "true"
         INSTALL_K3S_EXEC: "agent"
+        INSTALL_K3S_VERSION: "{{ k3s_version }}"
       changed_when: true
 
     - name: Copy k3s agent service file
