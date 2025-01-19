@@ -5,6 +5,14 @@
   register: k3s_status
   changed_when: false
 
+- name: Create k3s config file
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/rancher/k3s/config.yaml
+    owner: root
+    group: root
+    mode: 0640
+
 - name: Setup k3s if not running
   when: k3s_status.status != 'running'
   block:
@@ -25,15 +33,6 @@
         owner: root
         group: root
         mode: 0600
-
-    - name: Add service environment variables
-      when: extra_service_envs is defined
-      register: extra_service_envs_task
-      ansible.builtin.lineinfile:
-        path: "/etc/systemd/system/k3s-agent.service.env"
-        line: "{{ item }}"
-      with_items: "{{ extra_service_envs }}"
-      no_log: true
 
     - name: Enable and check K3s service
       ansible.builtin.systemd:

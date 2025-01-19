@@ -32,9 +32,38 @@
       debug:
         msg: 'Failed to install Ansible dependencies, check logs'
 
+- name: Create k3s group
+  ansible.builtin.group:
+    name: k3s
+    state: present
+
+- name: Create k3s config file
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/rancher/k3s/config.yaml
+    owner: root
+    group: root
+    mode: 0640
+
+- name: Create k3s config directory
+  ansible.builtin.file:
+    path: /etc/rancher/k3s/config.yaml.d
+    state: directory
+    owner: root
+    group: root
+    mode: 0640
+
 - name: Init first k3s server
   when: inventory_hostname == groups['k3s_managers'][0]
-  block:  
+  block: 
+    - name: Create k3s config-init config yaml
+      ansible.builtin.template:
+        src: config-init.yaml.j2
+        dest: /etc/rancher/k3s/config.yaml.d/init.yaml
+        owner: root
+        group: root
+        mode: 0640
+    
     - name: Setup k3s if not running
       when: k3s_status.status != 'running'
       block:
@@ -45,14 +74,6 @@
             owner: root
             group: root
             mode: 0644
-
-        - name: Add service environment variables
-          when: extra_service_envs is defined
-          ansible.builtin.lineinfile:
-            path: "/etc/systemd/system/k3s.service.env"
-            line: "{{ item }}"
-          with_items: "{{ extra_service_envs }}"
-          no_log: true
 
         - name: Enable and check K3s service
           ansible.builtin.systemd:
