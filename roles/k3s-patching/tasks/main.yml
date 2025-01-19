@@ -11,7 +11,15 @@
   ansible.builtin.apt:
     autoremove: yes
 
+- name: Check if docker is running
+  ansible.builtin.systemd:
+    name: docker
+  register: docker_status
+  changed_when: false
+  failed_when: false
+
 - name: Perform docker cleanup
+  when: docker_status.status == 'running'
   ansible.builtin.shell: docker system prune -f
 
 - name: Perform k3s cleanup
