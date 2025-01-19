@@ -105,6 +105,14 @@
     - groups['k3s_managers'] | length > 1 
     - inventory_hostname != groups['k3s_managers'][0]
   block:
+    - name: Create k3s config-ha config yaml
+      ansible.builtin.template:
+        src: config-ha.yaml.j2
+        dest: /etc/rancher/k3s/config.yaml.d/ha.yaml
+        owner: root
+        group: root
+        mode: 0640
+
     - name: Setup k3s if not running
       when: k3s_status.status != 'running'
       block:
