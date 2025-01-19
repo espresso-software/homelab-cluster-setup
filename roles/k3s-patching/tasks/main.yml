@@ -7,6 +7,10 @@
   ansible.builtin.apt:
     upgrade: yes
 
+- name: Perform auto-remove
+  ansible.builtin.apt:
+    autoremove: yes
+
 - name: Check if /var/run/reboot-required exists
   ansible.builtin.stat: 
     path: /var/run/reboot-required
