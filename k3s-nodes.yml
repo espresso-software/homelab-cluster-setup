@@ -29,13 +29,6 @@
     - server
     - agent
     - install
-  vars:
-    api_endpoint: "{{ k3s_vip_address }}"
-    api_port: "6443"
-    extra_service_envs:
-      - "K3S_TOKEN='{{ k3s_token }}'"
-      - "K3S_AGENT_TOKEN='{{ k3s_agent_token }}'"
-    extra_server_args: "--write-kubeconfig-group k3s --disable servicelb --disable traefik --flannel-backend=wireguard-native --secrets-encryption --tls-san={{ k3s_vip_address }}"
   roles:
     - k3s-server
 
@@ -46,9 +39,6 @@
   tags:
     - agent
     - install
-  vars:
-    api_endpoint: "{{ k3s_vip_address }}"
-    api_port: "6443"
   roles:
     - k3s-agent
 

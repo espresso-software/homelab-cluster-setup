@@ -1,0 +1,15 @@
+write-kubeconfig-mode: "0640"
+write-kubeconfig-group: "k3s"
+
+flannel-backend: "wireguard-native"
+
+disable:
+  - servicelb
+  - traefik
+
+tls-san:
+  - "{{ k3s_vip_address }}"
+
+secrets-encryption: true
+token: "{{ k3s_token }}"
+agent-token: "{{ k3s_agent_token }}"
