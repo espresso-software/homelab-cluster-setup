@@ -1,0 +1,75 @@
+---
+- name: Patch secondary managers
+  hosts:
+    - apple
+    - blackberry
+  tags:
+    - k3s
+    - managers
+    - pi
+    - no-downtime
+  gather_facts: true
+  become: true
+  serial: 1
+  roles:
+    - k3s-upgrade
+
+- name: Patch primary manager
+  hosts:
+    - vmanager
+  tags:
+    - k3s
+    - managers
+    - pi
+    - no-downtime
+  gather_facts: true
+  become: true
+  serial: 1
+  roles:
+    - k3s-upgrade
+
+- name: Patch workers
+  hosts:
+    - keylime
+    - pumpkin
+    - vworker01
+    - vworker02
+  gather_facts: true
+  become: true
+  serial: 1
+  tags:
+    - k3s
+    - workers
+    - pi
+    - no-downtime
+  roles:
+    - k3s-upgrade
+
+- name: Patch Gamer Node
+  hosts:
+    - pgamer01
+    - vgamer
+  gather_facts: true
+  become: true
+  serial: 1
+  tags:
+    - k3s
+    - pi
+    - gamer
+    - downtime
+  roles:
+    - k3s-upgrade
+
+- name: Patch Critical Infra Node
+  hosts:
+    - raspberry
+  gather_facts: true
+  become: true
+  serial: 1
+  tags:
+    - k3s
+    - pi
+    - infra
+    - no-downtime
+  roles:
+    - k3s-upgrade

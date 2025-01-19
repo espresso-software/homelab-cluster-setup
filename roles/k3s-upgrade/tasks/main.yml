@@ -1,0 +1,44 @@
+---
+- name: Check the k3s version
+  ansible.builtin.shell:
+    cmd: k3s --version | awk '{print $3}' | grep -oP 'v\d+\.\d+\.\d+\+k3s\d+'
+  register: k3s_version_output
+  changed_when: false
+
+- name: Perform k3s upgrade
+  when: k3s_version_output.stdout != k3s_version
+  block:
+    - name: Install k3s server binaries
+      ansible.builtin.command:
+        cmd: /usr/local/bin/k3s-install.sh
+      environment:
+        INSTALL_K3S_SKIP_START: "true"
+        INSTALL_K3S_VERSION: "{{ k3s_version }}"
+      changed_when: true
+
+    - name: Cordon node
+      delegate_to: "{{ groups['k3s_managers'][0] }}"
+      ansible.builtin.command:
+        cmd: kubectl drain --ignore-daemonsets --delete-emptydir-data --timeout=0 {{ node }}
+
+    - name: Restart k3s service
+      ansible.builtin.systemd:
+        name: "{{ k3s_service | default('k3s') }}"
+        state: restarted
+
+    - name: Wait for all k8s nodes to be ready
+      environment:
+        KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
+      delegate_to: "{{ groups['k3s_managers'][0] if ansible_hostname != groups['k3s_managers'][0] else groups['k3s_managers'][1] }}"
+      ansible.builtin.shell: kubectl wait --for=condition=Ready nodes --all --timeout=30s
+      changed_when: false
+      retries: 50
+      delay: 15
+
+    - name: Uncordon node
+      delegate_to: "{{ groups['k3s_managers'][0] }}"
+      environment:
+        KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
+      kubernetes.core.k8s_drain:
+        name: "{{ node }}"
+        state: uncordon
