@@ -1,0 +1,66 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Run Playbook
+
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      host:
+        description: 'The host to run the playbook on'
+        required: false
+        default: 'all'
+      tags:
+        description: 'The tags to run'
+        required: false
+        default: 'no-downtime'
+  
+  # Triggers the workflow on push or pull request events but only for the main branch
+  # push:
+  #   branches:
+  #     - main
+
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  deploy:
+    # The type of runner that the job will run on
+    runs-on: 
+      - self-hosted
+      - ansible
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+
+      - name: Set extra_args
+        id: set_extra_args
+        run: |
+          args_string=""
+          if [ -n "${{ github.event.inputs.host }}" ]; then
+            args_string="${args_string} -l ${{ github.event.inputs.host }}"
+          fi
+          if [ -n "${{ github.event.inputs.tags }}" ]; then
+            args_string="${args_string} --tags ${{ github.event.inputs.tags }}"
+          fi
+          echo "::set-output name=extra_args::${args_string}"
+
+      # Runs a single command using the runners shell
+      - name: Setup vault token
+        run: |
+          echo "${{ secrets.VAULT_DECRYPT_TOKEN }}" > /tmp/vault_pass
+      
+      - name: Run playbook
+        run: |
+          ansible-playbook -i inventory/hosts.ini -l ${{ github.event.inputs.host }} k3s-patching.yml -v --vault-password-file /tmp/vault_pass ${{ steps.set_extra_args.outputs.extra_args }}
+      
+      - name: Remove vault pass
+        if: always()
+        run: |
+          rm /tmp/vault_pass
