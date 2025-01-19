@@ -7,13 +7,12 @@
   ansible.builtin.apt:
     upgrade: yes
 
-- name: Check if reboot is required
-  ansible.builtin.reboot:
-    check: yes
+- name: Check if /var/run/reboot-required exists
+  ansible.builtin.stat: /var/run/reboot-required
   register: reboot_required
-  ignore_errors: yes
 
 - name: Reboot if required
+  when: reboot_required.stat.exists
   vars:
     node: "{{ ansible_hostname }}"
   environment:
