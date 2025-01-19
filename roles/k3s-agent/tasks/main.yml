@@ -5,12 +5,20 @@
   register: k3s_status
   changed_when: false
 
+- name: Create k3s directory
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    owner: root
+    group: k3s
+    mode: 0640
+
 - name: Create k3s config file
   ansible.builtin.template:
     src: config.yaml.j2
     dest: /etc/rancher/k3s/config.yaml
     owner: root
-    group: root
+    group: k3s
     mode: 0640
 
 - name: Setup k3s if not running

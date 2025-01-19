@@ -42,7 +42,7 @@
     src: config.yaml.j2
     dest: /etc/rancher/k3s/config.yaml
     owner: root
-    group: root
+    group: k3s
     mode: 0640
 
 - name: Create k3s config directory
@@ -50,7 +50,7 @@
     path: /etc/rancher/k3s/config.yaml.d
     state: directory
     owner: root
-    group: root
+    group: k3s
     mode: 0640
 
 - name: Init first k3s server
@@ -61,7 +61,7 @@
         src: config-init.yaml.j2
         dest: /etc/rancher/k3s/config.yaml.d/init.yaml
         owner: root
-        group: root
+        group: k3s
         mode: 0640
     
     - name: Setup k3s if not running
