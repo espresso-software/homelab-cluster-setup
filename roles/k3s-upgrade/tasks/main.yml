@@ -7,6 +7,10 @@
 
 - name: Perform k3s upgrade
   when: k3s_version_output.stdout != k3s_version
+  vars:
+    node: "{{ ansible_hostname }}"
+  environment:
+    KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
   block:
     - name: Install k3s server binaries
       ansible.builtin.command:
