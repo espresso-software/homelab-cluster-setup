@@ -30,7 +30,7 @@
     - agent
     - install
   vars:
-    api_endpoint: "{{ hostvars[groups['k3s_managers'][0]]['ansible_default_ipv4']['address'] }}"
+    api_endpoint: "{{ k3s_vip_address }}"
     api_port: "{{ k3s_port | default(6443) }}"
     extra_service_envs:
       - "K3S_TOKEN='{{ k3s_token }}'"
