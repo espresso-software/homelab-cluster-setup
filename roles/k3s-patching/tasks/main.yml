@@ -11,6 +11,12 @@
   ansible.builtin.apt:
     autoremove: yes
 
+- name: Perform docker cleanup
+  ansible.builtin.shell: docker system prune -f
+
+- name: Perform k3s cleanup
+  ansible.builtin.shell: crictl rmi --prune
+
 - name: Check if /var/run/reboot-required exists
   ansible.builtin.stat: 
     path: /var/run/reboot-required
