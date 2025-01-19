@@ -4,8 +4,9 @@
   gather_facts: true
   become: true
   tags:
-    - k3s
-    - kubernetes
+    - haproxy
+    - server
+    - agent
   roles:
     - haproxy
 
@@ -14,8 +15,9 @@
   gather_facts: true
   become: true
   tags:
-    - k3s
-    - kubernetes
+    - install
+    - server
+    - agent
   roles:
     - k3s-prereq
 
@@ -24,11 +26,12 @@
   gather_facts: true
   become: true
   tags:
-    - k3s
-    - kubernetes
+    - server
+    - agent
+    - install
   vars:
-    api_endpoint: "{{ hostvars[groups['k3s_managers'][0]]['ansible_default_ipv4']['address'] }}"
-    api_port: "{{ k3s_port | default(6443) }}"
+    api_endpoint: "{{ k3s_vip_address }}"
+    api_port: "6443"
     extra_service_envs:
       - "K3S_TOKEN='{{ k3s_token }}'"
       - "K3S_AGENT_TOKEN='{{ k3s_agent_token }}'"
@@ -41,11 +44,11 @@
   gather_facts: true
   become: true
   tags:
-    - k3s
-    - kubernetes
+    - agent
+    - install
   vars:
     api_endpoint: "{{ k3s_vip_address }}"
-    api_port: "{{ k3s_port | default(6443) }}"
+    api_port: "6443"
   roles:
     - k3s-agent
 
@@ -57,8 +60,8 @@
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
   tags:
-    - k3s
-    - kubernetes
+    - server
+    - agent
     - config
   tasks:
     - name: Label nodes
@@ -96,8 +99,7 @@
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
   tags:
-    - k3s
-    - kubernetes
+    - server
     - config
   roles:
     - k3s-config

@@ -1,18 +1,24 @@
 ---
-- name: Patch
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Perform safe upgrade
+  ansible.builtin.apt:
+    upgrade: yes
+
+- name: Check if reboot is required
+  ansible.builtin.reboot:
+    check: yes
+  register: reboot_required
+  ignore_errors: yes
+
+- name: Reboot if required
   vars:
     node: "{{ ansible_hostname }}"
   environment:
     KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
   block:
-    - name: Update apt cache
-      ansible.builtin.apt:
-        update_cache: yes
-    
-    - name: Perform safe upgrade
-      ansible.builtin.apt:
-        upgrade: yes
-
     - name: Cordon node
       delegate_to: "{{ groups['k3s_managers'][0] }}"
       ansible.builtin.command:

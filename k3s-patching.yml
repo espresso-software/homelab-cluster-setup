@@ -3,7 +3,8 @@
   hosts:
     - keylime
     - pumpkin
-    - vworker
+    - vworker01
+    - vworker02
   gather_facts: true
   become: true
   serial: 1
@@ -47,6 +48,7 @@
 - name: Patch Gamer Node
   hosts:
     - pgamer01
+    - vgamer
   gather_facts: true
   become: true
   serial: 1
