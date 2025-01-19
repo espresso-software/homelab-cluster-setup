@@ -31,7 +31,7 @@
     - install
   vars:
     api_endpoint: "{{ k3s_vip_address }}"
-    api_port: "{{ k3s_port | default(6443) }}"
+    api_port: "6443"
     extra_service_envs:
       - "K3S_TOKEN='{{ k3s_token }}'"
       - "K3S_AGENT_TOKEN='{{ k3s_agent_token }}'"
@@ -48,7 +48,7 @@
     - install
   vars:
     api_endpoint: "{{ k3s_vip_address }}"
-    api_port: "{{ k3s_port | default(6443) }}"
+    api_port: "6443"
   roles:
     - k3s-agent
 
