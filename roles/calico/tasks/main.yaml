@@ -26,6 +26,10 @@
         values:
           installation:
             enabled: true
+            kubernetesProvider: K3s
+            cni:
+              type: Calico
+              ipForwardingEnabled: true
           defaultFelixConfiguration:
             enabled: true
             wireguardEnabled: true
