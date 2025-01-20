@@ -28,7 +28,7 @@
             enabled: true
             kubernetesProvider: K3s
             calicoNetwork:
-              containerIPForwarding: true
+              containerIPForwarding: 'Enabled'
           defaultFelixConfiguration:
             enabled: true
             wireguardEnabled: true
