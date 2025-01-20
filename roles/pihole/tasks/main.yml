@@ -55,12 +55,14 @@
                 app: pihole
             policyTypes:
               - Ingress
+              - Egress
             ingress:
               - ports:
                 - protocol: TCP
                   port: 53
                 - protocol: UDP
                   port: 53
+            egress:
       
     - name: Create primary pihole network policy
       run_once: true
