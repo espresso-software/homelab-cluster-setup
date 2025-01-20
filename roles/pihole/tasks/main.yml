@@ -90,7 +90,7 @@
                 - protocol: TCP
                   port: 80
                 from:
-                - namespaeSelector:
+                - namespaceSelector:
                     matchLabels:
                       name: traefik-system
     
