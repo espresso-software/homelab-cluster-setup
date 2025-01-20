@@ -160,6 +160,12 @@ spec:
         - name: pihole
           image: pihole/pihole:{{ version | default("latest") }}
           env:
+            - name: HTTP_PROXY
+              value: http://{{ network.proxy }}
+            - name: HTTPS_PROXY
+              value: http://{{ network.proxy }}
+            - name: FTP_PROXY
+              value: ftp://{{ network.proxy }}
             - name: WEBPASSWORD
               valueFrom:
                 secretKeyRef:

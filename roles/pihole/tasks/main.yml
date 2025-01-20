@@ -12,6 +12,141 @@
           metadata:
             name: pihole
     
+    - name: Create default egress policy
+      run_once: true
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: networking.k8s.io/v1
+          kind: NetworkPolicy
+          metadata:
+            name: default-egress
+            namespace: pihole
+          spec:
+            podSelector: {} 
+            policyTypes:
+              - Egress
+            egress:
+              - ports:
+                - protocol: TCP
+                  port: 53
+                - protocol: UDP
+                  port: 53
+              - ports:
+                - protocol: TCP
+                  port: 3128
+                to:
+                - ipBlock:
+                    cidr: "{{ network.proxy | split(':') | first }}/32"
+
+    - name: Create default pihole network policy
+      run_once: true
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: networking.k8s.io/v1
+          kind: NetworkPolicy
+          metadata:
+            name: default-pihole-allow
+            namespace: pihole
+          spec:
+            podSelector:
+              matchLabels:
+                app: pihole
+            policyTypes:
+              - Ingress
+            ingress:
+              - ports:
+                - protocol: TCP
+                  port: 53
+                - protocol: UDP
+                  port: 53
+      
+    - name: Create primary pihole network policy
+      run_once: true
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: networking.k8s.io/v1
+          kind: NetworkPolicy
+          metadata:
+            name: primary-pihole-allow
+            namespace: pihole
+          spec:
+            podSelector:
+              matchLabels:
+                app: pihole
+                version: primary
+            policyTypes:
+              - Ingress
+            ingress:
+              - ports:
+                - protocol: TCP
+                  port: 80
+                from:
+                - namespaeSelector:
+                    matchLabels:
+                      name: traefik-system
+    
+    - name: Create secondary pihole network policy
+      run_once: true
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: networking.k8s.io/v1
+          kind: NetworkPolicy
+          metadata:
+            name: secondary-pihole-allow
+            namespace: pihole
+          spec:
+            podSelector:
+              matchLabels:
+                app: pihole
+                version: secondary
+            policyTypes:
+              - Ingress
+            ingress:
+              - ports:
+                - protocol: TCP
+                  port: 80
+                from:
+                - podSelector:
+                    matchLabels:
+                      app: pihole-sync
+    
+    - name: Create pihole-sync network policy
+      run_once: true
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: networking.k8s.io/v1
+          kind: NetworkPolicy
+          metadata:
+            name: pihole-sync-network-policy
+            namespace: pihole
+          spec:
+            podSelector:
+              matchLabels:
+                app: pihole-sync
+            policyTypes:
+              - Ingress
+              - Egress
+            egress:
+              - ports:
+                - protocol: TCP
+                  port: 80
+                to:
+                - podSelector:
+                    matchLabels:
+                      app: pihole
+                      version: secondary
+              - ports:
+                - protocol: TCP
+                  port: 443
+                to:
+                - ipBlock:
+                    cidr: "{{ network.subnets.prod_lb | split('/') | first }}/32"
+  
     - name: Create LimitRange
       run_once: true
       kubernetes.core.k8s:

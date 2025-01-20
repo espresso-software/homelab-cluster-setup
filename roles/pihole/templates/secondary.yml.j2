@@ -97,6 +97,12 @@ spec:
                 secretKeyRef:
                   name: pihole-secrets
                   key: WEBPASSWORD
+            - name: HTTP_PROXY
+              value: http://{{ network.proxy }}
+            - name: HTTPS_PROXY
+              value: http://{{ network.proxy }}
+            - name: FTP_PROXY
+              value: ftp://{{ network.proxy }}
           ports:
             - containerPort: 53
               name: dns-tcp
