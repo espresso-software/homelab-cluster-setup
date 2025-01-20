@@ -30,6 +30,7 @@
   hosts: k3s_managers
   become: yes
   run_once: true
+  gather_facts: true
   tags:
     - calico
     - kubernetes
