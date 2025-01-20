@@ -32,12 +32,10 @@
                   port: 53
                 - protocol: UDP
                   port: 53
-              - ports:
-                - protocol: TCP
-                  port: 3128
-                to:
-                - ipBlock:
-                    cidr: "{{ network.proxy | split(':') | first }}/32"
+              - to:
+                - podSelector:
+                    matchLabels:
+                      k8s-app: kube-dns
 
     - name: Create default pihole network policy
       run_once: true
@@ -55,12 +53,20 @@
                 app: pihole
             policyTypes:
               - Ingress
+              - Egress
             ingress:
               - ports:
                 - protocol: TCP
                   port: 53
                 - protocol: UDP
                   port: 53
+            egress:
+              - ports:
+                - protocol: TCP
+                  port: 3128
+                to:
+                - ipBlock:
+                    cidr: "{{ network.proxy | split(':') | first }}/32"
       
     - name: Create primary pihole network policy
       run_once: true
