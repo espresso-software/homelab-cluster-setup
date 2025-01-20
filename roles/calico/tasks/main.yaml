@@ -27,6 +27,8 @@
           installation:
             enabled: true
             calicoNetwork:
+              ipPools:
+                - cidr: 10.42.0.0/16 # TODO: Make this a variable
               containerIPForwarding: 'Enabled'
           defaultFelixConfiguration:
             enabled: true
