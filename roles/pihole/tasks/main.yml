@@ -151,7 +151,7 @@
                   port: 443
                 to:
                 - ipBlock:
-                    cidr: "{{ network.identifier }}{{ network.subnets.prod_lb | split('/') | first }}/32"
+                    cidr: "{{ network.identifier }}.{{ network.subnets.prod_lb | split('/') | first }}/32"
   
     - name: Create LimitRange
       run_once: true
