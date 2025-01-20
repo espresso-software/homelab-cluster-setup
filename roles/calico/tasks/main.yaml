@@ -24,6 +24,19 @@
         namespace: tigera-operator
         chart_ref: projectcalico/tigera-operator
         values:
+          hostEndpoints:
+            - name: lan
+              namespace: kube-system
+              hosts:
+                - "{{ network.identifier }}.{{ networks.subnets.lan }}"
+            - name: managers
+              namespace: kube-system
+              hosts:
+                - "{{ k3s_manager_subnet }}"
+            - name: workers
+              namespace: kube-system
+              hosts:
+                - "{{ k3s_worker_subnet }}"
           installation:
             enabled: true
             calicoNetwork:
