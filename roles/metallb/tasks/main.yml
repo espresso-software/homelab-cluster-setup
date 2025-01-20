@@ -35,6 +35,25 @@
                   cpu: 10m
                 type: Container
         state: present
+    
+    - name: Default allow policy
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: networking.k8s.io/v1
+          kind: NetworkPolicy
+          metadata:
+            name: metallb-default-allow
+            namespace: metallb
+          spec:
+            podSelector: {}
+            policyTypes:
+              - Ingress
+              - Egress
+            ingress:
+              - {}
+            egress:
+              - {}
   
     - name: Install MetalLB
       run_once: true

@@ -17,6 +17,25 @@
         state: present
         definition: "{{ quota_yaml }}"
     
+    - name: Default allow policy
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: networking.k8s.io/v1
+          kind: NetworkPolicy
+          metadata:
+            name: traefik-system-default-allow
+            namespace: traefik-system
+          spec:
+            podSelector: {}
+            policyTypes:
+              - Ingress
+              - Egress
+            ingress:
+              - {}
+            egress:
+              - {}
+    
     - name: Create Traefik Ingress Certificate
       kubernetes.core.k8s:
         state: patched

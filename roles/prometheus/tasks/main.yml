@@ -71,22 +71,25 @@
                   cpu: 10m
                   memory: 1Mi
                 type: Container
-    
-    - name: Create ResourceQuota
+
+    - name: Default allow policy
       kubernetes.core.k8s:
         state: present
         definition:
-          apiVersion: v1
-          kind: ResourceQuota
-          metadata: 
-            name: monitoring-quota
+          apiVersion: networking.k8s.io/v1
+          kind: NetworkPolicy
+          metadata:
+            name: monitoring-default-allow
             namespace: monitoring
           spec:
-            hard:
-              requests.cpu: "4"
-              requests.memory: 8Gi
-              limits.cpu: "8"
-              limits.memory: 16Gi
+            podSelector: {}
+            policyTypes:
+              - Ingress
+              - Egress
+            ingress:
+              - {}
+            egress:
+              - {}
     
     - name: Deploy Prometheus
       kubernetes.core.helm:
