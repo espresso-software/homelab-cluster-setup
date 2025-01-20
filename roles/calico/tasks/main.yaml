@@ -26,7 +26,6 @@
         values:
           installation:
             enabled: true
-            kubernetesProvider: K3s
             calicoNetwork:
               containerIPForwarding: 'Enabled'
           defaultFelixConfiguration:
