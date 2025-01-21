@@ -29,8 +29,8 @@
             calicoNetwork:
               ipPools:
                 - cidr: 10.42.0.0/16 # TODO: Make this a variable
-                  ipipMode: Never
-                  vxlanMode: Always
+                  ipipMode: CrossSubnet
+                  vxlanMode: Never
               containerIPForwarding: 'Enabled'
             serviceCIDRs:
               - 10.43.0.0/16
