@@ -29,8 +29,8 @@
             calicoNetwork:
               ipPools:
                 - cidr: 10.42.0.0/16 # TODO: Make this a variable
-                  ipipMode: Always
-                  vxlanMode: Never
+                  ipipMode: Never
+                  vxlanMode: CrossSubnet
               containerIPForwarding: 'Enabled'
             serviceCIDRs:
               - 10.43.0.0/16
@@ -38,7 +38,37 @@
             enabled: true
             wireguardEnabled: true
             wireguardEnabledV6: true
-
+            # failsafeInboundHostPorts:
+            #   - tcp:22 # SSH
+            #   - udp:68 # DHCP
+            #   - tcp:179 # BGP
+            #   - tcp:2379 # etcd
+            #   - tcp:2380 # etcd
+            #   - udp:4789 # VXLAN
+            #   - tcp:5473 # Typha
+            #   - tcp:6443 # Kubernetes API
+            #   - tcp:6666 # etcd
+            #   - tcp:6667 # etcd
+            #   - tcp:7946 # MetalLB
+            #   - udp:7946 # MetalLB
+            #   - udp:51820 # Wireguard IPv4
+            #   - udp:51821 # Wireguard IPv6
+            # failsafeOutboundHostPorts:
+            #   - udp:53 # DNS
+            #   - tcp:53 # DNS
+            #   - udp:67 # DHCP
+            #   - tcp:179 # BGP
+            #   - tcp:2379 # etcd
+            #   - tcp:2380 # etcd
+            #   - udp:4789 # VXLAN
+            #   - tcp:5473 # Typha
+            #   - tcp:6443 # Kubernetes API
+            #   - tcp:6666 # etcd
+            #   - tcp:6667 # etcd
+            #   - tcp:7946 # MetalLB
+            #   - udp:7946 # MetalLB
+            #   - udp:51820 # Wireguard IPv4
+            #   - udp:51821 # Wireguard IPv6
   
 - name: Firewall
   when: kubernetes_firewall | default(false)
