@@ -26,12 +26,17 @@
         values:
           installation:
             enabled: true
+            cni:
+              type: Calico  
+              ipam:
+                type: Calico
             calicoNetwork:
               ipPools:
                 - cidr: 10.42.0.0/16 # TODO: Make this a variable
-                  ipipMode: Always
-                  vxlanMode: Never # VXLAN breaks MetalLB or Wireguard (unclear)
               containerIPForwarding: 'Enabled'
+            controlPlaneNodeSelector:
+              node-role.kubernetes.io/control-plane: "true"
+            controlPlaneReplicas: 2
             serviceCIDRs:
               - 10.43.0.0/16
           defaultFelixConfiguration:
