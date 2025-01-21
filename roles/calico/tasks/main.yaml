@@ -33,6 +33,11 @@
             calicoNetwork:
               ipPools:
                 - cidr: 10.42.0.0/16 # TODO: Make this a variable
+                  encapsulation: IPIP
+                  natOutgoing: true
+                  nodeSelector: all()
+                  ipipMode: Always
+                  vxlanMode: Never
               containerIPForwarding: 'Enabled'
             controlPlaneNodeSelector:
               node-role.kubernetes.io/control-plane: "true"
