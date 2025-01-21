@@ -30,12 +30,25 @@
               ipPools:
                 - cidr: 10.42.0.0/16 # TODO: Make this a variable
                   ipipMode: Always
+                  vxlanMode: Never
               containerIPForwarding: 'Enabled'
           defaultFelixConfiguration:
             enabled: true
             wireguardEnabled: true
             wireguardEnabledV6: true
     
+    - name: Add BGPConfiguration
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: projectcalico.org/v3
+          kind: BGPConfiguration
+          metadata:
+            name: default
+          spec:
+            logSeverityScreen: Info
+            serviceClusterIPs:
+              - cidr: 10.43.0.0/16
 
   
 - name: Firewall
