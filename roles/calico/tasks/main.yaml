@@ -34,7 +34,7 @@
               ipPools:
                 - cidr: 10.42.0.0/16 # TODO: Make this a variable
                   encapsulation: IPIP
-                  natOutgoing: true
+                  natOutgoing: 'true'
                   nodeSelector: all()
                   ipipMode: Always
                   vxlanMode: Never
