@@ -24,29 +24,19 @@
         namespace: tigera-operator
         chart_ref: projectcalico/tigera-operator
         values:
-          hostEndpoints:
-            - name: lan
-              namespace: kube-system
-              hosts:
-                - "{{ network.identifier }}.{{ networks.subnets.lan }}"
-            - name: managers
-              namespace: kube-system
-              hosts:
-                - "{{ k3s_manager_subnet }}"
-            - name: workers
-              namespace: kube-system
-              hosts:
-                - "{{ k3s_worker_subnet }}"
           installation:
             enabled: true
             calicoNetwork:
               ipPools:
                 - cidr: 10.42.0.0/16 # TODO: Make this a variable
+                  ipipMode: Always
               containerIPForwarding: 'Enabled'
           defaultFelixConfiguration:
             enabled: true
             wireguardEnabled: true
             wireguardEnabledV6: true
+    
+
   
 - name: Firewall
   when: kubernetes_firewall | default(false)
