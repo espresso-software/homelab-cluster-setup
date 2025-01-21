@@ -29,8 +29,8 @@
             calicoNetwork:
               ipPools:
                 - cidr: 10.42.0.0/16 # TODO: Make this a variable
-                  ipipMode: CrossSubnet
-                  vxlanMode: Never
+                  ipipMode: Always
+                  vxlanMode: Never # VXLAN breaks MetalLB or Wireguard (unclear)
               containerIPForwarding: 'Enabled'
             serviceCIDRs:
               - 10.43.0.0/16
