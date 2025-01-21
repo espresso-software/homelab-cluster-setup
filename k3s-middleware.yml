@@ -26,6 +26,34 @@
   roles:
     - metallb
 
+- name: Install Calico
+  hosts: k3s_managers
+  become: yes
+  run_once: true
+  gather_facts: true
+  tags:
+    - calico
+    - kubernetes
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  vars:
+    kubernetes_deploy: true
+  roles:
+    - calico
+
+- name: Setup Calico FW Rules
+  hosts: k3s
+  become: yes
+  gather_facts: true
+  tags:
+    - firewall
+    - calico
+    - kubernetes
+  vars:
+    kubernetes_firewall: true
+  roles:
+    - calico
+
 - name: Longhorn prereqs
   hosts: k3s
   become: yes
