@@ -18,6 +18,7 @@
     - install
     - server
     - agent
+    - prereq
   roles:
     - k3s-prereq
 
