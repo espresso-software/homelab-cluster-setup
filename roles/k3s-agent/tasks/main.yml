@@ -33,15 +33,6 @@
         INSTALL_K3S_VERSION: "{{ k3s_version }}"
       changed_when: true
 
-    - name: Copy k3s agent service file
-      register: k3s_agent_service_task
-      ansible.builtin.template:
-        src: k3s-agent.service.j2
-        dest: /etc/systemd/system/k3s-agent.service
-        owner: root
-        group: root
-        mode: 0600
-
     - name: Enable and check K3s service
       ansible.builtin.systemd:
         name: k3s-agent

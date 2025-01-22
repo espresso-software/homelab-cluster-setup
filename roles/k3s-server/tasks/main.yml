@@ -71,29 +71,18 @@
         owner: root
         group: k3s
         mode: 0644
-    
-    - name: Setup k3s if not running
-      when: k3s_status.status != 'running'
-      block:
-        - name: Copy k3s service file [HA]
-          ansible.builtin.template:
-            src: k3s-init.service.j2
-            dest: /etc/systemd/system/k3s.service
-            owner: root
-            group: root
-            mode: 0644
 
-        - name: Enable and check K3s service
-          ansible.builtin.systemd:
-            name: k3s
-            daemon_reload: true
-            state: started
-            enabled: true
-        
-        - name: Pause to allow first server startup
-          ansible.builtin.pause:
-            seconds: 10
-          when: groups['k3s_managers'][0] | length > 1
+    - name: Enable and check K3s service
+      ansible.builtin.systemd:
+        name: k3s
+        daemon_reload: true
+        state: started
+        enabled: true
+    
+    - name: Pause to allow first server startup
+      ansible.builtin.pause:
+        seconds: 10
+      when: groups['k3s_managers'][0] | length > 1
 
     - name: Get CA Agent Token from file
       ansible.builtin.shell: cat /var/lib/rancher/k3s/server/agent-token
@@ -121,31 +110,12 @@
         group: root
         mode: 0640
 
-    - name: Setup k3s if not running
-      when: k3s_status.status != 'running'
-      block:
-        - name: Copy k3s service file [HA]
-          ansible.builtin.template:
-            src: k3s-ha.service.j2
-            dest: /etc/systemd/system/k3s.service
-            owner: root
-            group: root
-            mode: 0644
-        
-        - name: Add service environment variables
-          when: extra_service_envs is defined
-          ansible.builtin.lineinfile:
-            path: "/etc/systemd/system/k3s.service.env"
-            line: "{{ item }}"
-          with_items: "{{ extra_service_envs }}"
-          no_log: true
-
-        - name: Enable and check K3s service
-          ansible.builtin.systemd:
-            name: k3s
-            daemon_reload: true
-            state: started
-            enabled: true
+    - name: Enable and check K3s service
+      ansible.builtin.systemd:
+        name: k3s
+        daemon_reload: true
+        state: started
+        enabled: true
 
     - name: Verify that all server nodes joined
       when: (groups['k3s_managers'] | length) > 1
