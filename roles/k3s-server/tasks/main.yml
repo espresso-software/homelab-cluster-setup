@@ -37,6 +37,14 @@
     name: k3s
     state: present
 
+- name: Create k3s directory
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    owner: root
+    group: k3s
+    mode: 0755
+
 - name: Create k3s config file
   ansible.builtin.template:
     src: config.yaml.j2
