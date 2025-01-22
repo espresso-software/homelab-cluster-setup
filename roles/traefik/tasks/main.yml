@@ -61,6 +61,7 @@
             - name: logs
               mountPath: /var/log/traefik          
           deployment:
+            replicas: 2
             additionalVolumes:
               - name: localtime
                 hostPath:
@@ -83,20 +84,12 @@
               enabled: true
               filePath: /var/log/traefik/access.log
               bufferingSize: 100
-          metrics:
-            enabled: true
-            prometheus:
-              entryPoint: metrics
           nodeSelector:
             kubernetes.io/role: worker
           persistence:
             enabled: true
             accessMode: ReadWriteMany
           ports:
-            metrics:
-              exposedPort: 8090
-              expose:
-                default: true
             web:
               redirectTo:
                 port: websecure

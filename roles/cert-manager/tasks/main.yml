@@ -28,6 +28,7 @@
       crds:
         enabled: true
       dns01RecursiveNameservers: '1.1.1.1:53,1.0.0.1:53'
+      dns01RecursiveNameserversOnly: true
       resources:
         requests:
           cpu: 100m
@@ -42,7 +43,7 @@
             memory: 128Mi
         nodeSelector:
           kubernetes.io/os: linux
-          kubernetes.io/role: worker
+          kubernetes.io/role: worker #TODO: make this a manager node task
       cainjector:
         resources:
           requests:
