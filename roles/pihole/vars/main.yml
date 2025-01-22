@@ -27,7 +27,7 @@ sync_job_template:
                 name: pihole-secrets
                 key: WEBPASSWORD
           - name: SECONDARY_HOSTS_1_BASE_URL
-            value: 'http://secondary-http.dns-system.svc.cluster.local'
+            value: 'http://secondary-http.{{ pihole_namespace }}.cluster.local'
           - name: SECONDARY_HOSTS_1_PASSWORD
             valueFrom:
               secretKeyRef:
