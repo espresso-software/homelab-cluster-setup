@@ -6,6 +6,7 @@
       - keepalived
     state: present
 
+#TODO: add healthcheck for kubernetes liveness endpoint so that this works for bootstrapping k3s
 - name: Configure HAProxy
   ansible.builtin.template:
     src: haproxy.cfg.j2
