@@ -1,31 +1,4 @@
 ---
-- name: Install MetalLB
-  hosts: k3s_managers
-  become: yes
-  run_once: true
-  tags:
-    - metallb
-    - kubernetes
-  environment:
-    KUBECONFIG: "{{ kube_config_path }}"
-  vars:
-    kubernetes_deploy: true
-  roles:
-    - metallb
-
-- name: Open L2 Ports between nodes
-  hosts: k3s
-  become: yes
-  gather_facts: true
-  tags:
-    - firewall
-    - metallb
-    - kubernetes
-  vars:
-    kubernetes_firewall: true
-  roles:
-    - metallb
-
 - name: Install Calico
   hosts: k3s_managers
   become: yes
@@ -53,6 +26,33 @@
     kubernetes_firewall: true
   roles:
     - calico
+
+- name: Install MetalLB
+  hosts: k3s_managers
+  become: yes
+  run_once: true
+  tags:
+    - metallb
+    - kubernetes
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  vars:
+    kubernetes_deploy: true
+  roles:
+    - metallb
+
+- name: Open L2 Ports between nodes
+  hosts: k3s
+  become: yes
+  gather_facts: true
+  tags:
+    - firewall
+    - metallb
+    - kubernetes
+  vars:
+    kubernetes_firewall: true
+  roles:
+    - metallb
 
 - name: Longhorn prereqs
   hosts: k3s
