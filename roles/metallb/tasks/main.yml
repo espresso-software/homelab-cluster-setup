@@ -14,7 +14,7 @@
           apiVersion: v1
           kind: Namespace
           metadata:
-            name: metallb
+            name: metallb-system
         state: present
     
     - name: Create MetalLB LimitRange
@@ -24,7 +24,7 @@
           kind: LimitRange
           metadata:
             name: metallb-limits
-            namespace: metallb
+            namespace: metallb-system
           spec:
             limits:
               - default:
@@ -41,7 +41,7 @@
       kubernetes.core.helm:
         name: metallb
         chart_ref: metallb/metallb
-        release_namespace: metallb
+        release_namespace: metallb-system
         values:
           controller:
             nodeSelector:
@@ -58,7 +58,7 @@
           kind: IPAddressPool
           metadata:
             name: "{{ item.name }}"
-            namespace: metallb
+            namespace: metallb-system
           spec:
             addresses:
               - "{{ item.addresses }}"
@@ -77,7 +77,7 @@
           kind: L2Advertisement
           metadata:
             name: prod
-            namespace: metallb
+            namespace: metallb-system
           spec:
             ipAddressePools:
               - prod
