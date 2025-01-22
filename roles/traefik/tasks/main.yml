@@ -19,7 +19,7 @@
     
     - name: Create Traefik Ingress Certificate
       kubernetes.core.k8s:
-        state: patched
+        state: present
         definition:
           apiVersion: cert-manager.io/v1
           kind: Certificate
@@ -30,7 +30,7 @@
             secretName: traefik-local-wildcard-tls
             dnsNames:
               - "{{ local_domain }}"
-              - "prod.k3s.{{ local_domain }}"
+              - "ingress.{{ local_domain }}"
               - "*.{{ local_domain }}"
             issuerRef:
               name: letsencrypt-prod
@@ -132,7 +132,7 @@
     
     - name: Create Longhorn Ingress
       kubernetes.core.k8s:
-        state: patched
+        state: present
         definition:
           apiVersion: networking.k8s.io/v1
           kind: Ingress
