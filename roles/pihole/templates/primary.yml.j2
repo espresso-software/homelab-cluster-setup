@@ -8,7 +8,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: "3Gi"
+      storage: "256Mi"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -20,7 +20,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: "3Gi"
+      storage: "256Mi"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -36,10 +36,10 @@ data:
 apiVersion: v1
 kind: Service
 metadata:
-  name: primary-dns-tcp
+  name: primary-dns
   namespace: {{ pihole_namespace }}
   annotations:
-    metallb.universe.tf/allow-shared-ip: "pihole-dns"
+    metallb.universe.tf/allow-shared-ip: "primary-dns"
     metallb.universe.tf/loadBalancerIPs: "{{ network.dns1 }}"
 spec:
   selector:

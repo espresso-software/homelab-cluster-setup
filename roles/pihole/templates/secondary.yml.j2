@@ -13,37 +13,21 @@ data:
 apiVersion: v1
 kind: Service
 metadata:
-  name: secondary-dns-tcp
+  name: secondary-dns
   namespace: {{ pihole_namespace }}
   annotations:
-      metallb.universe.tf/allow-shared-ip: "pihole-dns"
+      metallb.universe.tf/allow-shared-ip: "secondary-dns"
       metallb.universe.tf/loadBalancerIPs: "{{ network.dns2 }}"
 spec:
   selector:
     app: pihole
     version: secondary
   ports:
-    - name: dns
+    - name: dns-tcp
       port: 53
       targetPort: 53
       protocol: TCP
-  type: LoadBalancer
-  externalTrafficPolicy: Local
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: secondary-dns-udp
-  namespace: {{ pihole_namespace }}
-  annotations:
-      metallb.universe.tf/allow-shared-ip: "pihole-dns"
-      metallb.universe.tf/loadBalancerIPs: "{{ network.dns2 }}"
-spec:
-  selector:
-    app: pihole
-    version: secondary
-  ports:
-    - name: dns
+    - name: dns-udp
       port: 53
       targetPort: 53
       protocol: UDP
