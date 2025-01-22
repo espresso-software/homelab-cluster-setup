@@ -94,46 +94,6 @@
   roles:
     - longhorn
 
-- name: Install cert-manager
-  hosts: k3s_managers
-  become: yes
-  run_once: true
-  tags:
-    - cert-manager
-    - kubernetes
-  environment:
-    KUBECONFIG: "{{ kube_config_path }}"
-  roles:
-    - cert-manager
-
-#TODO: HA setup
-- name: Install Traefik
-  hosts: k3s_managers
-  become: yes
-  run_once: true
-  tags:
-    - traefik
-    - kubernetes
-  environment:
-    KUBECONFIG: "{{ kube_config_path }}"
-  vars:
-    kubernetes_deploy: true
-  roles:
-    - traefik
-
-- name: Setup Traefik FW Rules
-  hosts: k3s
-  become: yes
-  gather_facts: true
-  tags:
-    - firewall
-    - traefik
-    - kubernetes
-  vars:
-    kubernetes_firewall: true
-  roles:
-    - traefik
-
 #TODO: one on a worker, one on infra node
 - name: Install Pi-hole
   hosts: k3s_managers
@@ -185,3 +145,42 @@
           comment: 'DNS UDP'
         - proto: 'tcp'
           comment: 'DNS TCP'
+
+- name: Install cert-manager
+  hosts: k3s_managers
+  become: yes
+  run_once: true
+  tags:
+    - cert-manager
+    - kubernetes
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  roles:
+    - cert-manager
+
+- name: Install Traefik
+  hosts: k3s_managers
+  become: yes
+  run_once: true
+  tags:
+    - traefik
+    - kubernetes
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  vars:
+    kubernetes_deploy: true
+  roles:
+    - traefik
+
+- name: Setup Traefik FW Rules
+  hosts: k3s
+  become: yes
+  gather_facts: true
+  tags:
+    - firewall
+    - traefik
+    - kubernetes
+  vars:
+    kubernetes_firewall: true
+  roles:
+    - traefik

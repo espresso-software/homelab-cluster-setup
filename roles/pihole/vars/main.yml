@@ -9,7 +9,7 @@ pihole_web_password: !vault |
 
 version: '2024.07.0'
 
-pihole_namespace: pihole
+pihole_namespace: dns-system
 
 sync_job_template:
   spec:
@@ -27,7 +27,7 @@ sync_job_template:
                 name: pihole-secrets
                 key: WEBPASSWORD
           - name: SECONDARY_HOSTS_1_BASE_URL
-            value: 'http://secondary-http.pihole.svc.cluster.local'
+            value: 'http://secondary-http.dns-system.svc.cluster.local'
           - name: SECONDARY_HOSTS_1_PASSWORD
             valueFrom:
               secretKeyRef:
