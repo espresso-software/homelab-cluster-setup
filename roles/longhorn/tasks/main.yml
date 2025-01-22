@@ -34,7 +34,7 @@
   #FIXME: this doesn't work, label is not added
   # no_log: true
   kubernetes.core.k8s:
-    state: present
+    state: patched
     definition:
       apiVersion: v1
       kind: Node

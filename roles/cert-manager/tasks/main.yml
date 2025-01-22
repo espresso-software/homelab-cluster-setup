@@ -12,7 +12,7 @@
       apiVersion: v1
       kind: Namespace
       metadata:
-        name: cert-manager
+        name: cert-system
 
 #TODO: -name: Create LimitRange
 
@@ -21,7 +21,7 @@
 - name: Install cert-manager
   kubernetes.core.helm:
     name: cert-manager
-    namespace: cert-manager
+    namespace: cert-system
     chart_ref: jetstack/cert-manager
     chart_version: v1.15.2
     values:
@@ -69,7 +69,7 @@
       kind: Secret
       metadata:
         name: cloudflare-api-token
-        namespace: cert-manager
+        namespace: cert-system
       type: Opaque
       stringData:
         api-token: "{{ cloudflare_token }}"
