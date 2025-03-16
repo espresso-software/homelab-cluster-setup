@@ -30,4 +30,4 @@ config:
         Labels                  agent=fluent-bit
         Label_Map_Path          /fluent-bit/etc/label_map.json
         Auto_Kubernetes_Labels  true
-        Remove_Keys             kubernetes.annotations.*,kubernetes.container_hash,kubernetes.docker_id
+        Remove_Keys             annotations,container_hash,docker_id
