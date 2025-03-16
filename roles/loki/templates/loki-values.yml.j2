@@ -26,21 +26,21 @@ loki:
 lokiCanary:
   resources:
     limits:
-      cpu: 1000m
-      memory: 1Gi
+      cpu: 10m
+      memory: 32Mi
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 10m
+      memory: 16Mi
 
 gateway:
   replicas: 2
   resources:
     limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
       cpu: 100m
       memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 16Mi
   nodeSelector:
     kubernetes.io/role: worker
   service:
@@ -55,8 +55,8 @@ write:
     kubernetes.io/role: worker
   resources:
     limits:
-      cpu: 1000m
-      memory: 1Gi
+      cpu: 100m
+      memory: 256Mi
     requests:
       cpu: 100m
       memory: 128Mi
@@ -67,11 +67,11 @@ read:
     kubernetes.io/role: worker
   resources:
     limits:
-      cpu: 1000m
+      cpu: 500m
       memory: 1Gi
     requests:
       cpu: 100m
-      memory: 128Mi
+      memory: 256Mi
 
 backend:
   replicas: 2
@@ -79,10 +79,10 @@ backend:
     kubernetes.io/role: worker
   resources:
     limits:
-      cpu: 1000m
-      memory: 1Gi
-    requests:
       cpu: 100m
+      memory: 256Mi
+    requests:
+      cpu: 10m
       memory: 128Mi
 
 chunksCache:
@@ -96,8 +96,8 @@ minio:
     kubernetes.io/role: worker
   resources:
     limits:
-      cpu: 1000m
-      memory: 1Gi
+      cpu: 100m
+      memory: 256Mi
     requests:
       cpu: 100m
       memory: 128Mi
