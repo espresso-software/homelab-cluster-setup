@@ -37,7 +37,7 @@ gateway:
   resources:
     limits:
       cpu: 500m
-      memory: 512Gi
+      memory: 512Mi
     requests:
       cpu: 100m
       memory: 128Mi
@@ -62,7 +62,7 @@ write:
       memory: 128Mi
 
 read:
-  replicas: 3
+  replicas: 2
   nodeSelector:
     kubernetes.io/role: worker
   resources:
@@ -74,7 +74,7 @@ read:
       memory: 128Mi
 
 backend:
-  replicas: 3
+  replicas: 2
   nodeSelector:
     kubernetes.io/role: worker
   resources:
@@ -84,6 +84,9 @@ backend:
     requests:
       cpu: 100m
       memory: 128Mi
+
+chunksCache:
+  allocatedMemory: 2048
 
 #TODO: MULTI-CLUSTER - run separate minio in DB cluster for each cluster (external, tools, monitoring, test, and data)
 # Enable minio for storage
