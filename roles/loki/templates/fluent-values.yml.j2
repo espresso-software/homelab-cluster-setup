@@ -1,0 +1,19 @@
+---
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+config:
+  outputs: |
+    [OUTPUT]
+        Name        loki
+        Match       *  
+        Host        loki-gateway.monitoring.svc.cluster.local
+        port        80
+        tls         off
+        tls.verify  off
+        Labels      agent=fluent-bit
