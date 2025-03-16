@@ -24,8 +24,6 @@ loki:
     volume_enabled: true
 
 lokiCanary:
-  nodeSelector:
-    kubernetes.io/role: worker
   resources:
     limits:
       cpu: 1000m
