@@ -182,3 +182,31 @@
     kubernetes_deploy: true
   roles:
     - prometheus
+
+- name: Deploy Loki Stack
+  hosts: k3s_managers
+  run_once: true
+  become: yes
+  tags:
+    - loki
+    - kubernetes
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  vars:
+    kubernetes_deploy: true
+  roles:
+    - loki
+  
+- name: Deploy Grafana Stack
+  hosts: k3s_managers
+  run_once: true
+  become: yes
+  tags:
+    - grafana
+    - kubernetes
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  vars:
+    kubernetes_deploy: true
+  roles:
+    - grafana
