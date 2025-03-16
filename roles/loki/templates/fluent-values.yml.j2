@@ -8,13 +8,26 @@ resources:
     memory: 16Mi
 
 config:
+  extraFiles:
+    label_map.json: |
+      {
+        "kubernetes": {
+          "container_name": "container",
+          "namespace_name": "namespace",
+          "pod_name": "pod",
+          "host": "node"
+        }
+      }
   outputs: |
     [OUTPUT]
-        Name        loki
-        Match       *  
-        Host        loki-gateway.monitoring.svc.cluster.local
-        port        80
-        tls         off
-        tls.verify  off
-        Labels      agent=fluent-bit
-        auto_kubernetes_labels true
+        Name                    loki
+        Match                   *  
+        Host                    loki-gateway.monitoring.svc.cluster.local
+        port                    80
+        tls                     off
+        tls.verify              off
+        Log_Level               info
+        Labels                  agent=fluent-bit
+        Label_Map_Path          /fluent-bit/etc/label_map.json
+        Auto_Kubernetes_Labels  true
+        Remove_Keys             kubernetes.annotations.*,kubernetes.container_hash,kubernetes.docker_id
