@@ -23,10 +23,6 @@ loki:
     allow_structured_metadata: true
     volume_enabled: true
 
-  #TODO: evaluate if this is needed or if Grafana can be used instead
-  ui:
-    enabled: true
-
 lokiCanary:
   nodeSelector:
     kubernetes.io/role: worker
