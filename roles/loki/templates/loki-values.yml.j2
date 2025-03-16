@@ -26,10 +26,10 @@ loki:
 lokiCanary:
   resources:
     limits:
-      cpu: 10m
+      cpu: 100m
       memory: 32Mi
     requests:
-      cpu: 10m
+      cpu: 100m
       memory: 16Mi
 
 gateway:
@@ -56,7 +56,7 @@ write:
   resources:
     limits:
       cpu: 100m
-      memory: 256Mi
+      memory: 512Mi
     requests:
       cpu: 100m
       memory: 128Mi
@@ -71,7 +71,7 @@ read:
       memory: 1Gi
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 128Mi
 
 backend:
   replicas: 2
@@ -79,14 +79,14 @@ backend:
     kubernetes.io/role: worker
   resources:
     limits:
+      cpu: 250m
+      memory: 512Mi
+    requests:
       cpu: 100m
       memory: 256Mi
-    requests:
-      cpu: 10m
-      memory: 128Mi
 
 chunksCache:
-  allocatedMemory: 2048
+  allocatedMemory: 1024
 
 #TODO: MULTI-CLUSTER - run separate minio in DB cluster for each cluster (external, tools, monitoring, test, and data)
 # Enable minio for storage
@@ -97,7 +97,7 @@ minio:
   resources:
     limits:
       cpu: 100m
-      memory: 256Mi
+      memory: 512Mi
     requests:
       cpu: 100m
       memory: 128Mi
