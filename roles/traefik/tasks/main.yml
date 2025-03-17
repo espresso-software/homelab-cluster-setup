@@ -61,6 +61,9 @@
             - name: logs
               mountPath: /var/log/traefik          
           deployment:
+            replicas: 2
+            labels:
+              app: traefik
             additionalVolumes:
               - name: localtime
                 hostPath:
@@ -78,25 +81,36 @@
               entryPoints:
                 - websecure
               matchRule: Host(`traefik.{{ local_domain }}`) && PathPrefix(`/ping`)
+          updateStrategy:
+            rollingUpdate:
+              maxSurge: 1
+              maxUnavailable: 1
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app
+                        operator: In
+                        values:
+                          - traefik
+                  topologyKey: kubernetes.io/hostname
           logs:
+            general:
+              noColor: true
             access:
               enabled: true
               filePath: /var/log/traefik/access.log
               bufferingSize: 100
-          metrics:
-            enabled: true
-            prometheus:
-              entryPoint: metrics
+              fields:
+                headers:
+                  defaultmode: redact
           nodeSelector:
             kubernetes.io/role: worker
           persistence:
             enabled: true
             accessMode: ReadWriteMany
           ports:
-            metrics:
-              exposedPort: 8090
-              expose:
-                default: true
             web:
               redirectTo:
                 port: websecure

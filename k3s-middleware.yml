@@ -106,7 +106,6 @@
   roles:
     - cert-manager
 
-#TODO: HA setup
 - name: Install Traefik
   hosts: k3s_managers
   become: yes
