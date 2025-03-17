@@ -1,0 +1,52 @@
+---
+- name: Install Loki Helm Charts
+  kubernetes.core.helm_repository:
+    name: grafana
+    repo_url: https://grafana.github.io/helm-charts
+    state: present
+
+- name: Create temp file
+  ansible.builtin.tempfile:
+    state: file
+    suffix: .yml
+  register: loki_values
+
+- name: Template Loki values
+  ansible.builtin.template:
+    src: templates/loki-values.yml.j2
+    dest: "{{ loki_values.path }}"
+
+- name: Install Loki
+  kubernetes.core.helm:
+    name: loki
+    chart_ref: grafana/loki
+    release_namespace: "{{ loki_namespace }}"
+    values_files:
+      - "{{ loki_values.path }}"
+    state: present
+
+- name: Install Fluent Bit helm chart
+  kubernetes.core.helm_repository:
+    name: fluent
+    repo_url: https://fluent.github.io/helm-charts
+    state: present
+
+- name: Create temp file
+  ansible.builtin.tempfile:
+    state: file
+    suffix: .yml
+  register: fluent_bit_values
+
+- name: Template Fluent Bit values
+  ansible.builtin.template:
+    src: templates/fluent-values.yml.j2
+    dest: "{{ fluent_bit_values.path }}"
+
+- name: Install Fluent Bit
+  kubernetes.core.helm:
+    name: fluent-bit
+    chart_ref: fluent/fluent-bit
+    release_namespace: "{{ loki_namespace }}"
+    values_files:
+      - "{{ fluent_bit_values.path }}"
+    state: present
