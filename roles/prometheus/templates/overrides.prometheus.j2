@@ -36,11 +36,11 @@ server:
 
   resources:
     limits:
-      cpu: 1500m
+      cpu: 1000m
       memory: 4Gi
     requests:
       cpu: 200m
-      memory: 2Gi
+      memory: 1Gi
 
   retentionSize: "14GB"
 
@@ -70,10 +70,10 @@ alertmanager:
   resources:
     limits:
       cpu: 250m
-      memory: 512Mi
+      memory: 128Mi
     requests:
       cpu: 50m
-      memory: 64Mi
+      memory: 16Mi
 
 ## kube-state-metrics sub-chart configurable values
 ## Please see https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-state-metrics
@@ -84,7 +84,7 @@ kube-state-metrics:
   resources:
     limits:
       cpu: 200m
-      memory: 256Mi
+      memory: 128Mi
     requests:
       cpu: 50m
       memory: 32Mi
@@ -95,11 +95,11 @@ kube-state-metrics:
 prometheus-node-exporter:
   resources:
     limits:
-      cpu: 200m
-      memory: 256Mi
+      cpu: 100m
+      memory: 64Mi
     requests:
       cpu: 50m
-      memory: 128Mi
+      memory: 16Mi
 
 ## prometheus-pushgateway sub-chart configurable values
 ## Please see https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-pushgateway
@@ -109,8 +109,8 @@ prometheus-pushgateway:
     kubernetes.io/role: "worker"
   resources:
     limits:
-      cpu: 200m
-      memory: 256Mi
+      cpu: 100m
+      memory: 64Mi
     requests:
       cpu: 50m
-      memory: 32Mi
+      memory: 16Mi
