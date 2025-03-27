@@ -67,4 +67,4 @@
 - name: Add k3s vip host entry
   ansible.builtin.lineinfile:
     path: /etc/hosts
-    line: "{{ k3s_vip_address }} {{ dns.k3s }}"
+    line: "{{ k3s_vip_address }} {{ cluster_domain }}"
