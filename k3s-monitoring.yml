@@ -161,7 +161,7 @@
         proto: tcp
         comment: "{{ item.comment }}"
         src: "{{ item.source_ip }}"
-        dest: "{{ static_ip }}"
+        dest: "{{ ansible_host }}"
         direction: in
       with_items:
         - source_ip: "{{ network.identifier }}.{{ network.subnets.managers }}"

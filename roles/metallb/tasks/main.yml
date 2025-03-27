@@ -91,7 +91,7 @@
     rule: allow
     direction: in
     src: "{{ item.source }}"
-    dest: "{{ static_ip }}"
+    dest: "{{ ansible_host }}"
     port: "7946"
     proto: "{{ item.proto }}"
     comment: "{{ item.comment }}"
