@@ -25,7 +25,6 @@
         name: 
           - pyyaml
           - kubernetes
-        break_system_packages: yes
         state: latest
   rescue:
     - name: '[WARNING] Failed to install Ansible dependencies'
@@ -89,13 +88,25 @@
 
     - name: Get CA Agent Token from file
       ansible.builtin.shell: cat /var/lib/rancher/k3s/server/agent-token
-      register: ca_token
+      register: agent_ca_token
       changed_when: false
       no_log: true
 
     - name: Set fact for CA Agent Token
       ansible.builtin.set_fact:
-        agent_token: "{{ ca_token.stdout }}"
+        k3s_agent_token: "{{ agent_ca_token.stdout }}"
+      changed_when: false
+      no_log: true
+
+    - name: Get CA Server Token from file
+      ansible.builtin.shell: cat /var/lib/rancher/k3s/server/node-token
+      register: ca_token
+      changed_when: false
+      no_log: true
+
+    - name: Set fact for CA Server Token
+      ansible.builtin.set_fact:
+        k3s_token: "{{ ca_token.stdout }}"
       changed_when: false
       no_log: true
 
