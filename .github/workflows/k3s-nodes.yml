@@ -62,4 +62,4 @@ jobs:
           inventory_path: inventory/${{ github.event.inputs.inventory }}
           hosts: ${{ github.event.inputs.cluster }}
           tags: ${{ github.event.inputs.tags }}
-          vars: ${{ github.event.inputs.extra_vars }}
+          vars: ${{ github.event.inputs.extra_vars }} cluster=${{ github.event.inputs.cluster }}
