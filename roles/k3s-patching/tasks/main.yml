@@ -36,7 +36,7 @@
     KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
   block:
     - name: Cordon node
-      delegate_to: "{{ groups['{{ cluster }}-managers'][0] }}"
+      delegate_to: "{{ groups[{{ cluster }}-managers][0] }}"
       ansible.builtin.command:
         cmd: kubectl drain --ignore-daemonsets --delete-emptydir-data --timeout=0 {{ node }}
 
@@ -48,14 +48,14 @@
     - name: Wait for all k8s nodes to be ready
       environment:
         KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
-      delegate_to: "{{ groups['{{ cluster }}-managers'][0] if ansible_hostname != groups['{{ cluster }}-managers'][0] else groups['{{ cluster }}-managers'][1] }}"
+      delegate_to: "{{ groups[{{ cluster }}-managers][0] if ansible_hostname != groups[{{ cluster }}-managers][0] else groups[{{ cluster }}-managers][1] }}"
       ansible.builtin.shell: kubectl wait --for=condition=Ready nodes --all --timeout=30s
       changed_when: false
       retries: 50
       delay: 15
 
     - name: Uncordon node
-      delegate_to: "{{ groups['{{ cluster }}-managers'][0] }}"
+      delegate_to: "{{ groups[{{ cluster }}-managers][0] }}"
       environment:
         KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
       kubernetes.core.k8s_drain:
