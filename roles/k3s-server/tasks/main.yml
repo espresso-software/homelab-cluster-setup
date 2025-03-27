@@ -94,34 +94,10 @@
             seconds: 10
           when: managers | length > 1
 
-    - name: Get CA Agent Token from file
-      ansible.builtin.shell: cat /var/lib/rancher/k3s/server/agent-token
-      register: agent_ca_token
-      changed_when: false
-      no_log: true
-
-    - name: Set fact for CA Agent Token
-      ansible.builtin.set_fact:
-        k3s_agent_token: "{{ agent_ca_token.stdout }}"
-      changed_when: false
-      no_log: true
-
-    - name: Get CA Server Token from file
-      ansible.builtin.shell: cat /var/lib/rancher/k3s/server/node-token
-      register: ca_token
-      changed_when: false
-      no_log: true
-
-    - name: Set fact for CA Server Token
-      ansible.builtin.set_fact:
-        k3s_token: "{{ ca_token.stdout }}"
-      changed_when: false
-      no_log: true
-
 
 - name: Start other servers
   when:
-    - "'mgr01' not in inventory_hostname"
+    - "inventory_hostname != managers[0].name"
   block:
     - name: Create k3s config-ha config yaml
       ansible.builtin.template:
