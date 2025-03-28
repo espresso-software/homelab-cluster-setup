@@ -1,24 +1,32 @@
 ---
-- name: Patch workers
+- name: Patch servers
   hosts:
-    - test-k3s-workers
+    - k3s
   gather_facts: true
   become: true
-  serial: 1
+  # serial: 1
   tags:
     - k3s
-    - workers
-  roles:
-    - k3s-patching
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
 
-- name: Patch managers
-  hosts:
-    - test-k3s-managers
-  tags:
-    - k3s
-    - managers
-  gather_facts: true
-  become: true
-  serial: 1
-  roles:
-    - k3s-patching
+    - name: Perform safe upgrade
+      ansible.builtin.apt:
+        upgrade: yes
+
+    - name: Perform auto-remove
+      ansible.builtin.apt:
+        autoremove: yes
+    
+    - name: Check if /var/run/reboot-required exists
+      ansible.builtin.stat: 
+        path: /var/run/reboot-required
+      register: reboot_required
+    
+    - name: Reboot if required
+      when: reboot_required.stat.exists
+      ansible.builtin.reboot:
+        msg: "[ANSIBLE] Rolling restart"
+        post_reboot_delay: 60

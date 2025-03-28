@@ -1,4 +1,25 @@
 ---
+- name: Update dependencies
+  hosts:
+    - k3s
+    - test-k3s
+  gather_facts: true
+  become: true
+  tags:
+    - dependencies
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+    
+    - name: Perform safe upgrade
+      ansible.builtin.apt:
+        upgrade: yes
+    
+    - name: Perform auto-remove
+      ansible.builtin.apt:
+        autoremove: yes
+
 - name: Configure k3s vip
   hosts: 
     - k3s_managers
