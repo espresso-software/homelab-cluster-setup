@@ -1,6 +1,8 @@
 ---
 - name: Configure k3s vip
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   gather_facts: true
   become: true
   tags:
@@ -11,7 +13,9 @@
     - haproxy
 
 - name: Complete k3s prereqs
-  hosts: k3s
+  hosts: 
+    - k3s
+    - test-k3s
   gather_facts: true
   become: true
   tags:
@@ -22,7 +26,9 @@
     - k3s-prereq
 
 - name: Initialize k3s servers
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   gather_facts: true
   become: true
   tags:
@@ -34,7 +40,9 @@
     - k3s-server
 
 - name: Join k3s - workers
-  hosts: k3s_workers
+  hosts: 
+    - k3s_workers
+    - test-k3s-workers
   gather_facts: true
   become: true
   tags:
@@ -45,7 +53,9 @@
     - k3s-agent
 
 - name: Label nodes
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   gather_facts: true
   become: true
   run_once: true
@@ -84,7 +94,9 @@
           role: gamer
 
 - name: Restrict kube-system pods to managers
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   gather_facts: true
   become: true
   run_once: true

@@ -1,6 +1,8 @@
 ---
 - name: Install MetalLB
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   become: yes
   run_once: true
   tags:
@@ -14,7 +16,9 @@
     - metallb
 
 - name: Open L2 Ports between nodes
-  hosts: k3s
+  hosts: 
+    - k3s
+    - test-k3s
   become: yes
   gather_facts: true
   tags:
@@ -27,7 +31,9 @@
     - metallb
 
 - name: Install Calico
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   become: yes
   run_once: true
   gather_facts: true
@@ -42,7 +48,9 @@
     - calico
 
 - name: Setup Calico FW Rules
-  hosts: k3s
+  hosts: 
+    - k3s
+    - test-k3s
   become: yes
   gather_facts: true
   tags:
@@ -55,7 +63,9 @@
     - calico
 
 - name: Longhorn prereqs
-  hosts: k3s
+  hosts: 
+    - k3s
+    - test-k3s
   become: yes
   tags:
     - nfs
@@ -84,7 +94,9 @@
       when: multipath_conf.changed
 
 - name: Install Longhorn
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   become: yes
   tags:
     - longhorn
@@ -95,7 +107,9 @@
     - longhorn
 
 - name: Install cert-manager
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   become: yes
   run_once: true
   tags:
@@ -107,7 +121,9 @@
     - cert-manager
 
 - name: Install Traefik
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   become: yes
   run_once: true
   tags:
@@ -121,7 +137,9 @@
     - traefik
 
 - name: Setup Traefik FW Rules
-  hosts: k3s
+  hosts: 
+    - k3s
+    - test-k3s
   become: yes
   gather_facts: true
   tags:
@@ -135,7 +153,9 @@
 
 #TODO: one on a worker, one on infra node
 - name: Install Pi-hole
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   become: yes
   run_once: true
   tags:
@@ -149,7 +169,9 @@
     - pihole
 
 - name: Setup Pi-hole FW Rules
-  hosts: k3s
+  hosts: 
+    - k3s
+    - test-k3s
   become: yes
   gather_facts: true
   tags:
@@ -162,7 +184,9 @@
     - pihole
 
 - name: Setup secondary Pi-hole FW Rules
-  hosts: k3s
+  hosts: 
+    - k3s
+    - test-k3s
   become: yes
   gather_facts: true
   tags:

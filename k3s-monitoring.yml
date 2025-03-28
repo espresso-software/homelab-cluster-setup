@@ -1,7 +1,9 @@
 ---
 # TODO: Move to role
 - name: Deploy Dashboard
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   become: yes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
@@ -147,7 +149,9 @@
 
 #TODO: deploy to jumpboxes
 - name: Open Node Exporter Ports
-  hosts: k3s
+  hosts: 
+    - k3s
+    - test-k3s
   become: yes
   tags:
     - prometheus
@@ -170,7 +174,9 @@
           comment: "Node Exporter - workers"
 
 - name: Open Loki Ports
-  hosts: k3s
+  hosts: 
+    - k3s
+    - test-k3s
   become: yes
   tags:
     - loki
@@ -187,7 +193,9 @@
         direction: in
 
 - name: Deploy Prometheus Stack
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   run_once: true
   become: yes
   tags:
@@ -201,7 +209,9 @@
     - prometheus
 
 - name: Deploy Loki Stack
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   run_once: true
   become: yes
   tags:
@@ -215,7 +225,9 @@
     - loki
   
 - name: Deploy Grafana Stack
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   run_once: true
   become: yes
   tags:

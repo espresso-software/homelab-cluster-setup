@@ -1,6 +1,8 @@
 ---
 - name: Reset k3s
-  hosts: k3s
+  hosts: 
+    - k3s
+    - test-k3s
   gather_facts: true
   become: true
   tasks:

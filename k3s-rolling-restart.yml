@@ -1,6 +1,8 @@
 ---
 - name: k3s workers
-  hosts: k3s_workers
+  hosts: 
+    - k3s_workers
+    - test-k3s-workers
   gather_facts: true
   become: true
   serial: 1
@@ -12,7 +14,9 @@
     - k3s-restart
 
 - name: k3 managers
-  hosts: k3s_managers
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
   gather_facts: true
   become: true
   serial: 1
