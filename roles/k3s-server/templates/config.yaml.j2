@@ -7,6 +7,8 @@ disable:
   - servicelb
   - traefik
 
+https-listen-port: "{{ k3s_port }}"
+
 tls-san:
   - "{{ k3s_vip_address }}"
   - "{{ cluster_domain }}"
