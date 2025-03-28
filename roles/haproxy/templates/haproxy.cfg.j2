@@ -1,5 +1,5 @@
 frontend k3s-frontend
-    bind {{ k3s_vip_address }}:6443
+    bind *:6443
     mode tcp
     option tcplog
     default_backend k3s-backend
