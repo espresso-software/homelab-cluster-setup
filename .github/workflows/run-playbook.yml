@@ -17,6 +17,7 @@ on:
           - monitoring
           - nodes
           - k3s-reset
+          - test-k3s-patching
       cluster:
         description: 'The cluster to run the playbook on'
         required: false

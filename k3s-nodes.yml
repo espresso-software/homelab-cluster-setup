@@ -55,47 +55,32 @@
   roles:
     - k3s-agent
 
-# FIXME: This only supports one cluster
-# - name: Label nodes
-#   hosts: 
-#     - k3s_managers
-#     - test-k3s-managers
-#   gather_facts: true
-#   become: true
-#   run_once: true
-#   environment:
-#     KUBECONFIG: "{{ kube_config_path }}"
-#   tags:
-#     - server
-#     - agent
-#     - config
-#   tasks:
-#     - name: Label nodes
-#       # no_log: true
-#       kubernetes.core.k8s:
-#         state: present
-#         definition:
-#           apiVersion: v1
-#           kind: Node
-#           metadata:
-#             labels:
-#               kubernetes.io/role: "{{ item.role }}"
-#         name: "{{ item.name }}"
-#       with_items:
-#         - name: keylimepi
-#           role: worker
-#         - name: pumpkinpi
-#           role: worker
-#         - name: raspberrypi
-#           role: infra
-#         - name: vwkr01
-#           role: worker
-#         - name: wkr02vl
-#           role: worker
-#         - name: gmr01pl
-#           role: gamer
-#         - name: gmr02vl
-#           role: gamer
+- name: Label nodes
+  hosts: 
+    - k3s_managers
+    - test-k3s-managers
+  gather_facts: true
+  become: true
+  run_once: true
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  tags:
+    - server
+    - agent
+    - config
+  tasks:
+    - name: Label nodes
+      # no_log: true
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Node
+          metadata:
+            labels:
+              kubernetes.io/role: "{{ item.role }}"
+        name: "{{ item.name }}"
+      with_items: "{{ role_labels  }}"
 
 - name: Restrict kube-system pods to managers
   hosts: 
