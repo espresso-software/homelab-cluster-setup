@@ -8,9 +8,8 @@ backend k3s-backend
     mode tcp
     option httpchk GET /healthz
     http-check expect status 401
-    server-template ignore-tls-errors
     balance roundrobin
     default-server inter 10s downinter 5s
 {% for manager in managers %}
-    server {{ manager.name }} {{ manager.ip }}:{{ k3s_port }} check
+    server {{ manager.name }} {{ manager.ip }}:{{ k3s_port }} check ssl verify none
 {% endfor %}
