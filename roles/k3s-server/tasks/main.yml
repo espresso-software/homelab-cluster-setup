@@ -25,7 +25,6 @@
         name: 
           - pyyaml
           - kubernetes
-        break_system_packages: yes
         state: latest
   rescue:
     - name: '[WARNING] Failed to install Ansible dependencies'
