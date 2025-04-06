@@ -7,10 +7,14 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
-      host:
-        description: 'The host to run the playbook on'
-        required: false
-        default: ''
+      cluster:
+        description: 'The cluster to run the playbook against'
+        required: true
+        type: choice
+        options:
+          - test-k3s
+          - game-k3s
+          - all
       tags:
         description: 'The tags to run'
         required: false
@@ -43,29 +47,12 @@ jobs:
           submodules: 'true'
           token: ${{ secrets.READ_ACCESS_TOKEN }}
 
-      - name: Set extra_args
-        id: set_extra_args
-        run: |
-          args_string=""
-          if [ -n "${{ github.event.inputs.host }}" ]; then
-            args_string="${args_string} -l ${{ github.event.inputs.host }}"
-          fi
-          if [ -n "${{ github.event.inputs.tags }}" ]; then
-            args_string="${args_string} --tags ${{ github.event.inputs.tags }}"
-          fi
-          if [ -n "${{ github.event.inputs.extra_vars }}" ]; then
-            args_string="${args_string} --extra-vars '${{ github.event.inputs.extra_vars }}'"
-          fi
-          echo "::set-output name=extra_args::${args_string}"
-
-      # Runs a single command using the runners shell
-      - name: Run plabook
-        # do not run with k3s-reset, k3s-rolling-restart, or k3s-patching
-        run: |
-          echo "${{ secrets.VAULT_DECRYPT_TOKEN }}" > /tmp/vault_pass
-          ansible-playbook -i inventory/hosts.ini k3s-nodes.yml -v --vault-password-file /tmp/vault_pass ${{ steps.set_extra_args.outputs.extra_args }}
-      
-      - name: Remove vault pass
-        if: always()
-        run: |
-          rm /tmp/vault_pass
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-nodes.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster }}
+          tags: ${{ github.event.inputs.tags }}
+          vars: ${{ github.event.inputs.extra_vars }}
