@@ -1,6 +1,6 @@
 ---
 - name: Enable cgroup via cmdline.txt
-  when: "'pi' in ansible_hostname"
+  when: pi
   ansible.builtin.lineinfile:
     path: /boot/firmware/cmdline.txt
     backrefs: true
@@ -10,7 +10,7 @@
 
 - name: Enable cgroup via grub
   become: true
-  when: "'pi' not in ansible_hostname"
+  when: not (pi | default(false))
   ansible.builtin.lineinfile:
     path: /etc/default/grub
     backrefs: true
@@ -21,27 +21,6 @@
 - name: Disable swap
   become: true
   ansible.builtin.command: swapoff -a
-
-- name: Open Ports
-  community.general.ufw:
-    rule: allow
-    port: "{{ item.port }}"
-    proto: "{{ item.protocol }}"
-    from_ip: "{{ item.source }}"
-    comment: "{{ item.comment }}"
-  with_items: "{{ k3s_inbound_connections }}"
-
-- name: Allow from Pod Networks
-  community.general.ufw:
-    rule: allow
-    from_ip: "10.42.0.0/16"
-    comment: "K3s Pod Network"
-
-- name: Allow from Service Networks
-  community.general.ufw:
-    rule: allow
-    from_ip: "10.43.0.0/16"
-    comment: "K3s Service Network"
 
 - name: Get k3s installed version
   ansible.builtin.command: k3s --version
@@ -67,4 +46,4 @@
 - name: Add k3s vip host entry
   ansible.builtin.lineinfile:
     path: /etc/hosts
-    line: "{{ k3s_vip_address }} {{ dns.k3s }}"
+    line: "{{ k3s_vip_address }} {{ cluster_domain }}"
