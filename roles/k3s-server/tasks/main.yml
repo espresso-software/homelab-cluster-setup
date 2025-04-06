@@ -87,18 +87,6 @@
             seconds: 10
           when: groups['k3s_managers'][0] | length > 1
 
-    - name: Get CA Agent Token from file
-      ansible.builtin.shell: cat /var/lib/rancher/k3s/server/agent-token
-      register: ca_token
-      changed_when: false
-      no_log: true
-
-    - name: Set fact for CA Agent Token
-      ansible.builtin.set_fact:
-        agent_token: "{{ ca_token.stdout }}"
-      changed_when: false
-      no_log: true
-
 
 - name: Start other servers
   when:
