@@ -1,4 +1,16 @@
 ---
+- name: Label nodes
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Node
+      metadata:
+        labels:
+          kubernetes.io/role: "{{ item.role }}"
+    name: "{{ item.name }}"
+  with_items: "{{ role_labels | default([]) }}"
+  
 - name: restrict kube-system pods to managers
   with_items:
     - coredns
