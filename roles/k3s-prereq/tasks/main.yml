@@ -47,3 +47,5 @@
   ansible.builtin.lineinfile:
     path: /etc/hosts
     line: "{{ k3s_vip_address }} {{ cluster_domain }}"
+    state: present
+    validate: "grep -q {{ k3s_vip_address }} /etc/hosts"
