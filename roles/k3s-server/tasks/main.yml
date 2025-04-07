@@ -21,11 +21,11 @@
         name: python3-pip
         state: latest
     - name: Install Ansible dependencies
-      ansible.builtin.pip:
-        name: 
-          - pyyaml
-          - kubernetes
-        state: latest
+      ansible.builtin.shell:
+        cmd: pip install --break-system-packages \
+          pyyaml \
+          kubernetes
+      changed_when: false
   rescue:
     - name: '[WARNING] Failed to install Ansible dependencies'
       debug:
@@ -35,6 +35,14 @@
   ansible.builtin.group:
     name: k3s
     state: present
+
+- name: Create k3s directory
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    owner: root
+    group: k3s
+    mode: 0755
 
 - name: Create k3s config file
   ansible.builtin.template:
@@ -53,7 +61,7 @@
     mode: 0640
 
 - name: Init first k3s server
-  when: inventory_hostname == groups['k3s_managers'][0]
+  when: inventory_hostname == managers[0].name
   block: 
     - name: Create k3s config-init config yaml
       ansible.builtin.template:
@@ -84,13 +92,12 @@
         - name: Pause to allow first server startup
           ansible.builtin.pause:
             seconds: 10
-          when: groups['k3s_managers'][0] | length > 1
 
 
 - name: Start other servers
   when:
-    - groups['k3s_managers'] | length > 1 
-    - inventory_hostname != groups['k3s_managers'][0]
+    - managers | length > 1 
+    - inventory_hostname != managers[0].name
   block:
     - name: Create k3s config-ha config yaml
       ansible.builtin.template:
@@ -127,12 +134,12 @@
             enabled: true
 
     - name: Verify that all server nodes joined
-      when: (groups['k3s_managers'] | length) > 1
+      when: (managers | length) > 1
       ansible.builtin.command:
         cmd: >
           k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
       register: nodes
-      until: nodes.rc == 0 and (nodes.stdout.split() | length) == (groups['k3s_managers'] | length)
+      until: nodes.rc == 0 and (nodes.stdout.split() | length) == (managers | length)
       retries: 20
       delay: 10
       changed_when: false
