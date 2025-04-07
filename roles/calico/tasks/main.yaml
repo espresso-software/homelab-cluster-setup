@@ -27,19 +27,13 @@
           ipPools:
             - cidr: "{{ cluster_cidr }}"
           containerIPForwarding: 'Enabled'
+        typhaDeployment:
+          spec:
+            nodeSelector:
+              node-role.kubernetes.io/control-plane: "true"
+        serviceCidrs:
+          - "{{ service_cidr }}"
       defaultFelixConfiguration:
         enabled: true
         wireguardEnabled: true
         wireguardEnabledV6: true
-
-- name: Create BGP configuration
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: projectcalico.org/v1
-      kind: BGPConfiguration
-      metadata:
-        name: default
-      spec:
-        serviceClusterIPs:
-          - cidr: "{{ service_cidr }}"
