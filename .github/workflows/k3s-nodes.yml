@@ -56,3 +56,13 @@ jobs:
           hosts: ${{ github.event.inputs.cluster }}
           tags: ${{ github.event.inputs.tags }}
           vars: ${{ github.event.inputs.extra_vars }}
+      
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-helm.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster }}
+          tags: ${{ github.event.inputs.tags }}
+          vars: ${{ github.event.inputs.extra_vars }}
