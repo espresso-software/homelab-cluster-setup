@@ -29,9 +29,15 @@
           containerIPForwarding: 'Enabled'
         typhaDeployment:
           spec:
-            nodeSelector:
-              node-role.kubernetes.io/control-plane: "true"
-        serviceCidrs:
+            template:
+              spec:
+                tolerations:
+                  - key: "node-role.kubernetes.io/control-plane"
+                    operator: "Exists"
+                    effect: "NoSchedule"
+                nodeSelector:
+                  node-role.kubernetes.io/control-plane: "true"
+        serviceCIDRs:
           - "{{ service_cidr }}"
       defaultFelixConfiguration:
         enabled: true
