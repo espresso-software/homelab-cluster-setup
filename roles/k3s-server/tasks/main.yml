@@ -76,7 +76,7 @@
       block:
         - name: Copy k3s service file [HA]
           ansible.builtin.template:
-            src: k3s-init.service.j2
+            src: k3s.service.j2
             dest: /etc/systemd/system/k3s.service
             owner: root
             group: root
@@ -112,7 +112,7 @@
       block:
         - name: Copy k3s service file [HA]
           ansible.builtin.template:
-            src: k3s-ha.service.j2
+            src: k3s.service.j2
             dest: /etc/systemd/system/k3s.service
             owner: root
             group: root
