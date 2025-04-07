@@ -42,18 +42,3 @@
     owner: root
     group: root
     mode: 0755
-
-- name: Add k3s vip host entry
-  ansible.builtin.lineinfile:
-    path: /etc/hosts
-    line: "{{ k3s_vip_address }} {{ cluster_domain }}"
-    state: present
-    validate: "grep -q {{ k3s_vip_address }} /etc/hosts"
-
-- name: Check for cloud init file
-  ansible.builtin.lineinfile:
-    path: /etc/cloud/templates/hosts.debian.tmpl
-    line: "{{ k3s_vip_address }} {{ cluster_domain }}"
-    state: present
-    validate: "grep -q {{ k3s_vip_address }} /etc/cloud/templates/hosts.debian.tmpl"
-  when: ansible_distribution == "Debian"
