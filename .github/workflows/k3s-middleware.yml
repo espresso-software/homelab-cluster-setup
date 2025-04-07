@@ -20,8 +20,8 @@ on:
         type: choice
         options:
           - all
-          - metallb
           - calico
+          - metallb
           - longhorn
           - cert-manager
           - traefik

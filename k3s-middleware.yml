@@ -1,15 +1,4 @@
 ---
-- name: Install MetalLB
-  hosts: k3s_managers
-  become: yes
-  run_once: true
-  tags:
-    - metallb
-  environment:
-    KUBECONFIG: "{{ kube_config_path }}"
-  roles:
-    - metallb
-
 - name: Install Calico
   hosts: k3s_managers
   become: yes
@@ -23,6 +12,17 @@
     kubernetes_deploy: true
   roles:
     - calico
+
+- name: Install MetalLB
+  hosts: k3s_managers
+  become: yes
+  run_once: true
+  tags:
+    - metallb
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  roles:
+    - metallb
 
 - name: Setup Calico FW Rules
   hosts: k3s
