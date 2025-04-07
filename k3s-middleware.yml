@@ -5,24 +5,8 @@
   run_once: true
   tags:
     - metallb
-    - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-  vars:
-    kubernetes_deploy: true
-  roles:
-    - metallb
-
-- name: Open L2 Ports between nodes
-  hosts: k3s
-  become: yes
-  gather_facts: true
-  tags:
-    - firewall
-    - metallb
-    - kubernetes
-  vars:
-    kubernetes_firewall: true
   roles:
     - metallb
 
@@ -33,7 +17,6 @@
   gather_facts: true
   tags:
     - calico
-    - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
   vars:
@@ -48,7 +31,6 @@
   tags:
     - firewall
     - calico
-    - kubernetes
   vars:
     kubernetes_firewall: true
   roles:
@@ -60,7 +42,6 @@
   tags:
     - nfs
     - longhorn
-    - kubernetes
   tasks:
     - name: Install NFS
       ansible.builtin.apt:
@@ -88,7 +69,6 @@
   become: yes
   tags:
     - longhorn
-    - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
   roles:
@@ -100,7 +80,6 @@
   run_once: true
   tags:
     - cert-manager
-    - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
   roles:
@@ -112,7 +91,6 @@
   run_once: true
   tags:
     - traefik
-    - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
   vars:
@@ -127,7 +105,6 @@
   tags:
     - firewall
     - traefik
-    - kubernetes
   vars:
     kubernetes_firewall: true
   roles:
@@ -140,7 +117,6 @@
   run_once: true
   tags:
     - pihole
-    - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
   vars:
@@ -155,7 +131,6 @@
   tags:
     - firewall
     - pihole
-    - kubernetes
   vars:
     kubernetes_firewall: true
   roles:
@@ -168,7 +143,6 @@
   tags:
     - firewall
     - pihole
-    - kubernetes
   tasks:
     - name: Setup k3s FW Rules
       community.general.ufw:
