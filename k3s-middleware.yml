@@ -8,8 +8,6 @@
     - calico
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-  vars:
-    kubernetes_deploy: true
   roles:
     - calico
 
@@ -23,18 +21,6 @@
     KUBECONFIG: "{{ kube_config_path }}"
   roles:
     - metallb
-
-- name: Setup Calico FW Rules
-  hosts: k3s
-  become: yes
-  gather_facts: true
-  tags:
-    - firewall
-    - calico
-  vars:
-    kubernetes_firewall: true
-  roles:
-    - calico
 
 - name: Longhorn prereqs
   hosts: k3s
