@@ -21,11 +21,6 @@
         state: present
         update_cache: yes
     
-    - name: Create 'k3s' group
-      ansible.builtin.group:
-        name: k3s
-        state: present
-    
     - name: Add users to 'k3s' group
       ansible.builtin.user:
         name: "{{ item }}"
@@ -35,11 +30,3 @@
       with_items:
         - ansible
         - devops
-    
-    - name: set kubeconfig permissions
-      ansible.builtin.file:
-        path: /etc/rancher/k3s/k3s.yaml
-        owner: root
-        group: k3s
-        mode: 0640
-        state: file
