@@ -6,10 +6,10 @@ frontend k3s-frontend
 
 backend k3s-backend
     mode tcp
-    option httpchk GET /healthz
-    http-check expect status 401
+    option tcplog
+    option tcp-check
     balance leastconn
     default-server inter 10s downinter 5s
 {% for manager in managers %}
-    server {{ manager.name }} {{ manager.ip }}:{{ k3s_port }} check ssl verify none
+    server {{ manager.name }} {{ manager.ip }}:{{ k3s_port }} check
 {% endfor %}
