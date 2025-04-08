@@ -11,7 +11,7 @@
       apiVersion: v1
       kind: Namespace
       metadata:
-        name: longhorn-system
+        name: "{{ longhorn_namespace }}"
     state: present
 
 - name: Create Longhorn LimitRange
@@ -21,7 +21,7 @@
       kind: LimitRange
       metadata:
         name: longhorn-limits
-        namespace: longhorn-system
+        namespace: "{{ longhorn_namespace }}"
       spec:
         limits:
           - defaultRequest:
@@ -34,7 +34,7 @@
   kubernetes.core.helm:
     name: longhorn
     chart_ref: longhorn/longhorn
-    release_namespace: longhorn-system
+    release_namespace: "{{ longhorn_namespace }}"
     values:
       persistence:
         defaultDataLocality: "best-effort"
@@ -49,8 +49,8 @@
       apiVersion: v1
       kind: Service
       metadata:
-        name: longhorn-service
-        namespace: longhorn-system
+        name: longhorn-ui
+        namespace: "{{ longhorn_namespace }}"
         annotations:
           metallb.universe.tf/allow-shared-ip: longhorn
           metallb.universe.tf/loadBalancerIps: "{{ longhorn_ip }}"
@@ -61,4 +61,5 @@
             protocol: TCP
         selector:
           app: longhorn
+        type: LoadBalancer
     state: present
