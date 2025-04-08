@@ -85,16 +85,8 @@
           - name: logs
             emptyDir: {}
       ingressRoute:
-        dashboard:
-          enabled: true
-          entryPoints:
-            - websecure
-          matchRule: Host(`traefik.{{ cluster_domain }}`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
         healthcheck:
           enabled: true
-          entryPoints:
-            - websecure
-          matchRule: Host(`traefik.{{ cluster_domain }}`) && PathPrefix(`/ping`)
       updateStrategy:
         rollingUpdate:
           maxSurge: 1
@@ -126,8 +118,9 @@
         accessMode: ReadWriteMany
       ports:
         web:
-          redirectTo:
-            port: websecure
+          entryPoint:
+            to: websecure
+            scheme: https
             permanent: true
       providers:
         kubernetesCRD:
