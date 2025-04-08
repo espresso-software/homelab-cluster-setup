@@ -18,7 +18,6 @@ spec:
         spec:
           nodeSelector:
             kubernetes.io/role: worker
-          restartPolicy: OnFailure
           containers:
             - name: sync
               image: mattwebbio/orbital-sync:1
@@ -39,6 +38,7 @@ spec:
                       key: WEBPASSWORD
                 - name: RUN_ONCE
                   value: "true"
+          restartPolicy: OnFailure
           affinity:
             nodeAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
