@@ -22,13 +22,13 @@
           - defaultRequest:
               memory: 128Mi
               cpu: 100m
-          - default:
+            default:
               memory: 2Gi
               cpu: 1000m
-          - max:
+            max:
               memory: 4Gi
               cpu: 2000m
-          - min:
+            min:
               memory: 128Mi
               cpu: 100m
             type: Container
