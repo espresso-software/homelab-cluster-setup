@@ -165,8 +165,8 @@
         annotations:
           traefik.ingress.kubernetes.io/router.entrypoints: websecure
           cert-manager.io/cluster-issuer: letsencrypt-prod  
-          cert-manager.io/duration: 2160h
-          cert-manager.io/renew-before: 360h           
+          cert-manager.io/duration: 9480h
+          cert-manager.io/renew-before: 720h           
       spec:
         rules:
           - host: longhorn.{{ cluster_domain }}
