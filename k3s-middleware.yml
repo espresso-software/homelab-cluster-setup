@@ -38,7 +38,7 @@
                 link: {{ ethernet.device }}
                 routes:
                   - to: default
-                    via 10.{{ vlan_id }}.0.1
+                    via: 10.{{ vlan_id }}.0.1
                 nameservers:
                   addresses:
                     - 10.{{ vlan_id }}.0.1
