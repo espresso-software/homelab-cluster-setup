@@ -23,6 +23,9 @@
     - name: Create netplan config
       ansible.builtin.copy:
         dest: /etc/netplan/75-netcfg.yaml
+        owner: root
+        group: root
+        mode: '0600'
         content: |
           network:
             version: 2
