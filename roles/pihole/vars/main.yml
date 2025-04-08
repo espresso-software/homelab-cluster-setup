@@ -12,9 +12,6 @@ pihole_version: '2024.07.0'
 pihole_namespace: pihole-system
 
 job_template:
-  metadata:
-    name: pihole-sync
-    namespace: "{{ pihole_namespace }}"
   spec:
     nodeSelector:
       kubernetes.io/role: worker
@@ -38,7 +35,7 @@ job_template:
                 key: WEBPASSWORD
           - name: RUN_ONCE
             value: "true"
-    restartPolicy: OnFailure
+    restartPolicy: Never
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
