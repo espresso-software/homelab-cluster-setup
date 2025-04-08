@@ -44,15 +44,9 @@
         nodeSelector:
           node-role.kubernetes.io/control-plane: "true" 
 
-- name: Wait for metallb to be ready
-  kubernetes.core.k8s_info:
-    kind: Deployment
-    namespace: metallb
-    name: controller
-  register: metallb_deployment
-  until: metallb_deployment.resources[0].status.readyReplicas == 1
-  retries: 10
-  delay: 5
+- name: Wait 30 seconds for MetalLB to be ready
+  wait_for:
+    timeout: 30
 
 - name: Setup IP Address Pools
   run_once: true

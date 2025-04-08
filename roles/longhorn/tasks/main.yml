@@ -30,48 +30,15 @@
             type: Container
     state: present
 
-- name: Add labels to nodes
-  #FIXME: this doesn't work, label is not added
-  # no_log: true
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: v1
-      kind: Node
-      metadata:
-        labels:
-          espresso.software/longhorn: "true"
-    name: "{{ item }}"
-  with_items:
-    - applepi
-    - blackberrypi
-    - keylimepi
-    - pumpkinpi
-    - vwkr01
-    - wkr02vl
-    - vgmr01
-    - vmgr01
-    - gmr01pl
-    - gmr02vl
-
 - name: Install Longhorn
   kubernetes.core.helm:
     name: longhorn
     chart_ref: longhorn/longhorn
     release_namespace: longhorn-system
     values:
-      global:
-        nodeSelector:
-          espresso.software/longhorn: "true"
       persistence:
         defaultDataLocality: "best-effort"
       longhornDriver:
         nodeSelector:
           node-role.kubernetes.io/control-plane: "true"
-      longhornUI:
-        tolerations:
-          - key: kubernetes.io/role
-            operator: Equal
-            value: gamer
-            effect: NoSchedule
   run_once: true
