@@ -1,3 +1,14 @@
+apiVersion: v1
+kind: CronJob
+metadata:
+  name: pihole-sync
+  namespace: {{ pihole_namespace }}
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        {{ sync_job_template }}
 ---
 apiVersion: v1
 kind: Job

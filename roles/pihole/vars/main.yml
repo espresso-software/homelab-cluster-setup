@@ -20,7 +20,7 @@ sync_job_template:
         image: mattwebbio/orbital-sync:1
         env:
           - name: PRIMARY_HOST_BASE_URL
-            value: 'https://{{ dns.primary_pihole }}'
+            value: 'https://primary-http.pihole.svc.cluster.local'
           - name: PRIMARY_HOST_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -35,11 +35,6 @@ sync_job_template:
                 key: WEBPASSWORD
           - name: RUN_ONCE
             value: "true"
-    restartPolicy: OnFailure
-    hostAliases:
-      - hostnames:
-          - "{{ dns.primary_pihole }}"
-        ip: "{{ network.identifier }}.3.64"
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -52,7 +47,7 @@ sync_job_template:
     resources:
       requests:
         memory: "128Mi"
-        cpu: "25m"
+        cpu: "10m"
       limits:
         memory: "256Mi"
         cpu: "250m"

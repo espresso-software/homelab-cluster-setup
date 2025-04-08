@@ -1,43 +1,27 @@
 ---
 apiVersion: v1
-kind: StorageClass
-metadata:
-  name: pihole-storage
-  namespace: {{ pihole_namespace }}
-provisioner: driver.longhorn.io
-allowVolumeExpansion: true
-parameters:
-  numberOfReplicas: "3"
-  staleReplicaTimeout: "30"
-  dataLocality: "best-effort"
-  replicaAutoBalanced: "best-effort"
-  fromBackup: ""
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pihole-etc-pihole
+  name: primary-etc-pihole
   namespace: {{ pihole_namespace }}
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: pihole-storage
   resources:
     requests:
-      storage: "3Gi"
+      storage: "1Gi"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pihole-etc-dnsmasq-d
+  name: primary-etc-dnsmasq-d
   namespace: {{ pihole_namespace }}
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: pihole-storage
   resources:
     requests:
-      storage: "3Gi"
+      storage: "1Gi"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -46,17 +30,17 @@ metadata:
   namespace: {{ pihole_namespace }}
 data:
   TZ: America/Los_Angeles
-  VIRTUAL_HOST: "{{ dns.primary_pihole }}"
+  VIRTUAL_HOST: "primary.dns.{{ domain }}"
   PROXY_LOCATION: "pi.hole"
   FTL_CONF_LOCAL_IPV4: "127.0.0.1"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: primary-dns-tcp
+  name: primary-dns
   namespace: {{ pihole_namespace }}
   annotations:
-    metallb.universe.tf/allow-shared-ip: "pihole-dns"
+    metallb.universe.tf/allow-shared-ip: "primary-dns"
     metallb.universe.tf/loadBalancerIPs: "{{ network.dns1 }}"
 spec:
   selector:
@@ -67,22 +51,6 @@ spec:
       port: 53
       targetPort: 53
       protocol: TCP
-  type: LoadBalancer
-  externalTrafficPolicy: Local
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: primary-dns-udp
-  namespace: {{ pihole_namespace }}
-  annotations:
-    metallb.universe.tf/allow-shared-ip: "pihole-dns"
-    metallb.universe.tf/loadBalancerIPs: "{{ network.dns1 }}"
-spec:
-  selector:
-    app: pihole
-    version: primary
-  ports:
     - name: dns
       port: 53
       targetPort: 53
@@ -116,11 +84,11 @@ metadata:
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    cert-manager.io/duration: 2160h
-    cert-manager.io/renew-before: 360h
+    cert-manager.io/duration: 9840h
+    cert-manager.io/renew-before: 720h
 spec:
   rules:
-    - host: "{{ dns.primary_pihole }}"
+    - host: "primary.dns.{{ domain }}"
       http:
         paths:
           - path: /
@@ -132,7 +100,7 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - "{{ dns.primary_pihole }}"
+        - "primary.dns.{{ domain }}"
       secretName: pihole-tls
 ---
 apiVersion: apps/v1
@@ -197,32 +165,20 @@ spec:
               protocol: TCP
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "250m"
+              memory: "128Mi"
+              cpu: "10m"
             limits:
               memory: "1Gi"
               cpu: "2"
           volumeMounts:
-            - name: pihole-etc-pihole
+            - name: etc-pihole
               mountPath: /etc/pihole
-            - name: pihole-etc-dnsmasq-d
+            - name: etc-dnsmasq-d
               mountPath: /etc/dnsmasq.d
       volumes:
-        - name: pihole-etc-pihole
+        - name: etc-pihole
           persistentVolumeClaim:
-            claimName: pihole-etc-pihole
-        - name: pihole-etc-dnsmasq-d
+            claimName: primary-etc-pihole
+        - name: etc-dnsmasq-d
           persistentVolumeClaim:
-            claimName: pihole-etc-dnsmasq-d
----
-apiVersion: v1
-kind: CronJob
-metadata:
-  name: pihole-sync
-  namespace: {{ pihole_namespace }}
-spec:
-  schedule: "*/5 * * * *"
-  jobTemplate:
-    spec:
-      template:
-        {{ sync_job_template }}
+            claimName: primary-etc-dnsmasq-d
