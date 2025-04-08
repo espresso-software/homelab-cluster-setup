@@ -18,6 +18,7 @@ spec:
         spec:
           nodeSelector:
             kubernetes.io/role: worker
+          restartPolicy: OnFailure
           containers:
             - name: sync
               image: mattwebbio/orbital-sync:1
@@ -57,4 +58,3 @@ spec:
           tolerations:
             - key: node-role.kubernetes.io/master
               effect: NoSchedule
-          restartPolicy: Never
