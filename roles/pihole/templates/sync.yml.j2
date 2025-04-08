@@ -57,4 +57,4 @@ spec:
           tolerations:
             - key: node-role.kubernetes.io/master
               effect: NoSchedule
-          {{ immediate | ternary('restartPolicy: Never', 'restartPolicy: OnFailure') }}
+          restartPolicy: Never
