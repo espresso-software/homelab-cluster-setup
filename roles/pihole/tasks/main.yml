@@ -52,20 +52,35 @@
 
 - name: Deploy Seconday
   run_once: true
+  vars:
+    pihole_instance: secondary
   kubernetes.core.k8s:
     state: present
-    template: secondary.yml.j2
+    template: pihole.yml.j2
     apply: true
 
 - name: Deploy Primary
   run_once: true
+  vars:
+    pihole_instance: primary
   kubernetes.core.k8s:
     state: present
-    template: primary.yml.j2
+    template: pihole.yml.j2
     apply: true
 
-- name: Deploy sync service
+- name: Deploy adhoc sync service
   run_once: true
+  vars:
+    immediate: true
+  kubernetes.core.k8s:
+    state: present
+    template: sync.yml.j2
+    apply: true
+
+- name: Deploy recurring sync service
+  run_once: true
+  vars:
+    immediate: false
   kubernetes.core.k8s:
     state: present
     template: sync.yml.j2

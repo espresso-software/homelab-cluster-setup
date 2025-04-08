@@ -2,56 +2,56 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: secondary-etc-pihole
+  name: {{ pihole_instance }}-etc-pihole
   namespace: {{ pihole_namespace }}
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: "1Gi"
+      storage: "512Mi"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: secondary-etc-dnsmasq-d
+  name: {{ pihole_instance }}-etc-dnsmasq-d
   namespace: {{ pihole_namespace }}
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: "1Gi"
+      storage: "128Mi"
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: secondary-config
+  name: {{ pihole_instance }}-config
   namespace: {{ pihole_namespace }}
 data:
   TZ: America/Los_Angeles
-  VIRTUAL_HOST: "secondary.dns.{{ domain }}"
+  VIRTUAL_HOST: "{{ pihole_instance }}.dns.{{ domain }}"
   PROXY_LOCATION: "pi.hole"
   FTL_CONF_LOCAL_IPV4: "127.0.0.1"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: secondary-dns
+  name: {{ pihole_instance }}-dns
   namespace: {{ pihole_namespace }}
   annotations:
-      metallb.universe.tf/allow-shared-ip: "secondary-dns"
+      metallb.universe.tf/allow-shared-ip: "{{ pihole_instance }}-dns"
       metallb.universe.tf/loadBalancerIPs: "{{ network.dns2 }}"
 spec:
   selector:
     app: pihole
-    version: secondary
+    version: {{ pihole_instance }}
   ports:
-    - name: dns
+    - name: dns-tcp
       port: 53
       targetPort: 53
       protocol: TCP
-    - name: dns
+    - name: dns-udp
       port: 53
       targetPort: 53
       protocol: UDP
@@ -61,44 +61,77 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: secondary-http
+  name: {{ pihole_instance }}-http
   namespace: {{ pihole_namespace }}
 spec:
   selector:
     app: pihole
-    version: secondary
+    version: {{ pihole_instance }}
   ports:
     - name: http
       port: 80
       targetPort: 80
 ---
+{% if pihole_instance == "primary" %}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ pihole_instance }}
+  namespace: {{ pihole_namespace }}
+  labels:
+    app: pihole
+    namespace: {{ pihole_namespace }}
+    version: {{ pihole_instance }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    cert-manager.io/duration: 9840h
+    cert-manager.io/renew-before: 720h
+spec:
+  rules:
+    - host: "{{ pihole_instance }}.dns.{{ domain }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ pihole_instance }}-http
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - "{{ pihole_instance }}.dns.{{ domain }}"
+      secretName: {{ pihole_instance }}-tls
+---
+{% endif%}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: secondary
+  name: {{ pihole_instance }}
   namespace: {{ pihole_namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: pihole
-      version: secondary
-  serviceName: secondary
+      version: {{ pihole_instance }}
+  serviceName: {{ pihole_instance }}
   template:
     metadata:
       labels:
         app: pihole
-        version: secondary
+        version: {{ pihole_instance }}
     spec:
       nodeSelector:
         kubernetes.io/role: infra
       containers:
         - name: pihole
-          image: pihole/pihole:{{ version | default("latest") }}
+          image: pihole/pihole:{{ pihole_version | default("latest") }}
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: secondary-config
+                name: {{ pihole_instance }}-config
           env:
             - name: WEBPASSWORD
               valueFrom:
@@ -129,7 +162,7 @@ spec:
       volumes:
         - name: etc-pihole
           persistentVolumeClaim:
-            claimName: secondary-pihole-pvc
+            claimName: {{ pihole_instance }}-pihole-pvc
         - name: etc-dnsmasq-d
           persistentVolumeClaim:
-            claimName: secondary-dnsmasq-pvc
+            claimName: {{ pihole_instance }}-dnsmasq-pvc
