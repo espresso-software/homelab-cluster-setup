@@ -1,235 +1,187 @@
 ---
-- name: Kubernetes Traefik
-  when: kubernetes_deploy | default(false)
-  block:  
-    - name: Create Namespace
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ namespace_yaml }}"
-    
-    - name: Create LimitRange
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ limitrange_yaml }}"
-    
-    - name: Create ResourceQuota
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ quota_yaml }}"
-    
-    - name: Create Traefik Ingress Certificate
-      kubernetes.core.k8s:
-        state: patched
-        definition:
-          apiVersion: cert-manager.io/v1
-          kind: Certificate
-          metadata:
-            name: traefik-local-wildcard
-            namespace: "{{ namespace }}"
-          spec:
-            secretName: traefik-local-wildcard-tls
-            dnsNames:
-              - "{{ local_domain }}"
-              - "prod.k3s.{{ local_domain }}"
-              - "*.{{ local_domain }}"
-            issuerRef:
-              name: letsencrypt-prod
-              kind: ClusterIssuer
-            renewBefore: 360h
-            duration: 2160h
+- name: Create Namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ namespace }}"
 
-    - name: Install helm chart
-      kubernetes.core.helm_repository:
-        name: traefik
-        repo_url: https://traefik.github.io/charts
-        state: present
-
-    #TODO: multiple replicas
-    - name: Deploy Traefik with helm
-      kubernetes.core.helm:
-        name: traefik
-        state: present
+- name: Create LimitRange
+  kubernetes.core.k8s:
+    state: present
+    definition: 
+      apiVersion: v1
+      kind: LimitRange
+      metadata:
+        name: traefik-limits
         namespace: "{{ namespace }}"
-        chart_ref: traefik/traefik
-        values:
-          additionalArguments:
-            - --tcpserverstransport.tls.insecureskipverify
-          additionalVolumeMounts:
-            - name: localtime
-              mountPath: /etc/localtime
-              readOnly: true
-            - name: logs
-              mountPath: /var/log/traefik          
-          deployment:
-            replicas: 2
-            labels:
-              app: traefik
-            additionalVolumes:
-              - name: localtime
-                hostPath:
-                  path: /etc/localtime
-              - name: logs
-                emptyDir: {}
-          ingressRoute:
-            dashboard:
-              enabled: true
-              entryPoints:
-                - websecure
-              matchRule: Host(`traefik.{{ local_domain }}`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
-            healthcheck:
-              enabled: true
-              entryPoints:
-                - websecure
-              matchRule: Host(`traefik.{{ local_domain }}`) && PathPrefix(`/ping`)
-          updateStrategy:
-            rollingUpdate:
-              maxSurge: 1
-              maxUnavailable: 1
-          affinity:
-            podAntiAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchExpressions:
-                      - key: app
-                        operator: In
-                        values:
-                          - traefik
-                  topologyKey: kubernetes.io/hostname
-          logs:
-            general:
-              noColor: true
-            access:
-              enabled: true
-              filePath: /var/log/traefik/access.log
-              bufferingSize: 100
-              fields:
-                headers:
-                  defaultmode: redact
-          nodeSelector:
-            kubernetes.io/role: worker
-          persistence:
-            enabled: true
-            accessMode: ReadWriteMany
-          ports:
-            web:
-              redirectTo:
-                port: websecure
-                permanent: true
-          providers:
-            kubernetesCRD:
-              enabled: true
-            kubernetesIngress:
-              enabled: true
-            file:
-              enabled: true
-              content: |
-                http:
-                  routers:
-                    proxmox:
-                      entryPoints:
-                        - websecure
-                      rule: "Host(`proxmox.{{ local_domain }}`)"
-                      service: proxmox-service
-                  services:
-                    proxmox-service:
-                      loadBalancer:
-                        servers:
-                          - url: "https://geekom.{{ local_domain }}:8006"
-          resources:
-            requests:
-              cpu: 250m
-              memory: 256Mi
-            limits:
-              cpu: 2000m
+      spec:
+        limits:
+          - defaultRequest:
+              memory: 128Mi
+              cpu: 100m
+          - default:
+              memory: 2Gi
+              cpu: 1000m
+          - max:
               memory: 4Gi
-          service:
-            annotations:
-              metallb.universe.tf/allow-shared-ip: traefik
-              metallb.universe.tf/loadBalancerIps: "{{ traefik_lb_ip }}"
-          tlsStore:
-            default:
-              defaultCertificate:
-                secretName: traefik-local-wildcard-tls         
-    
-    - name: Create Longhorn Ingress
-      kubernetes.core.k8s:
-        state: patched
-        definition:
-          apiVersion: networking.k8s.io/v1
-          kind: Ingress
-          metadata:
-            name: longhorn
-            namespace: longhorn-system
-            labels:
-              app: longhorn-ui
-              namespace: longhorn-system
-            annotations:
-              traefik.ingress.kubernetes.io/router.entrypoints: websecure
-              cert-manager.io/cluster-issuer: letsencrypt-prod  
-              cert-manager.io/duration: 2160h
-              cert-manager.io/renew-before: 360h           
-          spec:
-            rules:
-              - host: longhorn.{{ local_domain }}
-                http:
-                  paths:
-                    - path: /
-                      pathType: Prefix
-                      backend:
-                        service:
-                          name: longhorn-frontend
-                          port:
-                            number: 80
-              - host: longhorn.{{ domain }}
-                http:
-                  paths:
-                    - path: /
-                      pathType: Prefix
-                      backend:
-                        service:
-                          name: longhorn-frontend
-                          port:
-                            number: 80
-            tls:
-              - hosts:
-                  - longhorn.{{ local_domain }}
-                  - longhorn.{{ domain }}
-                secretName: longhorn-http-proxy-tls
+              cpu: 2000m
+          - min:
+              memory: 128Mi
+              cpu: 100m
+            type: Container
 
-#TODO: move to physical firewall device
-- name: Setup LB FW Rules
-  when: kubernetes_firewall | default(false)
-  block:
-  - name: PROD LB
-    community.general.ufw:
-      rule: allow
-      direction: in
-      src: "{{ network.identifier }}.{{ network.subnet }}"
-      dest: "{{ network.identifier }}.{{ network.subnets.prod_lb | split('/') | first }}"
-      port: "{{ item.port }}"
-      proto: "tcp"
-      comment: "{{ item.comment }}"
-    with_items:
-      - port: 80
-        comment: 'HTTP (redirect to HTTPS)'       
-      - port: 443
-        comment: 'HTTPS'
-      - port: 8080
-        comment: 'Traefik Dashboard'
-      - port: 8090
-        comment: "Traefik metrics"
+- name: Create Traefik Ingress Certificate
+  kubernetes.core.k8s:
+    state: patched
+    definition:
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: traefik-local-wildcard
+        namespace: "{{ namespace }}"
+      spec:
+        secretName: traefik-local-wildcard-tls
+        dnsNames:
+          - "{{ cluster_domain }}"
+          - "{{ local_domain }}"
+        issuerRef:
+          name: letsencrypt-prod
+          kind: ClusterIssuer
+        renewBefore: 720h
+        duration: 9480h
 
-  - name: UAT LB
-    community.general.ufw:
-      rule: allow
-      direction: in
-      src: "{{ network.identifier }}.{{ network.subnet }}"
-      dest: "{{ network.identifier }}.{{ network.subnets.uat_lb | split('/') | first }}"
-      port: "{{ item.port }}"
-      proto: "tcp"
-      comment: "{{ item.comment }}"
-    with_items:
-      - port: 80
-        comment: 'HTTP (redirect to HTTPS)'       
-      - port: 443
-        comment: 'HTTPS'
+- name: Install helm chart
+  kubernetes.core.helm_repository:
+    name: traefik
+    repo_url: https://traefik.github.io/charts
+    state: present
+
+- name: Deploy Traefik with helm
+  kubernetes.core.helm:
+    name: traefik
+    state: present
+    namespace: "{{ namespace }}"
+    chart_ref: traefik/traefik
+    values:
+      additionalArguments:
+        - --tcpserverstransport.tls.insecureskipverify
+      additionalVolumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+          readOnly: true
+        - name: logs
+          mountPath: /var/log/traefik          
+      deployment:
+        replicas: 3
+        labels:
+          app: traefik
+        additionalVolumes:
+          - name: localtime
+            hostPath:
+              path: /etc/localtime
+          - name: logs
+            emptyDir: {}
+      ingressRoute:
+        dashboard:
+          enabled: true
+          entryPoints:
+            - websecure
+          matchRule: Host(`traefik.{{ cluster_domain }}`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
+        healthcheck:
+          enabled: true
+          entryPoints:
+            - websecure
+          matchRule: Host(`traefik.{{ cluster_domain }}`) && PathPrefix(`/ping`)
+      updateStrategy:
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 1
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - traefik
+              topologyKey: kubernetes.io/hostname
+      logs:
+        general:
+          noColor: true
+        access:
+          enabled: true
+          filePath: /var/log/traefik/access.log
+          bufferingSize: 100
+          fields:
+            headers:
+              defaultmode: redact
+      nodeSelector:
+        kubernetes.io/role: worker
+      persistence:
+        enabled: true
+        accessMode: ReadWriteMany
+      ports:
+        web:
+          redirectTo:
+            port: websecure
+            permanent: true
+      providers:
+        kubernetesCRD:
+          enabled: true
+        kubernetesIngress:
+          enabled: true
+      resources:
+        requests:
+          cpu: 250m
+          memory: 256Mi
+        limits:
+          cpu: 2000m
+          memory: 4Gi
+      service:
+        annotations:
+          metallb.universe.tf/allow-shared-ip: traefik
+          metallb.universe.tf/loadBalancerIps: "{{ ingress_ip }}"
+      tlsStore:
+        default:
+          defaultCertificate:
+            secretName: traefik-local-wildcard-tls         
+
+- name: Create Longhorn Ingress
+  kubernetes.core.k8s:
+    state: patched
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: longhorn
+        namespace: longhorn-system
+        labels:
+          app: longhorn-ui
+          namespace: longhorn-system
+        annotations:
+          traefik.ingress.kubernetes.io/router.entrypoints: websecure
+          cert-manager.io/cluster-issuer: letsencrypt-prod  
+          cert-manager.io/duration: 2160h
+          cert-manager.io/renew-before: 360h           
+      spec:
+        rules:
+          - host: longhorn.{{ cluster_domain }}
+            http:
+              paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: longhorn-frontend
+                      port:
+                        number: 80
+          - host: longhorn.local.{{ cluster_domain }}
+        tls:
+          - hosts:
+              - longhorn.{{ cluster_domain }}
+              - longhorn.local.{{ cluster_domain }}
+            secretName: longhorn-http-proxy-tls
