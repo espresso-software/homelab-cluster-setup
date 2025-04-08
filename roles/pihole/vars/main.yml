@@ -9,4 +9,4 @@ pihole_web_password: !vault |
 
 pihole_version: '2024.07.0'
 
-pihole_namespace: pihole
+pihole_namespace: pihole-system
