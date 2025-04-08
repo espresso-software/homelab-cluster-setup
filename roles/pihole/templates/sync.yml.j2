@@ -2,7 +2,7 @@ apiVersion: v1
 {{ immediate | ternary('kind: Job', 'kind: CronJob') }}
 metadata:
   name: pihole-sync
-  namespace: "{{ pihole_namesapce }}"
+  namespace: {{ pihole_namespace }}
 spec:
 {% if immediate %}
   template:
@@ -14,7 +14,7 @@ spec:
       template:
         metadata:
           name: pihole-sync
-          namespace: "{{ pihole_namespace }}"
+          namespace: {{ pihole_namespace }}
         spec:
           nodeSelector:
             kubernetes.io/role: worker
