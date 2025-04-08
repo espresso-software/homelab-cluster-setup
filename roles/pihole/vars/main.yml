@@ -14,7 +14,7 @@ pihole_namespace: pihole-system
 job_template:
   metadata:
     name: pihole-sync
-    namespace: {{ pihole_namespace }}
+    namespace: "{{ pihole_namespace }}"
   spec:
     nodeSelector:
       kubernetes.io/role: worker
