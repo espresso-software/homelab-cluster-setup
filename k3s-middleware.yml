@@ -80,24 +80,9 @@
     - traefik
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-  vars:
-    kubernetes_deploy: true
   roles:
     - traefik
 
-- name: Setup Traefik FW Rules
-  hosts: k3s
-  become: yes
-  gather_facts: true
-  tags:
-    - firewall
-    - traefik
-  vars:
-    kubernetes_firewall: true
-  roles:
-    - traefik
-
-#TODO: one on a worker, one on infra node
 - name: Install Pi-hole
   hosts: k3s_managers
   become: yes
@@ -106,42 +91,5 @@
     - pihole
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-  vars:
-    kubernetes_deploy: true
   roles:
     - pihole
-
-- name: Setup Pi-hole FW Rules
-  hosts: k3s
-  become: yes
-  gather_facts: true
-  tags:
-    - firewall
-    - pihole
-  vars:
-    kubernetes_firewall: true
-  roles:
-    - pihole
-
-- name: Setup secondary Pi-hole FW Rules
-  hosts: k3s
-  become: yes
-  gather_facts: true
-  tags:
-    - firewall
-    - pihole
-  tasks:
-    - name: Setup k3s FW Rules
-      community.general.ufw:
-        rule: allow
-        direction: in
-        src: "{{ network.identifier }}.{{ network.subnet }}"
-        dest: "{{ network.identifier }}.3.69"
-        port: 53
-        proto: "{{ item.proto }}"
-        comment: "{{ item.comment }}"
-      with_items:
-        - proto: 'udp'
-          comment: 'DNS UDP'
-        - proto: 'tcp'
-          comment: 'DNS TCP'
