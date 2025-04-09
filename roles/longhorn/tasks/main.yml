@@ -42,24 +42,3 @@
         nodeSelector:
           node-role.kubernetes.io/control-plane: "true"
   run_once: true
-
-- name: Create Longhorn Service
-  kubernetes.core.k8s:
-    definition:
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: longhorn-ui
-        namespace: "{{ longhorn_namespace }}"
-        annotations:
-          metallb.universe.tf/allow-shared-ip: longhorn
-          metallb.universe.tf/loadBalancerIps: "{{ longhorn_ip }}"
-      spec:
-        ports:
-          - port: 80
-            targetPort: 80
-            protocol: TCP
-        selector:
-          app: longhorn
-        type: LoadBalancer
-    state: present
