@@ -137,7 +137,7 @@
       service:
         annotations:
           metallb.universe.tf/allow-shared-ip: traefik
-          metallb.universe.tf/loadBalancerIps: "{{ ingress_ip }}"
+          metallb.universe.tf/loadBalancerIPs: "{{ ingress_ip }}"
       tlsStore:
         default:
           defaultCertificate:

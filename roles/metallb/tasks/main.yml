@@ -65,15 +65,11 @@
 
 - name: Ensure MetalLB has L2Advertisement
   run_once: true
-  with_items: "{{ metallb_pools | map(attribute='name') | list }}"
   kubernetes.core.k8s:
     state: present
     definition:
       apiVersion: metallb.io/v1beta1
       kind: L2Advertisement
       metadata:
-        name: "{{ item }}"
+        name: "default"
         namespace: metallb
-      spec:
-        ipAddressePools:
-          - "{{ item }}"
