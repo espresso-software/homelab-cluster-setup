@@ -34,7 +34,7 @@
           memory: 128Mi
       nodeSelector:
         kubernetes.io/os: linux
-        kubernetes.io/role: worker
+        node-role.kubernetes.io/control-plane: "true"
       webhook:
         resources:
           requests:
@@ -42,7 +42,7 @@
             memory: 128Mi
         nodeSelector:
           kubernetes.io/os: linux
-          kubernetes.io/role: worker
+          node-role.kubernetes.io/control-plane: "true"
       cainjector:
         resources:
           requests:
@@ -50,7 +50,7 @@
             memory: 128Mi
         nodeSelector:
           kubernetes.io/os: linux
-          kubernetes.io/role: worker
+          node-role.kubernetes.io/control-plane: "true"
       startupapicheck:
         resources:
           requests:
@@ -58,7 +58,7 @@
             memory: 32Mi
         nodeSelector:
           kubernetes.io/os: linux
-          kubernetes.io/role: worker
+          node-role.kubernetes.io/control-plane: "true"
       
 - name: Create Cloudflare API Token Secret
   no_log: true
