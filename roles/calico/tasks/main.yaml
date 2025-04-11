@@ -26,6 +26,7 @@
         calicoNetwork:
           ipPools:
             - cidr: "{{ cluster_cidr }}"
+              encapsulation: VXLAN
           containerIPForwarding: 'Enabled'
         typhaDeployment:
           spec:
