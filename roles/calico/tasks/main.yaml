@@ -45,21 +45,21 @@
         wireguardEnabled: true
         wireguardEnabledV6: true
 
-- name: Set BGP Configuration
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: projectcalico.org/v3
-      kind: BGPConfiguration
-      metadata:
-        name: default
-      spec:
-        serviceClusterIPs:
-          - "{{ service_cidrs[0] }}"
-        serviceExternalIPs:
-          - "{{ service_cidrs[1] }}"
-          - "{{ service_cidrs[2] }}"
-          - "{{ service_cidrs[3] }}"
+# - name: Set BGP Configuration
+#   kubernetes.core.k8s:
+#     state: present
+#     definition:
+#       apiVersion: projectcalico.org/v3
+#       kind: BGPConfiguration
+#       metadata:
+#         name: default
+#       spec:
+#         serviceClusterIPs:
+#           - "{{ service_cidrs[0] }}"
+#         serviceExternalIPs:
+#           - "{{ service_cidrs[1] }}"
+#           - "{{ service_cidrs[2] }}"
+#           - "{{ service_cidrs[3] }}"
 
 - name: Set BGP Peer with Router
   kubernetes.core.k8s:
