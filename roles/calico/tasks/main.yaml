@@ -52,7 +52,15 @@
       apiVersion: projectcalico.org/v3
       kind: BGPPeer
       metadata:
-        name: dream-machine
+        name: "{{ item.name }}"
       spec:
-        peerIP: 10.206.0.1
+        peerIP: "{{ item.peer_ip }}"
         asNumber: 65420
+        nodeSelector: "{{ item.node_selector }}"
+  with_items:
+    - name: "dream-machine-mgrs"
+      peer_ip: "{{ manager_gateway }}"
+      node_selector: "node-role.kubernetes.io/control-plane"
+    - name: "dream-machine-wkrs"
+      peer_ip: "{{ worker_gateway }}"
+      node_selector: "node-role.kubernetes.io/worker"
