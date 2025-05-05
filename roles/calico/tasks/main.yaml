@@ -60,7 +60,7 @@
   with_items:
     - name: "dream-machine-mgrs"
       peer_ip: "{{ manager_gateway }}"
-      node_selector: "node-role.kubernetes.io/control-plane"
+      node_selector: "node-role.kubernetes.io/control-plane == 'true'"
     - name: "dream-machine-wkrs"
       peer_ip: "{{ worker_gateway }}"
-      node_selector: "node-role.kubernetes.io/worker"
+      node_selector: "node-role.kubernetes.io/control-plane != 'true'"
