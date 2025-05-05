@@ -3,7 +3,7 @@ write-kubeconfig-group: "k3s"
 
 https-listen-port: "{{ k3s_port }}"
 cluster-cidr: "{{ cluster_cidr }}"
-service-cidr: "{{ service_cidr }}"
+service-cidr: "{{ service_cidrs[0] }}"
 
 flannel-backend: "none"
 disable-network-policy: true
