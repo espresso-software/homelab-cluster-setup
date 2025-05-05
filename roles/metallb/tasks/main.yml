@@ -42,7 +42,9 @@
     values:
       controller:
         nodeSelector:
-          node-role.kubernetes.io/control-plane: "true" 
+          node-role.kubernetes.io/control-plane: "true"
+      speaker:
+        enabled: false # use calico for BGP instead
 
 - name: Wait 30 seconds for MetalLB to be ready
   wait_for:
@@ -62,14 +64,3 @@
         addresses:
           - "{{ item.addresses }}"
   with_items: "{{ metallb_pools }}"
-
-- name: Ensure MetalLB has L2Advertisement
-  run_once: true
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: metallb.io/v1beta1
-      kind: L2Advertisement
-      metadata:
-        name: "default"
-        namespace: "{{ metallb_namespace }}"
