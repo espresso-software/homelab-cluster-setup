@@ -38,9 +38,21 @@
                     effect: "NoSchedule"
                 nodeSelector:
                   node-role.kubernetes.io/control-plane: "true"
-        serviceCIDRs:
-          - "{{ service_cidr }}"
+        serviceCIDRs: 
+          "{{ service_cirds }}"
       defaultFelixConfiguration:
         enabled: true
         wireguardEnabled: true
         wireguardEnabledV6: true
+
+- name: Set BGP Peer with Router
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: projectcalico.org/v3
+      kind: BGPPeer
+      metadata:
+        name: dream-machine
+      spec:
+        peerIP: 10.206.0.1
+        asNumber: 65420
