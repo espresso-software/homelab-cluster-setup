@@ -39,7 +39,7 @@
                 nodeSelector:
                   node-role.kubernetes.io/control-plane: "true"
         serviceCIDRs: 
-          "{{ service_cirds }}"
+          "{{ service_cidrs }}"
       defaultFelixConfiguration:
         enabled: true
         wireguardEnabled: true
