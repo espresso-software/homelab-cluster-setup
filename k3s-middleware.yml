@@ -11,41 +11,6 @@
   roles:
     - calico
 
-- name: Add MetalLB VLAN
-  hosts: k3s
-  become: yes
-  tags:
-    - metallb
-  handlers:
-    - name: netplan apply
-      ansible.builtin.command: netplan apply
-  tasks:
-    - name: Create netplan config
-      ansible.builtin.copy:
-        dest: /etc/netplan/75-netcfg.yaml
-        owner: root
-        group: root
-        mode: '0600'
-        content: |
-          network:
-            version: 2
-            ethernets:
-              {{ ethernet.device }}:
-                dhcp4: no
-            vlans:
-              vlan{{ vip_vlan_id }}:
-                id: {{ vip_vlan_id }}
-                link: {{ ethernet.device }}
-                routes:
-                  - to: default
-                    via: 10.{{ vlan_id }}.0.1
-                nameservers:
-                  addresses:
-                    - 10.{{ vlan_id }}.0.1
-                    - 1.1.1.1
-                    - 1.0.0.1
-      notify: netplan apply
-
 - name: Install MetalLB
   hosts: k3s_managers
   become: yes

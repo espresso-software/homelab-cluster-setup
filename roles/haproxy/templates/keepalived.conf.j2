@@ -8,7 +8,7 @@ vrrp_instance k3s-vip {
     interface vlan
     priority {{ k3s_vip_priority }}
 
-    virtual_router_id {{ vlan_id }}
+    virtual_router_id {{ network.vlan }}
 
     virtual_ipaddress {
         {{ k3s_vip_address }}
