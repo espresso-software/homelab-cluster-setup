@@ -23,7 +23,7 @@ on:
 jobs:
   haproxy:
     if: |
-      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == '' ||
       contains(github.event.inputs.tags, 'haproxy') ||
       contains(github.event.inputs.tags, 'server') ||
       contains(github.event.inputs.tags, 'agent')
@@ -47,7 +47,7 @@ jobs:
 
   prereq:
     if: |
-      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == '' ||
       contains(github.event.inputs.tags, 'prereq') ||
       contains(github.event.inputs.tags, 'server') ||
       contains(github.event.inputs.tags, 'agent')
@@ -72,7 +72,7 @@ jobs:
   
   init-managers:
     if: |
-      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == '' ||
       contains(github.event.inputs.tags, 'init-managers') ||
       contains(github.event.inputs.tags, 'server') ||
       contains(github.event.inputs.tags, 'agent')
@@ -97,7 +97,7 @@ jobs:
   
   init-workers:
     if: |
-      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == '' ||
       contains(github.event.inputs.tags, 'init-workers') ||
       contains(github.event.inputs.tags, 'agent')
     runs-on:
@@ -120,7 +120,7 @@ jobs:
   
   cluster-config:
     if: |
-      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == '' ||
       contains(github.event.inputs.tags, 'cluster-config') ||
       contains(github.event.inputs.tags, 'server') ||
       contains(github.event.inputs.tags, 'agent')
