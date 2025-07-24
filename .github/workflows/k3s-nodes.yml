@@ -46,6 +46,8 @@ jobs:
           vars: ${{ github.event.inputs.extra_vars }}
 
   prereq:
+    needs: 
+      - haproxy
     if: |
       github.event.inputs.tags == '' ||
       contains(github.event.inputs.tags, 'prereq') ||
@@ -71,6 +73,8 @@ jobs:
           vars: ${{ github.event.inputs.extra_vars }}
   
   init-managers:
+    needs:
+      - prereq
     if: |
       github.event.inputs.tags == '' ||
       contains(github.event.inputs.tags, 'init-managers') ||
@@ -96,6 +100,8 @@ jobs:
           vars: ${{ github.event.inputs.extra_vars }}
   
   init-workers:
+    needs:
+      - init-managers
     if: |
       github.event.inputs.tags == '' ||
       contains(github.event.inputs.tags, 'init-workers') ||
@@ -119,6 +125,9 @@ jobs:
           vars: ${{ github.event.inputs.extra_vars }}
   
   cluster-config:
+    needs:
+      - init-managers
+      - init-workers
     if: |
       github.event.inputs.tags == '' ||
       contains(github.event.inputs.tags, 'cluster-config') ||
