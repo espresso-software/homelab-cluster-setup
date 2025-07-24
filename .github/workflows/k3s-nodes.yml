@@ -13,8 +13,18 @@ on:
           - all
       tags:
         description: 'The tags to run'
-        required: false
-        default: ''
+        required: true
+        type: choice
+        options:
+          - all
+          - server
+          - agent
+          - haproxy
+          - prereq
+          - init-managers
+          - init-workers
+          - cluster-config
+          - helm
       extra_vars:
         description: 'Extra vars to pass to the playbook'
         required: false
@@ -49,10 +59,10 @@ jobs:
     needs: 
       - haproxy
     if: |
-      github.event.inputs.tags == '' ||
-      contains(github.event.inputs.tags, 'prereq') ||
-      contains(github.event.inputs.tags, 'server') ||
-      contains(github.event.inputs.tags, 'agent')
+      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == 'prereq' ||
+      github.event.inputs.tags == 'server' ||
+      github.event.inputs.tags == 'agent'
     runs-on: 
       - self-hosted
       - ansible
@@ -76,10 +86,10 @@ jobs:
     needs:
       - prereq
     if: |
-      github.event.inputs.tags == '' ||
-      contains(github.event.inputs.tags, 'init-managers') ||
-      contains(github.event.inputs.tags, 'server') ||
-      contains(github.event.inputs.tags, 'agent')
+      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == 'init-managers' ||
+      github.event.inputs.tags == 'server' ||
+      github.event.inputs.tags == 'agent'
     runs-on:
       - self-hosted
       - ansible
@@ -103,9 +113,9 @@ jobs:
     needs:
       - init-managers
     if: |
-      github.event.inputs.tags == '' ||
-      contains(github.event.inputs.tags, 'init-workers') ||
-      contains(github.event.inputs.tags, 'agent')
+      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == 'init-workers' ||
+      github.event.inputs.tags == 'agent'
     runs-on:
       - self-hosted
       - ansible
@@ -129,10 +139,10 @@ jobs:
       - init-managers
       - init-workers
     if: |
-      github.event.inputs.tags == '' ||
-      contains(github.event.inputs.tags, 'cluster-config') ||
-      contains(github.event.inputs.tags, 'server') ||
-      contains(github.event.inputs.tags, 'agent')
+      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == 'cluster-config' ||
+      github.event.inputs.tags == 'server' ||
+      github.event.inputs.tags == 'agent'
     runs-on:
       - self-hosted
       - ansible
@@ -149,4 +159,29 @@ jobs:
           inventory_path: inventory/hosts.yml
           hosts: ${{ github.event.inputs.cluster }}
           tags: cluster-config
+          vars: ${{ github.event.inputs.extra_vars }}
+  
+  helm:
+    needs:
+      - init-managers
+    if: |
+      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == 'helm' ||
+      github.event.inputs.tags == 'server'
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-helm.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster }}
+          tags: all
           vars: ${{ github.event.inputs.extra_vars }}
