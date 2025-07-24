@@ -103,7 +103,7 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-helm.yml
+          playbook_path: k3s-nodes.yml
           inventory_path: inventory/hosts.yml
           hosts: ${{ github.event.inputs.cluster }}
           tags: init-managers
