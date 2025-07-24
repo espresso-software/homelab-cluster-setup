@@ -54,8 +54,14 @@ jobs:
     needs: 
       - cillium
     if: |
-      github.event.inputs.tags == 'all' ||
-      github.event.inputs.tags == 'metallb'
+      always() && 
+      (
+        needs.cillium.result == 'success' ||
+        needs.cillium.result == 'skipped'
+      ) && (
+        github.event.inputs.tags == 'all' ||
+        github.event.inputs.tags == 'metallb'
+      )
     runs-on:
       - self-hosted
       - ansible
@@ -78,8 +84,14 @@ jobs:
     needs:
       - metallb
     if: |
-      github.event.inputs.tags == 'all' ||
-      github.event.inputs.tags == 'longhorn'
+      always() && 
+      (
+        needs.metallb.result == 'success' ||
+        needs.metallb.result == 'skipped'
+      ) && (
+        github.event.inputs.tags == 'all' ||
+        github.event.inputs.tags == 'longhorn'
+      )
     runs-on:
       - self-hosted
       - ansible
@@ -102,8 +114,14 @@ jobs:
     needs:
       - longhorn
     if: |
-      github.event.inputs.tags == 'all' ||
-      github.event.inputs.tags == 'cert-manager'
+      always() && 
+      (
+        needs.longhorn.result == 'success' ||
+        needs.longhorn.result == 'skipped'
+      ) && (
+        github.event.inputs.tags == 'all' ||
+        github.event.inputs.tags == 'cert-manager'
+      )
     runs-on:
       - self-hosted
       - ansible
@@ -126,8 +144,14 @@ jobs:
     needs:
       - cert-manager
     if: |
-      github.event.inputs.tags == 'all' ||
-      github.event.inputs.tags == 'traefik'
+      always() && 
+      (
+        needs.cert-manager.result == 'success' ||
+        needs.cert-manager.result == 'skipped'
+      ) && (
+        github.event.inputs.tags == 'all' ||
+        github.event.inputs.tags == 'traefik'
+      )
     runs-on:
       - self-hosted
       - ansible
@@ -150,8 +174,14 @@ jobs:
     needs:
       - traefik
     if: |
-      github.event.inputs.tags == 'all' ||
-      github.event.inputs.tags == 'pihole'
+      always() && 
+      (
+        needs.traefik.result == 'success' ||
+        needs.traefik.result == 'skipped'
+      ) && (
+        github.event.inputs.tags == 'all' ||
+        github.event.inputs.tags == 'pihole'
+      )
     runs-on:
       - self-hosted
       - ansible
