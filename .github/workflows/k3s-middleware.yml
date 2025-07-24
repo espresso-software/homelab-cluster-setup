@@ -1,10 +1,6 @@
-# This is a basic workflow to help you get started with Actions
-
 name: k3s cluster middleware
 
-# Controls when the workflow will run
 on:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       cluster:
@@ -31,24 +27,19 @@ on:
         required: false
         default: ''
 
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  deploy:
-    # The type of runner that the job will run on
-    runs-on: 
+  cillium:
+    if: |
+      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == 'cilluim'
+    runs-on:
       - self-hosted
       - ansible
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
         with:
           submodules: 'true'
           token: ${{ secrets.READ_ACCESS_TOKEN }}
-      
       - uses: espresso-software/actions/ansible/run-playbook@main
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
@@ -56,5 +47,125 @@ jobs:
           playbook_path: k3s-middleware.yml
           inventory_path: inventory/hosts.yml
           hosts: ${{ github.event.inputs.cluster }}
-          tags: ${{ github.event.inputs.tags }}
+          tags: cillium
+          vars: ${{ github.event.inputs.extra_vars }}
+  
+  metallb:
+    needs: 
+      - cillium
+    if: |
+      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == 'metallb'
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-middleware.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster }}
+          tags: metallb
+          vars: ${{ github.event.inputs.extra_vars }}
+  
+  longhorn:
+    needs:
+      - metallb
+    if: |
+      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == 'longhorn'
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-middleware.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster }}
+          tags: longhorn
+          vars: ${{ github.event.inputs.extra_vars }}
+  
+  cert-manager:
+    needs:
+      - longhorn
+    if: |
+      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == 'cert-manager'
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-middleware.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster }}
+          tags: cert-manager
+          vars: ${{ github.event.inputs.extra_vars }}
+  
+  traefik:
+    needs:
+      - cert-manager
+    if: |
+      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == 'traefik'
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-middleware.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster }}
+          tags: traefik
+          vars: ${{ github.event.inputs.extra_vars }}
+  
+  pihole:
+    needs:
+      - traefik
+    if: |
+      github.event.inputs.tags == 'all' ||
+      github.event.inputs.tags == 'pihole'
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-middleware.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster }}
+          tags: pihole
           vars: ${{ github.event.inputs.extra_vars }}
