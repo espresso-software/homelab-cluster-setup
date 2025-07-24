@@ -1,15 +1,15 @@
 ---
-- name: Install Calico
+- name: Install Cillium
   hosts: k3s_managers
   become: yes
   run_once: true
   gather_facts: true
   tags:
-    - calico
+    - cillium
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
   roles:
-    - calico
+    - cillium
 
 - name: Install MetalLB
   hosts: k3s_managers
