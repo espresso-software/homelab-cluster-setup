@@ -31,7 +31,7 @@ jobs:
   cilium:
     if: |
       github.event.inputs.tags == 'all' ||
-      github.event.inputs.tags == 'ciluim'
+      github.event.inputs.tags == 'cilium'
     runs-on:
       - self-hosted
       - ansible
