@@ -3,7 +3,7 @@
   ansible.builtin.script:
     executable: /bin/bash
     args:
-      - roles/cilium/files/cilium-install.sh
+      - cilium-install.sh
       
 
 - name: Create cilium-system namespace
