@@ -1,6 +1,9 @@
 ---
 - name: Install Cilium CLI
-  ansible.builtin.shell: bash files/cilium-install.sh
+  ansible.builtin.script:
+    executable: /bin/bash
+    args:
+      - roles/cilium/files/cilium-install.sh
       
 
 - name: Create cilium-system namespace
