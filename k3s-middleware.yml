@@ -1,14 +1,14 @@
 ---
-- name: Install Cillium
+- name: Install Cilium
   hosts: k3s_managers
   become: yes
   gather_facts: true
   tags:
-    - cillium
+    - cilium
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
   roles:
-    - cillium
+    - cilium
 
 - name: Install MetalLB
   hosts: k3s_managers
