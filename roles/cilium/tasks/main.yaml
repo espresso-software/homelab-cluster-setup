@@ -32,7 +32,7 @@
       kubeConfigPath: "{{ kube_config_path }}"
       cluster:
         name: "{{ cluster_name }}"
-        id: "{{ cluster_id }}"
+        id: {{ cluster_id }}
       encryption:
         enabled: true
         type: "wireguard"
