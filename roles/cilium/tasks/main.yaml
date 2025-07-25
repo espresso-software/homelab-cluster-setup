@@ -18,7 +18,7 @@
   run_once: true
   kubernetes.core.helm_repository:
     name: cilium
-    repo_url: https://docs.cilium.io/charts
+    repo_url: https://helm.cilium.io/
     state: present
 
 - name: Deploy Cilium with helm
