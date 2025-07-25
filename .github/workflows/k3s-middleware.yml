@@ -28,10 +28,10 @@ on:
         default: ''
 
 jobs:
-  cillium:
+  cilium:
     if: |
       github.event.inputs.tags == 'all' ||
-      github.event.inputs.tags == 'cilluim'
+      github.event.inputs.tags == 'ciluim'
     runs-on:
       - self-hosted
       - ansible
@@ -47,17 +47,17 @@ jobs:
           playbook_path: k3s-middleware.yml
           inventory_path: inventory/hosts.yml
           hosts: ${{ github.event.inputs.cluster }}
-          tags: cillium
+          tags: cilium
           vars: ${{ github.event.inputs.extra_vars }}
   
   metallb:
     needs: 
-      - cillium
+      - cilium
     if: |
       always() && 
       (
-        needs.cillium.result == 'success' ||
-        needs.cillium.result == 'skipped'
+        needs.cilium.result == 'success' ||
+        needs.cilium.result == 'skipped'
       ) && (
         github.event.inputs.tags == 'all' ||
         github.event.inputs.tags == 'metallb'
