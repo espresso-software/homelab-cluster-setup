@@ -40,6 +40,9 @@
         nodeSelector:
           kubernetes.io/os: linux
           node-role.kubernetes.io/control-plane: 'true'
+      ipam:
+        clussterPoolIPv4PodCIDRList: 
+          - "{{ cluster_cidr }}"
 
 - name: Wait for Cilium to be ready
   run_once: true
