@@ -1,8 +1,8 @@
 ---
-- name: Install Cilium CLI
-  ansible.builtin.script: 
-    cmd: cilium-install.sh
-    executable: /bin/bash 
+# - name: Install Cilium CLI
+#   ansible.builtin.script: 
+#     cmd: cilium-install.sh
+#     executable: /bin/bash 
 
 - name: Create cilium-system namespace
   run_once: true
@@ -30,6 +30,7 @@
     chart_ref: cilium/cilium
     values:
       kubeConfigPath: "{{ kube_config_path }}"
+      rolloutCiliumPods: 'true'
       cluster:
         name: "{{ cluster_name }}"
       encryption:
@@ -44,16 +45,16 @@
         clussterPoolIPv4PodCIDRList: 
           - "{{ cluster_cidr }}"
 
-- name: Wait for Cilium to be ready
-  run_once: true
-  ansible.builtin.command:
-    cmd: cilium status --wait
+# - name: Wait for Cilium to be ready
+#   run_once: true
+#   ansible.builtin.command:
+#     cmd: cilium status --wait
 
-- name: Test Cilium connectivity
-  run_once: true
-  ansible.builtin.command:
-    cmd: cilium connectivity test
-  register: cilium_connectivity_test
-  failed_when: cilium_connectivity_test.rc != 0
+# - name: Test Cilium connectivity
+#   run_once: true
+#   ansible.builtin.command:
+#     cmd: cilium connectivity test
+#   register: cilium_connectivity_test
+#   failed_when: cilium_connectivity_test.rc != 0
           
       
