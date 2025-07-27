@@ -11,6 +11,7 @@
         ip link del cilium_vxlan
         iptables-save | grep -v cilium | iptables-restore
         ip6tables-save | grep -v cilium | ip6tables-restore
+      failed_when: false
       
     - name: Uninstall k3s
       when: 
