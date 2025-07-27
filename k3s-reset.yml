@@ -4,6 +4,14 @@
   gather_facts: true
   become: true
   tasks:
+    - name: Cleanup Cilium
+      ansible.builtin.command: |
+        ip link del cilium_host
+        ip link del cilium_net
+        ip link del cilium_vxlan
+        iptables-save | grep -v cilium | iptables-restore
+        ip6tables-save | grep -v cilium | ip6tables-restore
+      
     - name: Uninstall k3s
       when: 
         - "'k3s_managers' in group_names"
