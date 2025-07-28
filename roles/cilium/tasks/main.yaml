@@ -26,7 +26,7 @@
   kubernetes.core.helm:
     name: cilium
     state: present
-    namespace: cilium-system
+    namespace: kube-system
     chart_ref: cilium/cilium
     values:
       kubeConfigPath: "{{ kube_config_path }}"
