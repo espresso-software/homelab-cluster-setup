@@ -41,7 +41,7 @@ metadata:
   namespace: {{ pihole_namespace }}
   annotations:
       metallb.universe.tf/allow-shared-ip: "{{ pihole_instance }}-dns"
-      metallb.universe.tf/loadBalancerIPs: "{{ network.dns2 }}"
+      metallb.universe.tf/loadBalancerIPs: "{{ pihole_ip }}"
 spec:
   selector:
     app: pihole

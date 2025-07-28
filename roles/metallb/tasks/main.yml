@@ -46,10 +46,6 @@
       speaker:
         enabled: true
 
-- name: Wait 30 seconds for MetalLB to be ready
-  wait_for:
-    timeout: 30
-
 - name: Setup IP Address Pools
   run_once: true
   kubernetes.core.k8s:
@@ -64,8 +60,9 @@
         addresses:
           - "{{ item.addresses }}"
   with_items: "{{ metallb_pools }}"
-
-#FIXME: Wait for Controller pods to be ready before proceeding
+  retries: 20
+  delay: 5
+  until: result is success
 
 - name: Ensure MetalLB has L2Advertisement
   run_once: true

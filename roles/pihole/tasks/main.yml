@@ -54,6 +54,7 @@
   run_once: true
   vars:
     pihole_instance: secondary
+    pihole_ip: "{{ secondary_dns }}"
   kubernetes.core.k8s:
     state: present
     template: pihole.yml.j2
@@ -63,6 +64,7 @@
   run_once: true
   vars:
     pihole_instance: primary
+    pihole_ip: "{{ primary_dns }}"
   kubernetes.core.k8s:
     state: present
     template: pihole.yml.j2
