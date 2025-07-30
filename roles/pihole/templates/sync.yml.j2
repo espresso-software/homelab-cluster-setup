@@ -6,12 +6,12 @@ metadata:
 spec:
 {% if immediate %}
   template:
-    {{ jop_template }}
+    {{ job_template }}
 {% else %}
   schedule: "*/5 * * * *"
   jobTemplate:
     spec:
       template:
-        {{ jop_template }}
+        {{ job_template }}
 {% endif %}
         
