@@ -46,6 +46,16 @@
       speaker:
         enabled: true
 
+# - name: Wait for metallb controller to be ready
+#   kubernetes.core.k8s_info:
+#     kind: Deployment
+#     namespace: "{{ metallb_namespace }}"
+#     name: metallb-controller
+#   register: metallb_controller
+#   until: metallb_controller.resources[0].status.readyReplicas | default(0)
+#   retries: 10
+#   delay: 5
+
 - name: Setup IP Address Pools
   run_once: true
   kubernetes.core.k8s:
@@ -60,10 +70,6 @@
         addresses:
           - "{{ item.addresses }}"
   with_items: "{{ metallb_pools }}"
-  retries: 20
-  register: address_pool_result
-  delay: 5
-  until: address_pool_result.rc == 0
 
 - name: Ensure MetalLB has L2Advertisement
   run_once: true
