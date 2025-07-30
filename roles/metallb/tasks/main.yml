@@ -61,8 +61,9 @@
           - "{{ item.addresses }}"
   with_items: "{{ metallb_pools }}"
   retries: 20
+  register: address_pool_result
   delay: 5
-  until: result is success
+  until: address_pool_result.rc == 0
 
 - name: Ensure MetalLB has L2Advertisement
   run_once: true
