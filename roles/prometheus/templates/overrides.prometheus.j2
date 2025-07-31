@@ -22,11 +22,11 @@ server:
       cert-manager.io/duration: 2160h
       cert-manager.io/renew-before: 360h
     hosts:
-      - { { dns.prometheus } }
+      - {{ dns.prometheus }}
     tls:
       - secretName: prometheus-tls
         hosts:
-          - { { dns.prometheus } }
+          - {{ dns.prometheus }}
 
   nodeSelector:
     kubernetes.io/role: worker
