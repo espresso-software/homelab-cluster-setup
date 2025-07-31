@@ -138,6 +138,14 @@ spec:
                 secretKeyRef:
                   name: pihole-secrets
                   key: WEBPASSWORD
+            - name: HTTP_PROXY
+              value: "http://{{ internet_proxy }}"
+            - name: HTTPS_PROXY
+              value: "http://{{ internet_proxy }}"
+            - name: FTP_PROXY
+              value: "ftp://{{ internet_proxy }}"
+            - name: NO_PROXY
+              value: "localhost,10.0.0.0/8"
           ports:
             - containerPort: 53
               name: dns-tcp
@@ -166,3 +174,40 @@ spec:
         - name: etc-dnsmasq-d
           persistentVolumeClaim:
             claimName: {{ pihole_instance }}-dnsmasq-pvc
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: {{ pihole_instance }}-network-policy
+  namespace: {{ pihole_namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app: pihole
+      version: {{ pihole_instance }}
+  ingress:
+    - fromCIDR:
+        - 10.0.0.0/8
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: TCP
+            - port: "53"
+              protocol: UDP
+    - fromEndpoints:
+        - matchLabels:
+            app: pihole-sync
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+{% if pihole_instance == "primary" %}
+    - fromEndpoints:
+        - matchLabels:
+            app: traefik
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+{% else %}
