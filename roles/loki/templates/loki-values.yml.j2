@@ -47,7 +47,7 @@ gateway:
     type: LoadBalancer
     annotations:
       metallb.universe.tf/allow-shared-ip: "loki"
-      metallb.universe.tf/loadBalancerIps: "{{ network.loki }}"
+      metallb.universe.tf/loadBalancerIps: "{{ loki_ip }}"
 
 write:
   replicas: 3 # To ensure data durability with replication
