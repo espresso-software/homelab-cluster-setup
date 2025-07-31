@@ -146,45 +146,6 @@
 # https://github.com/prometheus/node_exporter
 
 #TODO: deploy to jumpboxes
-# - name: Open Node Exporter Ports
-#   hosts: k3s
-#   become: yes
-#   tags:
-#     - prometheus
-#     - firewall
-#     - kubernetes
-#   tasks:
-#     - name: Open Node Exporter Ports
-#       ansible.builtin.ufw:
-#         rule: allow
-#         port: 9100
-#         proto: tcp
-#         comment: "{{ item.comment }}"
-#         src: "{{ item.source_ip }}"
-#         dest: "{{ static_ip }}"
-#         direction: in
-#       with_items:
-#         - source_ip: "{{ network.identifier }}.{{ network.subnets.managers }}"
-#           comment: "Node Exporter - managers"
-#         - source_ip: "{{ network.identifier }}.{{ network.subnets.workers }}"
-#           comment: "Node Exporter - workers"
-
-# - name: Open Loki Ports
-#   hosts: k3s
-#   become: yes
-#   tags:
-#     - loki
-#     - firewall
-#     - kubernetes
-#   tasks:
-#     - name: Open Loki Ports
-#       ansible.builtin.ufw:
-#         rule: allow
-#         port: 80
-#         proto: tcp
-#         comment: "Loki"
-#         dest: "{{ network.loki }}"
-#         direction: in
 
 - name: Deploy Prometheus Stack
   hosts: k3s_managers
