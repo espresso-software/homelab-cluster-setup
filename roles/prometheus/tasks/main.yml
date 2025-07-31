@@ -80,6 +80,63 @@
       - "{{ values_file.path }}"
       - "{{ alerts_file.path }}"
 
+- name: Create Prometheus Network Policy
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumNetworkPolicy
+      metadata:
+        name: prometheus-network-policy
+        namespace: monitoring
+      spec:
+        endpointSelector:
+          matchLabels:
+            app.kubernetes.io/instance: prometheus
+        ingress:
+          - fromEndpoints:
+              - matchLabels:
+                  app.kubernetes.io/instance: prometheus
+        egress:
+          - toEndpoints:
+              - {}
+
+- name: Create Traefik -> Prometheus Network Policy
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumNetworkPolicy
+      metadata:
+        name: traefik-prometheus-network-policy
+        namespace: monitoring
+      spec:
+        endpointSelector:
+          matchLabels:
+            app.kubernetes.io/name: traefik
+        egress:
+          - toEndpoints:
+              - matchLabels:
+                  app.kubernetes.io/component: server
+
+- name: Create Prometheus -> Kubesystem Network Policy
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumNetworkPolicy
+      metadata:
+        name: prometheus-kubesystem-network-policy
+        namespace: monitoring
+      spec:
+        endpointSelector:
+          matchLabels:
+            app.kubernetes.io/instance: prometheus
+            app.kubernetes.io/name: kube-state-metrics
+        egress:
+          - toEntities:
+              - kube-apiserver
+
 - name: Deploy Game Server Prometheus
   kubernetes.core.helm:
     name: game-prometheus
@@ -89,4 +146,46 @@
     state: present
     values_files:
       - "{{ game_values_file.path }}"
-        
+
+- name: Create Game Server Prometheus Network Policy
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumNetworkPolicy
+      metadata:
+        name: game-prometheus-network-policy
+        namespace: monitoring
+      spec:
+        endpointSelector:
+          matchLabels:
+            app.kubernetes.io/instance: game-prometheus
+        ingress:
+          - fromEndpoints:
+              - matchLabels:
+                  app.kubernetes.io/instance: game-prometheus
+        egress:
+          - toEndpoints:
+              - matchLabels:
+                  app.kubernetes.io/instance: game-prometheus
+
+- name: Create Game Server Prometheus -> Games Network Policy
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumNetworkPolicy
+      metadata:
+        name: game-prometheus-games-network-policy
+        namespace: monitoring
+      spec:
+        endpointSelector:
+          matchLabels:
+            app.kubernetes.io/instance: game-prometheus
+        egress:
+          - toServices:
+              - k8sServiceSelector:
+                  selector:
+                    matchLabels:
+                      game: minecraft
+                  namespace: games
