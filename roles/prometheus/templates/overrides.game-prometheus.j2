@@ -22,11 +22,11 @@ server:
       cert-manager.io/duration: 2160h
       cert-manager.io/renew-before: 360h
     hosts:
-      - game-prometheus.{{ local_domain }}
+      - game-prometheus.{{ cluster_domain }}
     tls:
       - secretName: game-prometheus-tls
         hosts:
-          - game-prometheus.{{ local_domain }}
+          - game-prometheus.{{ cluster_domain }}
 
   nodeSelector:
     kubernetes.io/role: worker
@@ -50,9 +50,7 @@ serverFiles:
       - job_name: minecraft-exporter
         static_configs:
           - targets: 
-            - prominence-ii-exporter.minecraft.svc.cluster.local
-            - atm9-tts-exporter.minecraft.svc.cluster.local
-            - atm-10-exporter.minecraft.svc.cluster.local
+            - vault-hunters-exporter.minecraft.svc.cluster.local
             - mc-uat-exporter.minecraft.svc.cluster.local
         scheme: http
 
