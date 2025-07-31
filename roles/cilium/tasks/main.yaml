@@ -143,6 +143,7 @@
                 - metallb-system
                 - longhorn-system
                 - cert-manager
+                - monitoring
         egress:
           - toCIDR:
               - 10.24.206.0/24
