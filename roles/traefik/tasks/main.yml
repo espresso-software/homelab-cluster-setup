@@ -141,7 +141,34 @@
       tlsStore:
         default:
           defaultCertificate:
-            secretName: traefik-local-wildcard-tls         
+            secretName: traefik-local-wildcard-tls
+
+- name: Create Traefik Network Policy
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumNetworkPolicy
+      metadata:
+        name: traefik-network-policy
+        namespace: "{{ namespace }}"
+      spec:
+        endpointSelector:
+          matchLabels:
+            app: traefik
+        ingress:
+          - fromEndpoints:
+              - matchLabels:
+                  app: traefik
+            toPorts:
+              - ports:
+                  - port: "80"
+                    protocol: TCP
+                  - port: "443"
+                    protocol: TCP
+        egress:
+          - toEndpoints:
+             - {}       
 
 - name: Create Longhorn Ingress
   kubernetes.core.k8s:
@@ -172,9 +199,8 @@
                       name: longhorn-frontend
                       port:
                         number: 80
-          - host: longhorn.local.{{ cluster_domain }}
+          - host: longhorn.{{ cluster_domain }}
         tls:
           - hosts:
               - longhorn.{{ cluster_domain }}
-              - longhorn.local.{{ cluster_domain }}
             secretName: longhorn-http-proxy-tls
