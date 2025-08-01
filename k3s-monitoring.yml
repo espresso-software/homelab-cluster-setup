@@ -150,7 +150,7 @@
 - name: Deploy Prometheus Stack
   hosts: k3s_managers
   run_once: true
-  become: yes
+  become: true
   tags:
     - prometheus
     - kubernetes
@@ -162,7 +162,7 @@
 - name: Deploy Loki Stack
   hosts: k3s_managers
   run_once: true
-  become: yes
+  become: true
   tags:
     - loki
     - kubernetes
@@ -170,11 +170,11 @@
     KUBECONFIG: "{{ kube_config_path }}"
   roles:
     - loki
-  
+
 - name: Deploy Grafana Stack
   hosts: k3s_managers
   run_once: true
-  become: yes
+  become: true
   tags:
     - grafana
     - kubernetes

@@ -14,14 +14,18 @@
       failed_when: false
       
     - name: Uninstall k3s
-      when: 
+      when:
         - "'k3s_managers' in group_names"
-      ansible.builtin.command: /usr/local/bin/k3s-uninstall.sh
+      ansible.builtin.command:
+        cmd: /usr/local/bin/k3s-uninstall.sh
+        removes: /usr/local/bin/k3s-uninstall.sh
       failed_when: false
 
     - name: Uninstall k3s agent
       when: "'k3s_workers' in group_names"
-      ansible.builtin.command: /usr/local/bin/k3s-agent-uninstall.sh agent --uninstall
+      ansible.builtin.command:
+        cmd: /usr/local/bin/k3s-agent-uninstall.sh agent --uninstall
+        removes: /usr/local/bin/k3s-agent-uninstall.sh
       failed_when: false
 
     - name: Remove k3s data
