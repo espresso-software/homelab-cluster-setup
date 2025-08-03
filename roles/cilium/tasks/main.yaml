@@ -78,11 +78,13 @@
                 - metallb-system
                 - longhorn-system
                 - cert-manager
+                - traefik-system
+                - monitoring
         ingress:
           - {}
-      egress:
+        egress:
           - {}
-  
+
 - name: Default DNS allow
   run_once: true
   kubernetes.core.k8s:
