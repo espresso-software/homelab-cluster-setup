@@ -10,8 +10,8 @@
           kubernetes.io/role: "{{ item.role }}"
     name: "{{ item.name }}"
   with_items: "{{ role_labels | default([]) }}"
-  
-- name: restrict kube-system pods to managers
+
+- name: Restrict kube-system pods to managers
   with_items:
     - coredns
     - local-path-provisioner
@@ -30,7 +30,7 @@
             nodeSelector:
               node-role.kubernetes.io/control-plane: "true"
 
-- name: set coredns to forward to internal DNS servers
+- name: Set coredns to forward to internal DNS servers
   kubernetes.core.k8s:
     state: patched
     definition:

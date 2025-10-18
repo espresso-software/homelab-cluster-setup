@@ -11,7 +11,7 @@
 - name: Create LimitRange
   kubernetes.core.k8s:
     state: present
-    definition: 
+    definition:
       apiVersion: v1
       kind: LimitRange
       metadata:
@@ -73,7 +73,7 @@
           mountPath: /etc/localtime
           readOnly: true
         - name: logs
-          mountPath: /var/log/traefik          
+          mountPath: /var/log/traefik
       deployment:
         replicas: 3
         labels:
@@ -168,7 +168,7 @@
                     protocol: TCP
         egress:
           - toEndpoints:
-             - {}       
+              - {}
 
 - name: Create Longhorn Ingress
   kubernetes.core.k8s:
@@ -184,9 +184,9 @@
           namespace: longhorn-system
         annotations:
           traefik.ingress.kubernetes.io/router.entrypoints: websecure
-          cert-manager.io/cluster-issuer: letsencrypt-prod  
+          cert-manager.io/cluster-issuer: letsencrypt-prod
           cert-manager.io/duration: 9480h
-          cert-manager.io/renew-before: 720h           
+          cert-manager.io/renew-before: 720h
       spec:
         rules:
           - host: longhorn.{{ cluster_domain }}

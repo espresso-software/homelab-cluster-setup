@@ -80,6 +80,7 @@
                 - cert-manager
                 - traefik-system
                 - monitoring
+                - default
         ingress:
           - {}
         egress:
@@ -105,6 +106,9 @@
                 - metallb-system
                 - longhorn-system
                 - cert-manager
+                - traefik-system
+                - default
+                - monitoring
         egress:
           - toEndpoints:
               - matchLabels:
@@ -146,6 +150,8 @@
                 - longhorn-system
                 - cert-manager
                 - monitoring
+                - traefik-system
+                - default
         egress:
           - toCIDR:
               - 10.24.206.0/24
