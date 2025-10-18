@@ -55,7 +55,7 @@ serverFiles:
             labels:
               severity: sev-1
             annotations:
-              description: "Node {{ $labels.instance }} disk space usage is above 85% for more than 30 minutes."
+              description: "Node {{ $labels.instance }} disk space usage under {{ $labels.mountpoint }} is above 85% for more than 30 minutes."
               summary: "Critical low disk space on node {{ $labels.instance }}"
           - alert: NodeDiskSpaceLow.Sev2
             expr: (node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} - node_filesystem_free_bytes{fstype!~"tmpfs|overlay"}) / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} * 100 > 80
@@ -63,7 +63,7 @@ serverFiles:
             labels:
               severity: sev-2
             annotations:
-              description: "Node {{ $labels.instance }} disk space usage is above 80% for more than 30 minutes."
+              description: "Node {{ $labels.instance }} disk space usage under {{ $labels.mountpoint }} is above 80% for more than 30 minutes."
               summary: "Low disk space on node {{ $labels.instance }}"
           - alert: NodeDiskSpaceLow.Sev3
             expr: (node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} - node_filesystem_free_bytes{fstype!~"tmpfs|overlay"}) / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} * 100 > 75
@@ -71,12 +71,12 @@ serverFiles:
             labels:
               severity: sev-3
             annotations:
-              description: "Node {{ $labels.instance }} disk space usage is above 75% for more than 30 minutes."
+              description: "Node {{ $labels.instance }} disk space usage under {{ $labels.mountpoint }} is above 75% for more than 30 minutes."
               summary: "Moderate low disk space on node {{ $labels.instance }}"
       - name: Kubernetes
         rules:
           - alert: Tier1DeploymentUnhealthy
-            expr: kube_deployment_status_replicas_unavailable{job="kube-state-metrics", namespace=~"games|kube-system|longhorn-system|metallb-system|monitoring"} > 0
+            expr: kube_deployment_status_replicas_unavailable{namespace=~"games|kube-system|longhorn-system|metallb-system|monitoring"} > 0
             for: 5m
             labels:
               severity: sev-1
@@ -84,7 +84,7 @@ serverFiles:
               description: "Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }} has unavailable replicas for more than 5 minutes."
               summary: "Critical: Unhealthy deployment {{ $labels.deployment }} in Tier 1 namespace"
           - alert: Tier2DeploymentUnhealthy
-            expr: kube_deployment_status_replicas_unavailable{job="kube-state-metrics", namespace=~"cert-manager|cloudflare|pihole-system|traefik-system"} > 0
+            expr: kube_deployment_status_replicas_unavailable{namespace=~"cert-manager|cloudflare|pihole-system|traefik-system"} > 0
             for: 15m
             labels:
               severity: sev-2
@@ -92,7 +92,7 @@ serverFiles:
               description: "Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }} has unavailable replicas for more than 15 minutes."
               summary: "Unhealthy deployment {{ $labels.deployment }} in Tier 2 namespace"
           - alert: Tier3DeploymentUnhealthy
-            expr: kube_deployment_status_replicas_unavailable{job="kube-state-metrics", namespace!~"games|kube-system|longhorn-system|metallb-system|monitoring|cert-manager|cloudflare|pihole-system|traefik-system"} > 0
+            expr: kube_deployment_status_replicas_unavailable{namespace!~"games|kube-system|longhorn-system|metallb-system|monitoring|cert-manager|cloudflare|pihole-system|traefik-system"} > 0
             for: 60m
             labels:
               severity: sev-3
@@ -123,14 +123,6 @@ serverFiles:
             annotations:
               description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} usage is above 80% for more than 15 minutes."
               summary: "Moderate PVC usage on {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }}"
-          - alert: KubeAPIDown
-            expr: up{job="kube-apiserver"} == 0
-            for: 5m
-            labels:
-              severity: sev-1
-            annotations:
-              description: "Kubernetes API server is down for more than 5 minutes."
-              summary: "Kubernetes API server down"
           - alert: NodeNotReady
             expr: kube_node_status_condition{condition="Ready",status="false"} == 1
             for: 5m
@@ -140,7 +132,7 @@ serverFiles:
               description: "Node {{ $labels.node }} is not ready for more than 5 minutes."
               summary: "Node {{ $labels.node }} not ready"
           - alert: RequestCPULowUsage
-            expr: sum(rate(container_cpu_usage_seconds_total{job="kubelet",image!="",container!="POD"}[5m])) by (pod, namespace) < 0.01
+            expr: sum(rate(container_cpu_usage_seconds_total{image!=""}[5m])) by (pod, namespace) / sum(kube_pod_container_resource_requests{resource="cpu"}) by (pod, namespace) < 0.01
             for: 60m
             labels:
               severity: sev-3
@@ -148,39 +140,39 @@ serverFiles:
               description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has CPU usage below 1% for more than 1 hour."
               summary: "Low CPU usage on pod {{ $labels.pod }} in namespace {{ $labels.namespace }}"
           - alert: RequestCPUHighUsage
-            expr: sum(rate(container_cpu_usage_seconds_total{job="kubelet",image!="",container!="POD"}[5m])) by (pod, namespace) / sum(kube_pod_container_resource_requests_cpu_cores{job="kube-state-metrics",container!="POD"}) by (pod, namespace) > 0.8
+            expr: sum by (pod, namespace) (rate(container_cpu_usage_seconds_total{image!=""}[5m])) / sum by (pod, namespace) (kube_pod_container_resource_requests{resource="cpu"}) > 1.5
             for: 15m
             labels:
               severity: sev-2
             annotations:
-              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has CPU usage above 80% of its request for more than 15 minutes."
+              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has CPU usage above 150% of its request for more than 15 minutes."
               summary: "High CPU usage on pod {{ $labels.pod }} in namespace {{ $labels.namespace }}"
           - alert: RequestMemoryLowUsage
-            expr: sum(container_memory_working_set_bytes{job="kubelet",image!="",container!="POD"}) by (pod, namespace) / sum(kube_pod_container_resource_requests_memory_bytes{job="kube-state-metrics",container!="POD"}) by (pod, namespace) < 0.10
+            expr: sum(container_memory_working_set_bytes{image!=""}) by (pod, namespace) / sum(kube_pod_container_resource_requests{resource="memory"}) by (pod, namespace) < 0.10
             for: 60m
             labels:
               severity: sev-3
             annotations:
-              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has memory usage below 33% of its request for more than 1 hour."
+              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has memory usage below 10% of its request for more than 1 hour."
               summary: "Low memory usage on pod {{ $labels.pod }} in namespace {{ $labels.namespace }}"
           - alert: RequestMemoryHighUsage
-            expr: sum(container_memory_working_set_bytes{job="kubelet",image!="",container!="POD"}) by (pod, namespace) / sum(kube_pod_container_resource_requests_memory_bytes{job="kube-state-metrics",container!="POD"}) by (pod, namespace) > 0.8
+            expr: sum(container_memory_working_set_bytes{image!=""}) by (pod, namespace) / sum(kube_pod_container_resource_requests{resource="memory"}) by (pod, namespace) > 1.5
             for: 15m
             labels:
               severity: sev-2
             annotations:
-              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has memory usage above 80% of its request for more than 15 minutes."
+              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has memory usage above 150% of its request for more than 15 minutes."
               summary: "High memory usage on pod {{ $labels.pod }} in namespace {{ $labels.namespace }}"
           - alert: LimitCPULowUsage
-            expr: sum(rate(container_cpu_usage_seconds_total{job="kubelet",image!="",container!="POD"}[5m])) by (pod, namespace) / sum(kube_pod_container_resource_limits_cpu_cores{job="kube-state-metrics",container!="POD"}) by (pod, namespace) < 0.01
+            expr: sum(rate(container_cpu_usage_seconds_total{image!=""}[5m])) by (pod, namespace) / sum(kube_pod_container_resource_limits{resource="cpu"}) by (pod, namespace) < 0.001
             for: 60m
             labels:
               severity: sev-3
             annotations:
-              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is using less than 1% of its CPU limit for more than 60 minutes."
+              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is using less than 0.1% of its CPU limit for more than 60 minutes."
               summary: "Low CPU usage on pod {{ $labels.pod }} in namespace {{ $labels.namespace }}"
           - alert: LimitCPUHighUsage
-            expr: sum(rate(container_cpu_usage_seconds_total{job="kubelet",image!="",container!="POD"}[5m])) by (pod, namespace) / sum(kube_pod_container_resource_limits_cpu_cores{job="kube-state-metrics",container!="POD"}) by (pod, namespace) > 0.9
+            expr: sum(rate(container_cpu_usage_seconds_total{image!=""}[5m])) by (pod, namespace) / sum(kube_pod_container_resource_limits{resource="cpu"}) by (pod, namespace) > 0.9
             for: 15m
             labels:
               severity: sev-2
@@ -188,15 +180,15 @@ serverFiles:
               description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is using more than 90% of its CPU limit for more than 15 minutes."
               summary: "High CPU usage on pod {{ $labels.pod }} in namespace {{ $labels.namespace }}"
           - alert: LimitMemoryLowUsage
-            expr: sum(container_memory_working_set_bytes{job="kubelet",image!="",container!="POD"}) by (pod, namespace) / sum(kube_pod_container_resource_limits_memory_bytes{job="kube-state-metrics",container!="POD"}) by (pod, namespace) < 0.10
+            expr: sum(container_memory_working_set_bytes{image!=""}) by (pod, namespace) / sum(kube_pod_container_resource_limits{resource="memory"}) by (pod, namespace) < 0.05
             for: 60m
             labels:
               severity: sev-3
             annotations:
-              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is using less than 33% of its memory limit for more than 60 minutes."
+              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is using less than 5% of its memory limit for more than 60 minutes."
               summary: "Low memory usage on pod {{ $labels.pod }} in namespace {{ $labels.namespace }}"
           - alert: LimitMemoryHighUsage
-            expr: sum(container_memory_working_set_bytes{job="kubelet",image!="",container!="POD"}) by (pod, namespace) / sum(kube_pod_container_resource_limits_memory_bytes{job="kube-state-metrics",container!="POD"}) by (pod, namespace) > 0.9
+            expr: sum(container_memory_working_set_bytes{image!=""}) by (pod, namespace) / sum(kube_pod_container_resource_limits{resource="memory"}) by (pod, namespace) > 0.9
             for: 15m
             labels:
               severity: sev-2
