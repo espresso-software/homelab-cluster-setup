@@ -86,6 +86,7 @@
                 - traefik-system
                 - monitoring
                 - default
+                - cloudflare
         ingress:
           - {}
         egress:
@@ -114,6 +115,7 @@
                 - traefik-system
                 - default
                 - monitoring
+                - cloudflare
         egress:
           - toEndpoints:
               - matchLabels:
@@ -157,6 +159,7 @@
                 - monitoring
                 - traefik-system
                 - default
+                - cloudflare
         egress:
           - toCIDR:
               - 10.24.206.0/24
