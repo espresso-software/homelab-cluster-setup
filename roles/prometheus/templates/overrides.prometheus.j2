@@ -81,7 +81,8 @@ alertmanager:
       readonly: true
   config:
     global:
-      proxy_from_environment: true
+      http_config:
+        proxy_from_environment: true
     receivers:
       - name: 'sev-1'
         discord_configs:
