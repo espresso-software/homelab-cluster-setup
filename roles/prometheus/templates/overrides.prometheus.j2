@@ -13,6 +13,8 @@ server:
     scrape_timeout: 3s
     evaluation_interval: 1m
 
+  baseUrl: https://{{ dns.prometheus }}
+
   ingress:
     enabled: true
     annotations:
