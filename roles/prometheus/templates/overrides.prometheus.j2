@@ -95,7 +95,7 @@ alertmanager:
           - webhook_url_file: /secrets/.discord/sev3
     route:
       receiver: 'sev-3'
-      group_by: ['namespace', 'alertname']
+      group_by: ['alertname']
       routes:
         - receiver: 'sev-1'
           match:
