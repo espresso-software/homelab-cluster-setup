@@ -93,16 +93,17 @@ alertmanager:
       - name: 'sev-3'
         discord_configs:
           - webhook_url_file: /secrets/.discord/sev3
-    routes:
-      - receiver: 'sev-1'
-        match:
-          severity: 'sev-1'
-      - receiver: 'sev-2'
-        match:
-          severity: 'sev-2'
-      - receiver: 'sev-3'
-        match:
-          severity: 'sev-3'
+    route:
+      routes:
+        - receiver: 'sev-1'
+          match:
+            severity: 'sev-1'
+        - receiver: 'sev-2'
+          match:
+            severity: 'sev-2'
+        - receiver: 'sev-3'
+          match:
+            severity: 'sev-3'
   extraEnv:
     - name: HTTP_PROXY
       value: "http://{{ internet_proxy }}"
