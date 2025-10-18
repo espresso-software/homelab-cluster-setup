@@ -50,7 +50,17 @@
     method: GET
   register: token
 
+- name: Create tmp directory for Grafana
+  ansible.builtin.file:
+    path: "/tmp/grafana"
+    state: directory
+
+- name: Template Grafana Deployment
+  ansible.builtin.template:
+    src: "templates/k8s.yml.j2"
+    dest: "/tmp/grafana/k8s.yml"
+
 - name: Deploy Grafana
   kubernetes.core.k8s:
-    template: "templates/k8s.yml.j2"
+    src: "/tmp/grafana/k8s.yml"
     apply: true
