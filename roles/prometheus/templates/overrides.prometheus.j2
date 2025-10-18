@@ -74,6 +74,33 @@ alertmanager:
     requests:
       cpu: 50m
       memory: 16Mi
+  extraSecretMounts:
+    - name: discord-webhooks
+      mountPath: /secrets/.discord
+      secretName: {{ discord_webhooks_secret_name }}
+      readonly: true
+  config:
+    global:
+      proxy_from_environment: true
+    receivers:
+      - name: 'sev-1'
+        discord_configs:
+          webhook_url_file: /secrets/.discord/sev1
+      - name: 'sev-2'
+        discord_configs:
+          webhook_url_file: /secrets/.discord/sev2
+      - name: 'sev-3'
+        discord_configs:
+          webhook_url_file: /secrets/.discord/sev3
+  extraEnv:
+    - name: HTTP_PROXY
+      value: "http://{{ internet_proxy }}"
+    - name: HTTPS_PROXY
+      value: "http://{{ internet_proxy }}"
+    - name: FTP_PROXY
+      value: "ftp://{{ internet_proxy }}"
+    - name: NO_PROXY
+      value: "10.0.0.0/8"
 
 ## kube-state-metrics sub-chart configurable values
 ## Please see https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-state-metrics
