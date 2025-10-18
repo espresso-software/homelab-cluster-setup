@@ -27,7 +27,17 @@
     values:
       crds:
         enabled: true
+      replicaCount: 2
       dns01RecursiveNameservers: '1.1.1.1:53,1.0.0.1:53'
+      extraEnv:
+        - name: HTTP_PROXY
+          value: "http://{{ internet_proxy }}"
+        - name: HTTPS_PROXY
+          value: "http://{{ internet_proxy }}"
+        - name: FTP_PROXY
+          value: "ftp://{{ internet_proxy }}"
+        - name: NO_PROXY
+          value: "10.0.0/8"
       resources:
         requests:
           cpu: 100m
@@ -59,7 +69,7 @@
         nodeSelector:
           kubernetes.io/os: linux
           node-role.kubernetes.io/control-plane: "true"
-      
+
 - name: Create Cloudflare API Token Secret
   no_log: true
   kubernetes.core.k8s:
@@ -94,7 +104,7 @@
                   apiTokenSecretRef:
                     name: cloudflare-api-token
                     key: api-token
-              selector: 
+              selector:
                 dnsZones:
                   - "{{ local_domain }}"
                   - "{{ domain }}"
@@ -120,7 +130,7 @@
                   apiTokenSecretRef:
                     name: cloudflare-api-token
                     key: api-token
-              selector: 
+              selector:
                 dnsZones:
                   - "{{ local_domain }}"
                   - "{{ domain }}"
