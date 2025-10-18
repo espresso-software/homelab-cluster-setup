@@ -306,7 +306,7 @@ spec:
             - run
           args:
             - --token
-            - { { token.json.result | trim } }
+            - {{ token.json.result | trim }}
           livenessProbe:
             httpGet:
               path: /ready
