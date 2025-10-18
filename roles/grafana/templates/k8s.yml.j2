@@ -180,6 +180,14 @@ spec:
             value: /var/lib/grafana/plugins
           - name: GF_PATHS_PROVISIONING
             value: /etc/grafana/provisioning
+          - name: HTTP_PROXY
+            value: http://{{ internet_proxy }}
+          - name: HTTPS_PROXY
+            value: http://{{ internet_proxy }}
+          - name: FTP_PROXY
+            value: ftp://{{ internet_proxy }}
+          - name: NO_PROXY
+            value: localhost,127.0.0.1,.svc.cluster.local,10.0.0.0/8
           image: grafana/grafana:latest
           imagePullPolicy: Always
           livenessProbe:
