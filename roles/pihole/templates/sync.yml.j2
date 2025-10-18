@@ -1,9 +1,39 @@
----
 apiVersion: v1
-kind: Job
+kind: {{ immediate | ternary('Job', 'CronJob') }}
 metadata:
-  name: force-sync
-  namespace: "{{ pihole_namesapce }}"
+  name: pihole-sync
+  namespace: {{ pihole_namespace }}
+  labels:
+    app: pihole-sync
 spec:
+{% if immediate %}
   template:
-    {{ sync_job_template }}
+    {{ job_template }}
+{% else %}
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        {{ job_template }}
+{% endif %}
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: pihole-sync-network-policy
+  namespace: {{ pihole_namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app: pihole-sync
+  ingress:
+    - {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app: pihole
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+---

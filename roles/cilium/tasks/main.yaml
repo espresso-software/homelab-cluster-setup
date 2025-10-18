@@ -1,0 +1,166 @@
+---
+# - name: Install Cilium CLI
+#   ansible.builtin.script: 
+#     cmd: cilium-install.sh
+#     executable: /bin/bash 
+
+- name: Create cilium-system namespace
+  run_once: true
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: cilium-system
+
+- name: Update helm chart
+  run_once: true
+  kubernetes.core.helm_repository:
+    name: cilium
+    repo_url: https://helm.cilium.io/
+    state: present
+
+- name: Deploy Cilium with helm
+  run_once: true
+  kubernetes.core.helm:
+    name: cilium
+    state: present
+    namespace: kube-system
+    chart_ref: cilium/cilium
+    values:
+      kubeConfigPath: "{{ kube_config_path }}"
+      rolloutCiliumPods: 'true'
+      cluster:
+        name: "{{ cluster_name }}"
+      encryption:
+        enabled: true
+        type: "wireguard"
+        nodeEncryption: true
+      operator:
+        nodeSelector:
+          kubernetes.io/os: linux
+          node-role.kubernetes.io/control-plane: 'true'
+      ipam:
+        operator:
+          clusterPoolIPv4PodCIDRList:
+            - "{{ cluster_cidr }}"
+
+# - name: Wait for Cilium to be ready
+#   run_once: true
+#   ansible.builtin.command:
+#     cmd: cilium status --wait
+
+# - name: Test Cilium connectivity
+#   run_once: true
+#   ansible.builtin.command:
+#     cmd: cilium connectivity test
+#   register: cilium_connectivity_test
+#   failed_when: cilium_connectivity_test.rc != 0
+
+- name: Deploy Cluster Wide Default Deny
+  run_once: true
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumClusterwideNetworkPolicy
+      metadata:
+        name: default-deny-all
+      spec:
+        endpointSelector:
+          matchExpressions:
+            - key: "io.kubernetes.pod.namespace"
+              operator: NotIn
+              values:
+                - kube-system
+                - cilium-system
+                - metallb-system
+                - longhorn-system
+                - cert-manager
+                - traefik-system
+                - monitoring
+                - default
+        ingress:
+          - {}
+        egress:
+          - {}
+
+- name: Default DNS allow
+  run_once: true
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumClusterwideNetworkPolicy
+      metadata:
+        name: default-allow-dns
+      spec:
+        endpointSelector:
+          matchExpressions:
+            - key: "io.kubernetes.pod.namespace"
+              operator: NotIn
+              values:
+                - kube-system
+                - cilium-system
+                - metallb-system
+                - longhorn-system
+                - cert-manager
+                - traefik-system
+                - default
+                - monitoring
+        egress:
+          - toEndpoints:
+              - matchLabels:
+                  k8s-app: kube-dns
+            toPorts:
+              - ports:
+                  - port: "53"
+                    protocol: UDP
+                  - port: "53"
+                    protocol: TCP
+          - toCIDR:
+              - 1.1.1.1/32
+              - 1.0.0.1/32
+            toPorts:
+              - ports:
+                  - port: "53"
+                    protocol: UDP
+                  - port: "53"
+                    protocol: TCP
+
+- name: Default Internet Proxy allow
+  run_once: true
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumClusterwideNetworkPolicy
+      metadata:
+        name: default-allow-internet-proxy
+      spec:
+        endpointSelector:
+          matchExpressions:
+            - key: "io.kubernetes.pod.namespace"
+              operator: NotIn
+              values:
+                - kube-system
+                - cilium-system
+                - metallb-system
+                - longhorn-system
+                - cert-manager
+                - monitoring
+                - traefik-system
+                - default
+        egress:
+          - toCIDR:
+              - 10.24.206.0/24
+              - 10.25.206.0/24
+            toPorts:
+              - ports:
+                  - port: "80"
+                    protocol: TCP
+                  - port: "443"
+                    protocol: TCP
+                  - port: "3128"
+                    protocol: TCP

@@ -1,0 +1,213 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ pihole_instance }}-etc-pihole
+  namespace: {{ pihole_namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "512Mi"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ pihole_instance }}-etc-dnsmasq-d
+  namespace: {{ pihole_namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "128Mi"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ pihole_instance }}-config
+  namespace: {{ pihole_namespace }}
+data:
+  TZ: America/Los_Angeles
+  VIRTUAL_HOST: "{{ pihole_instance }}.dns.{{ domain }}"
+  PROXY_LOCATION: "pi.hole"
+  FTL_CONF_LOCAL_IPV4: "127.0.0.1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ pihole_instance }}-dns
+  namespace: {{ pihole_namespace }}
+  annotations:
+      metallb.universe.tf/allow-shared-ip: "{{ pihole_instance }}-dns"
+      metallb.universe.tf/loadBalancerIPs: "{{ pihole_ip }}"
+spec:
+  selector:
+    app: pihole
+    version: {{ pihole_instance }}
+  ports:
+    - name: dns-tcp
+      port: 53
+      targetPort: 53
+      protocol: TCP
+    - name: dns-udp
+      port: 53
+      targetPort: 53
+      protocol: UDP
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ pihole_instance }}-http
+  namespace: {{ pihole_namespace }}
+spec:
+  selector:
+    app: pihole
+    version: {{ pihole_instance }}
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+---
+{% if pihole_instance == "primary" %}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ pihole_instance }}
+  namespace: {{ pihole_namespace }}
+  labels:
+    app: pihole
+    namespace: {{ pihole_namespace }}
+    version: {{ pihole_instance }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    cert-manager.io/duration: 9840h
+    cert-manager.io/renew-before: 720h
+spec:
+  rules:
+    - host: "{{ pihole_instance }}.dns.{{ domain }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ pihole_instance }}-http
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - "{{ pihole_instance }}.dns.{{ domain }}"
+      secretName: {{ pihole_instance }}-tls
+---
+{% endif%}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ pihole_instance }}
+  namespace: {{ pihole_namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pihole
+      version: {{ pihole_instance }}
+  serviceName: {{ pihole_instance }}
+  template:
+    metadata:
+      labels:
+        app: pihole
+        version: {{ pihole_instance }}
+    spec:
+      nodeSelector:
+        kubernetes.io/role: infra
+      containers:
+        - name: pihole
+          image: pihole/pihole:{{ pihole_version | default("latest") }}
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: {{ pihole_instance }}-config
+          env:
+            - name: WEBPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pihole-secrets
+                  key: WEBPASSWORD
+            - name: HTTP_PROXY
+              value: "http://{{ internet_proxy }}"
+            - name: HTTPS_PROXY
+              value: "http://{{ internet_proxy }}"
+            - name: FTP_PROXY
+              value: "ftp://{{ internet_proxy }}"
+            - name: NO_PROXY
+              value: "localhost,10.0.0.0/8"
+          ports:
+            - containerPort: 53
+              name: dns-tcp
+              protocol: TCP
+            - containerPort: 53
+              name: dns-udp
+              protocol: UDP
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              cpu: 10m
+              memory: 128Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          volumeMounts:
+            - name: etc-pihole
+              mountPath: /etc/pihole
+            - name: etc-dnsmasq-d
+              mountPath: /etc/dnsmasq.d
+      volumes:
+        - name: etc-pihole
+          persistentVolumeClaim:
+            claimName: {{ pihole_instance }}-pihole-pvc
+        - name: etc-dnsmasq-d
+          persistentVolumeClaim:
+            claimName: {{ pihole_instance }}-dnsmasq-pvc
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: {{ pihole_instance }}-network-policy
+  namespace: {{ pihole_namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app: pihole
+      version: {{ pihole_instance }}
+  ingress:
+    - fromCIDR:
+        - 10.0.0.0/8
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: TCP
+            - port: "53"
+              protocol: UDP
+    - fromEndpoints:
+        - matchLabels:
+            app: pihole-sync
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+{% if pihole_instance == "primary" %}
+    - fromEndpoints:
+        - matchLabels:
+            app: traefik
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+{% else %}

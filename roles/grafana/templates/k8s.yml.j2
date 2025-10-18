@@ -154,32 +154,40 @@ spec:
       containers:
         - name: grafana
           env:
-          - name: GF_SECURITY_ADMIN_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                key: password
-                name: grafana-admin
-          - name: GF_SECURITY_ADMIN_USER
-            valueFrom:
-              secretKeyRef:
-                key: user
-                name: grafana-admin
-          - name: GF_USERS_ALLOW_SIGN_UP
-            value: 'true'
-          - name: GF_SERVER_DOMAIN
-            value: grafana.local.espresso.software
-          - name: GF_PATHS_CONFIG
-            value: /etc/grafana/grafana.ini
-          - name: GF_PATHS_DATA
-            value: /var/lib/grafana
-          - name: GF_PATHS_HOME
-            value: /usr/share/grafana
-          - name: GF_PATHS_LOGS
-            value: /var/log/grafana
-          - name: GF_PATHS_PLUGINS
-            value: /var/lib/grafana/plugins
-          - name: GF_PATHS_PROVISIONING
-            value: /etc/grafana/provisioning
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: grafana-admin
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  key: user
+                  name: grafana-admin
+            - name: GF_USERS_ALLOW_SIGN_UP
+              value: "true"
+            - name: GF_SERVER_DOMAIN
+              value: grafana.local.espresso.software
+            - name: GF_PATHS_CONFIG
+              value: /etc/grafana/grafana.ini
+            - name: GF_PATHS_DATA
+              value: /var/lib/grafana
+            - name: GF_PATHS_HOME
+              value: /usr/share/grafana
+            - name: GF_PATHS_LOGS
+              value: /var/log/grafana
+            - name: GF_PATHS_PLUGINS
+              value: /var/lib/grafana/plugins
+            - name: GF_PATHS_PROVISIONING
+              value: /etc/grafana/provisioning
+            - name: HTTP_PROXY
+              value: http://{{ internet_proxy }}
+            - name: HTTPS_PROXY
+              value: http://{{ internet_proxy }}
+            - name: FTP_PROXY
+              value: ftp://{{ internet_proxy }}
+            - name: NO_PROXY
+              value: localhost,127.0.0.1,.svc.cluster.local,10.0.0.0/8
           image: grafana/grafana:latest
           imagePullPolicy: Always
           livenessProbe:
@@ -278,29 +286,38 @@ spec:
           maxSurge: 1
           maxUnavailable: 0
       containers:
-      - name: cloudflared
-        image: cloudflare/cloudflared:latest
-        command:
-        - cloudflared
-        - tunnel
-        - --metrics
-        - 0.0.0.0:2000
-        - --no-autoupdate
-        - run
-        args:
-        - --token
-        - {{ token.json.result | trim }}
-        livenessProbe:
-          httpGet:
-            path: /ready
-            port: 2000
-          failureThreshold: 1
-          initialDelaySeconds: 10
-          periodSeconds: 10
-        resources:
-          limits:
-            cpu: 200m
-            memory: 256Mi
-          requests:
-            cpu: 100m
-            memory: 16Mi
+        - name: cloudflared
+          image: cloudflare/cloudflared:latest
+          env:
+            - name: HTTP_PROXY
+              value: http://{{ internet_proxy }}
+            - name: HTTPS_PROXY
+              value: http://{{ internet_proxy }}
+            - name: FTP_PROXY
+              value: ftp://{{ internet_proxy }}
+            - name: NO_PROXY
+              value: localhost,127.0.0.1,.svc.cluster.local,10.0.0.0/8
+          command:
+            - cloudflared
+            - tunnel
+            - --metrics
+            - 0.0.0.0:2000
+            - --no-autoupdate
+            - run
+          args:
+            - --token
+            - {{ token.json.result | trim }}
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 2000
+            failureThreshold: 1
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 16Mi

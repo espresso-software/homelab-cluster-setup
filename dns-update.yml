@@ -1,9 +1,13 @@
 ---
 - name: Uninstall docker
   gather_facts: true
-  become: yes
+  become: true
   hosts:
     - lab
+  handlers:
+    - name: Apply netplan
+      ansible.builtin.command: netplan apply
+      changed_when: false
   tasks:
     - name: Set static ip
       when: static_ip is defined
@@ -27,7 +31,6 @@
                     - 1.1.1.1
                     - 1.0.0.1
         dest: /etc/netplan/99-nodecfg.yaml
-      register: netplan
-    - name: Apply netplan
-      ansible.builtin.shell: netplan apply
-      when: netplan.changed
+        mode: '0644'
+      notify:
+        - Apply netplan

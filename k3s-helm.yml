@@ -8,38 +8,25 @@
       ansible.builtin.apt_key:
         url: https://baltocdn.com/helm/signing.asc
         state: present
-    
+
     - name: Add Helm APT Repository
       ansible.builtin.apt_repository:
         repo: deb https://baltocdn.com/helm/stable/debian/ all main
         state: present
-        update_cache: yes
-    
+        update_cache: true
+
     - name: Install Helm
       ansible.builtin.apt:
         name: helm
         state: present
-        update_cache: yes
-    
-    - name: Create 'k3s' group
-      ansible.builtin.group:
-        name: k3s
-        state: present
-    
+        update_cache: true
+
     - name: Add users to 'k3s' group
       ansible.builtin.user:
         name: "{{ item }}"
         groups: k3s
-        append: yes
+        append: true
         state: present
       with_items:
         - ansible
         - devops
-    
-    - name: set kubeconfig permissions
-      ansible.builtin.file:
-        path: /etc/rancher/k3s/k3s.yaml
-        owner: root
-        group: k3s
-        mode: 0640
-        state: file

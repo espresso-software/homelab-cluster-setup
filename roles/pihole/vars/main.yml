@@ -7,27 +7,27 @@ pihole_web_password: !vault |
   3466383063386565390a653934323138633232333032313161653633373062643062313733383662
   3833
 
-version: '2024.07.0'
+pihole_version: '2024.07.0'
 
-pihole_namespace: pihole
+pihole_namespace: pihole-system
 
-sync_job_template:
+job_template:
   spec:
     nodeSelector:
       kubernetes.io/role: worker
     containers:
-      - name: pihole-sync
+      - name: sync
         image: mattwebbio/orbital-sync:1
         env:
           - name: PRIMARY_HOST_BASE_URL
-            value: 'https://{{ dns.primary_pihole }}'
+            value: 'https://primary-http.{{ pihole_namespace }}.svc.cluster.local'
           - name: PRIMARY_HOST_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: pihole-secrets
                 key: WEBPASSWORD
           - name: SECONDARY_HOSTS_1_BASE_URL
-            value: 'http://secondary-http.pihole.svc.cluster.local'
+            value: 'http://secondary-http.{{ pihole_namespace }}.svc.cluster.local'
           - name: SECONDARY_HOSTS_1_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -35,11 +35,7 @@ sync_job_template:
                 key: WEBPASSWORD
           - name: RUN_ONCE
             value: "true"
-    restartPolicy: OnFailure
-    hostAliases:
-      - hostnames:
-          - "{{ dns.primary_pihole }}"
-        ip: "{{ network.identifier }}.3.64"
+    restartPolicy: Never
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -52,7 +48,7 @@ sync_job_template:
     resources:
       requests:
         memory: "128Mi"
-        cpu: "25m"
+        cpu: "10m"
       limits:
         memory: "256Mi"
         cpu: "250m"

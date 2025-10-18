@@ -5,25 +5,127 @@
     repo_url: https://grafana.github.io/helm-charts
     state: present
 
-- name: Create temp file
-  ansible.builtin.tempfile:
-    state: file
-    suffix: .yml
-  register: loki_values
-
-- name: Template Loki values
-  ansible.builtin.template:
-    src: templates/loki-values.yml.j2
-    dest: "{{ loki_values.path }}"
-
 - name: Install Loki
   kubernetes.core.helm:
     name: loki
     chart_ref: grafana/loki
     release_namespace: "{{ loki_namespace }}"
-    values_files:
-      - "{{ loki_values.path }}"
     state: present
+    values:
+      loki:
+        auth_enabled: false
+        schemaConfig:
+          configs:
+            - from: "2025-01-01"
+              store: tsdb
+              object_store: s3
+              schema: v13
+              index:
+                prefix: loki_index_
+                period: 24h
+        ingester:
+          chunk_encoding: snappy
+        querier:
+          max_concurrent: 4
+        pattern_ingester:
+          enabled: true
+        limits_config:
+          allow_structured_metadata: true
+          volume_enabled: true
+        storage:
+          bucketNames:
+            chunks: chunks
+            ruler: ruler
+            admin: admin
+      lokiCanary:
+        resources:
+          limits:
+            cpu: 100m
+            memory: 32Mi
+          requests:
+            cpu: 100m
+            memory: 16Mi
+      gateway:
+        replicas: 2
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 16Mi
+        nodeSelector:
+          kubernetes.io/role: worker
+        service:
+          type: LoadBalancer
+          annotations:
+            metallb.universe.tf/allow-shared-ip: "loki"
+            metallb.universe.tf/loadBalancerIps: "{{ loki_ip }}"
+      write:
+        replicas: 3
+        nodeSelector:
+          kubernetes.io/role: worker
+        resources:
+          limits:
+            cpu: 100m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+      read:
+        replicas: 3
+        nodeSelector:
+          kubernetes.io/role: worker
+        resources:
+          limits:
+            cpu: 100m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+      backend:
+        replicas: 2
+        nodeSelector:
+          kubernetes.io/role: worker
+        resources:
+          limits:
+            cpu: 100m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 64Mi
+      chunksCache:
+        allocatedMemory: 1024
+      minio:
+        enabled: true
+        nodeSelector:
+          kubernetes.io/role: worker
+        resources:
+          limits:
+            cpu: 100m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+      ingester:
+        replicas: 0
+      querier:
+        replicas: 0
+      queryFrontend:
+        replicas: 0
+      queryScheduler:
+        replicas: 0
+      distributor:
+        replicas: 0
+      compactor:
+        replicas: 0
+      indexGateway:
+        replicas: 0
+      bloomCompactor:
+        replicas: 0
+      bloomGateway:
+        replicas: 0
+
 
 - name: Install Fluent Bit helm chart
   kubernetes.core.helm_repository:
@@ -31,22 +133,44 @@
     repo_url: https://fluent.github.io/helm-charts
     state: present
 
-- name: Create temp file
-  ansible.builtin.tempfile:
-    state: file
-    suffix: .yml
-  register: fluent_bit_values
-
-- name: Template Fluent Bit values
-  ansible.builtin.template:
-    src: templates/fluent-values.yml.j2
-    dest: "{{ fluent_bit_values.path }}"
-
 - name: Install Fluent Bit
   kubernetes.core.helm:
     name: fluent-bit
     chart_ref: fluent/fluent-bit
     release_namespace: "{{ loki_namespace }}"
-    values_files:
-      - "{{ fluent_bit_values.path }}"
     state: present
+    values:
+      resources:
+        limits:
+          cpu: 100m
+          memory: 64Mi
+        requests:
+          cpu: 100m
+          memory: 16Mi
+      config:
+        extraFiles:
+          label_map.json: |
+            {
+              "kubernetes": {
+                "container_name": "container",
+                "namespace_name": "namespace",
+                "pod_name": "pod",
+                "host": "node",
+                "labels": {
+                  "app": "app",
+                  "app.kubernetes.io/name": "app"
+                }
+              }
+            }
+        outputs: |
+          [OUTPUT]
+              Name                    loki
+              Match                   *
+              Host                    loki-gateway.monitoring.svc.cluster.local
+              port                    80
+              tls                     off
+              tls.verify              off
+              Log_Level               info
+              Labels                  agent=fluent-bit
+              Label_Map_Path          /fluent-bit/etc/conf/label_map.json
+              Remove_Keys             kubernetes

@@ -5,10 +5,10 @@ vrrp_script chk_haproxy {
 
 vrrp_instance k3s-vip {
     state {{ k3s_vip_state }}
-    interface {{ ethernet.device }}
+    interface vlan
     priority {{ k3s_vip_priority }}
 
-    virtual_router_id 51
+    virtual_router_id {{ vip_router_id }}
 
     virtual_ipaddress {
         {{ k3s_vip_address }}

@@ -15,7 +15,7 @@
   gather_facts: true
   become: true
   tags:
-    - install
+    - prereq
     - server
     - agent
   roles:
@@ -26,10 +26,9 @@
   gather_facts: true
   become: true
   tags:
+    - init-managers
     - server
     - agent
-    - install
-    - config
   roles:
     - k3s-server
 
@@ -38,13 +37,12 @@
   gather_facts: true
   become: true
   tags:
+    - init-workers
     - agent
-    - install
-    - config
   roles:
     - k3s-agent
 
-- name: Label nodes
+- name: Apply cluster configurations
   hosts: k3s_managers
   gather_facts: true
   become: true
@@ -52,46 +50,8 @@
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
   tags:
+    - cluster-config
     - server
     - agent
-    - config
-  tasks:
-    - name: Label nodes
-      # no_log: true
-      kubernetes.core.k8s:
-        state: present
-        definition:
-          apiVersion: v1
-          kind: Node
-          metadata:
-            labels:
-              kubernetes.io/role: "{{ item.role }}"
-        name: "{{ item.name }}"
-      with_items:
-        - name: keylimepi
-          role: worker
-        - name: pumpkinpi
-          role: worker
-        - name: raspberrypi
-          role: infra
-        - name: vwkr01
-          role: worker
-        - name: wkr02vl
-          role: worker
-        - name: gmr01pl
-          role: gamer
-        - name: gmr02vl
-          role: gamer
-
-- name: Restrict kube-system pods to managers
-  hosts: k3s_managers
-  gather_facts: true
-  become: true
-  run_once: true
-  environment:
-    KUBECONFIG: "{{ kube_config_path }}"
-  tags:
-    - server
-    - config
   roles:
     - k3s-config

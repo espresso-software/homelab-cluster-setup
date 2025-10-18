@@ -1,69 +1,56 @@
 ---
-- name: Kubernetes
-  when: kubernetes_deploy | default(false)
-  block:
-    - name: Create Grafana Admin User Secret
-      no_log: true
-      kubernetes.core.k8s:
-        definition:
-          apiVersion: v1
-          kind: Secret
-          metadata:
-            name: grafana-admin
-            namespace: "{{ grafana_namespace }}"
-          data:
-            user: "{{ grafana_admin.user | b64encode }}"
-            password: "{{ grafana_admin.password | b64encode }}"
-        state: present
-    
-    - name: Create Cloudflare Namespace
-      kubernetes.core.k8s:
-        definition:
-          apiVersion: v1
-          kind: Namespace
-          metadata:
-            name: cloudflare
-        state: present
+- name: Create Grafana Admin User Secret
+  no_log: true
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: grafana-admin
+        namespace: "{{ grafana_namespace }}"
+      data:
+        user: "{{ grafana_admin.user | b64encode }}"
+        password: "{{ grafana_admin.password | b64encode }}"
+    state: present
 
-    - name: Create Cloudflare  ResourceQuota
-      kubernetes.core.k8s:
-        definition:
-          apiVersion: v1
-          kind: ResourceQuota
-          metadata:
-            name: cloudflare-quota
-            namespace: cloudflare
-          spec:
-            hard:
-              requests.cpu: "6"
-              requests.memory: 6Gi
-              limits.cpu: "12"
-              limits.memory: 12Gi
-        state: present
-    
-    - name: Get token
-      no_log: true
-      ansible.builtin.uri:
-        url: https://api.cloudflare.com/client/v4/accounts/{{ account_id }}/cfd_tunnel/{{ tunnel_id }}/token
-        headers:
-          Authorization: "Bearer {{ api_key | trim }}"
-          Content-Type: "application/json"
-        status_code:
-          - 200
-        method: GET
-      register: token
+- name: Create Cloudflare Namespace
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: cloudflare
+    state: present
 
-    - name: Create tmp directory for Grafana
-      ansible.builtin.file:
-        path: "/tmp/grafana"
-        state: directory
+- name: Create Cloudflare  ResourceQuota
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: ResourceQuota
+      metadata:
+        name: cloudflare-quota
+        namespace: cloudflare
+      spec:
+        hard:
+          requests.cpu: "6"
+          requests.memory: 6Gi
+          limits.cpu: "12"
+          limits.memory: 12Gi
+    state: present
 
-    - name: Template Grafana Deployment
-      ansible.builtin.template:
-        src: "templates/k8s.yml.j2"
-        dest: "/tmp/grafana/k8s.yml"
+- name: Get token
+  no_log: true
+  ansible.builtin.uri:
+    url: https://api.cloudflare.com/client/v4/accounts/{{ account_id }}/cfd_tunnel/{{ tunnel_id }}/token
+    headers:
+      Authorization: "Bearer {{ api_key | trim }}"
+      Content-Type: "application/json"
+    status_code:
+      - 200
+    method: GET
+  register: token
 
-    - name: Deploy Grafana
-      kubernetes.core.k8s:
-        src: "/tmp/grafana/k8s.yml"
-        apply: yes
+- name: Deploy Grafana
+  kubernetes.core.k8s:
+    template: "templates/k8s.yml.j2"
+    apply: true

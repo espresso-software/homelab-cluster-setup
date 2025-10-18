@@ -7,9 +7,14 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
-      host:
-        description: 'The host to run the playbook on'
+      node:
+        description: 'The node to run the playbook against'
         required: true
+        type: string
+        default: 'test-k3s'
+      tags:
+        description: 'The tags to run'
+        required: false
         default: ''
       extra_vars:
         description: 'Extra vars to pass to the playbook'
@@ -38,39 +43,33 @@ jobs:
         with:
           submodules: 'true'
           token: ${{ secrets.READ_ACCESS_TOKEN }}
-
-      - name: Set extra_args
-        id: set_extra_args
-        run: |
-          args_string=""
-          if [ -n "${{ github.event.inputs.host }}" ]; then
-            args_string="${args_string} -l ${{ github.event.inputs.host }}"
-          fi
-          if [ -n "${{ github.event.inputs.extra_vars }}" ]; then
-            args_string="${args_string} --extra-vars '${{ github.event.inputs.extra_vars }}'"
-          fi
-          echo "::set-output name=extra_args::${args_string}"
-
-      # Runs a single command using the runners shell
-      - name: Setup vault token
-        run: |
-          echo "${{ secrets.VAULT_DECRYPT_TOKEN }}" > /tmp/vault_pass
       
-      - name: Run firewall setup
-        run: |
-          ansible-playbook -i inventory/hosts.ini k3s-middleware.yml -v --vault-password-file /tmp/vault_pass --tags firewall ${{ steps.set_extra_args.outputs.extra_args }}
-          ansible-playbook -i inventory/hosts.ini k3s-monitoring.yml -v --vault-password-file /tmp/vault_pass --tags firewall ${{ steps.set_extra_args.outputs.extra_args }}
-
-      - name: Run kubernetes setup
-        run: |
-          ansible-playbook -i inventory/hosts.ini k3s-nodes.yml -v --vault-password-file /tmp/vault_pass ${{ steps.set_extra_args.outputs.extra_args }}
-          ansible-playbook -i inventory/hosts.ini k3s-nodes.yml -v --vault-password-file /tmp/vault_pass --tags config
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-nodes.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.node }}
+          tags: ${{ github.event.inputs.tags }}
+          vars: ${{ github.event.inputs.extra_vars }}
       
-      - name: Run longhorn label setup
-        run: |
-          ansible-playbook -i inventory/hosts.ini k3s-middleware.yml -v --vault-password-file /tmp/vault_pass --tags longhorn ${{ steps.set_extra_args.outputs.extra_args }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-helm.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.node }}
+          tags: ${{ github.event.inputs.tags }}
+          vars: ${{ github.event.inputs.extra_vars }}
       
-      - name: Remove vault pass
-        if: always()
-        run: |
-          rm /tmp/vault_pass
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-middleware.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.node }}
+          tags: ${{ github.event.inputs.tags }}
+          vars: ${{ github.event.inputs.extra_vars }}

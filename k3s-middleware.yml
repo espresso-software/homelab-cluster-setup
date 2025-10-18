@@ -1,58 +1,25 @@
 ---
+- name: Install Cilium
+  hosts: k3s_managers
+  become: yes
+  gather_facts: true
+  tags:
+    - cilium
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  roles:
+    - cilium
+
 - name: Install MetalLB
   hosts: k3s_managers
   become: yes
   run_once: true
   tags:
     - metallb
-    - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-  vars:
-    kubernetes_deploy: true
   roles:
     - metallb
-
-- name: Open L2 Ports between nodes
-  hosts: k3s
-  become: yes
-  gather_facts: true
-  tags:
-    - firewall
-    - metallb
-    - kubernetes
-  vars:
-    kubernetes_firewall: true
-  roles:
-    - metallb
-
-- name: Install Calico
-  hosts: k3s_managers
-  become: yes
-  run_once: true
-  gather_facts: true
-  tags:
-    - calico
-    - kubernetes
-  environment:
-    KUBECONFIG: "{{ kube_config_path }}"
-  vars:
-    kubernetes_deploy: true
-  roles:
-    - calico
-
-- name: Setup Calico FW Rules
-  hosts: k3s
-  become: yes
-  gather_facts: true
-  tags:
-    - firewall
-    - calico
-    - kubernetes
-  vars:
-    kubernetes_firewall: true
-  roles:
-    - calico
 
 - name: Longhorn prereqs
   hosts: k3s
@@ -60,7 +27,6 @@
   tags:
     - nfs
     - longhorn
-    - kubernetes
   tasks:
     - name: Install NFS
       ansible.builtin.apt:
@@ -85,10 +51,10 @@
 
 - name: Install Longhorn
   hosts: k3s_managers
+  run_once: true
   become: yes
   tags:
     - longhorn
-    - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
   roles:
@@ -100,7 +66,6 @@
   run_once: true
   tags:
     - cert-manager
-    - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
   roles:
@@ -112,75 +77,18 @@
   run_once: true
   tags:
     - traefik
-    - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-  vars:
-    kubernetes_deploy: true
   roles:
     - traefik
 
-- name: Setup Traefik FW Rules
-  hosts: k3s
-  become: yes
-  gather_facts: true
-  tags:
-    - firewall
-    - traefik
-    - kubernetes
-  vars:
-    kubernetes_firewall: true
-  roles:
-    - traefik
-
-#TODO: one on a worker, one on infra node
 - name: Install Pi-hole
   hosts: k3s_managers
   become: yes
   run_once: true
   tags:
     - pihole
-    - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-  vars:
-    kubernetes_deploy: true
   roles:
     - pihole
-
-- name: Setup Pi-hole FW Rules
-  hosts: k3s
-  become: yes
-  gather_facts: true
-  tags:
-    - firewall
-    - pihole
-    - kubernetes
-  vars:
-    kubernetes_firewall: true
-  roles:
-    - pihole
-
-- name: Setup secondary Pi-hole FW Rules
-  hosts: k3s
-  become: yes
-  gather_facts: true
-  tags:
-    - firewall
-    - pihole
-    - kubernetes
-  tasks:
-    - name: Setup k3s FW Rules
-      community.general.ufw:
-        rule: allow
-        direction: in
-        src: "{{ network.identifier }}.{{ network.subnet }}"
-        dest: "{{ network.identifier }}.3.69"
-        port: 53
-        proto: "{{ item.proto }}"
-        comment: "{{ item.comment }}"
-      with_items:
-        - proto: 'udp'
-          comment: 'DNS UDP'
-        - proto: 'tcp'
-          comment: 'DNS TCP'

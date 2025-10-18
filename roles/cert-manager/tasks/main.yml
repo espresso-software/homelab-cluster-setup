@@ -5,14 +5,14 @@
     repo_url: https://charts.jetstack.io
     state: present
 
-- name: Create cert-manager namespace
+- name: Create {{ cert_manager_namespace }} namespace
   kubernetes.core.k8s:
     state: present
     definition:
       apiVersion: v1
       kind: Namespace
       metadata:
-        name: cert-manager
+        name: "{{ cert_manager_namespace }}"
 
 #TODO: -name: Create LimitRange
 
@@ -21,20 +21,30 @@
 - name: Install cert-manager
   kubernetes.core.helm:
     name: cert-manager
-    namespace: cert-manager
+    namespace: "{{ cert_manager_namespace }}"
     chart_ref: jetstack/cert-manager
     chart_version: v1.15.2
     values:
       crds:
         enabled: true
+      replicaCount: 2
       dns01RecursiveNameservers: '1.1.1.1:53,1.0.0.1:53'
+      extraEnv:
+        - name: HTTP_PROXY
+          value: "http://{{ internet_proxy }}"
+        - name: HTTPS_PROXY
+          value: "http://{{ internet_proxy }}"
+        - name: FTP_PROXY
+          value: "ftp://{{ internet_proxy }}"
+        - name: NO_PROXY
+          value: "10.0.0.0/8"
       resources:
         requests:
           cpu: 100m
           memory: 128Mi
       nodeSelector:
         kubernetes.io/os: linux
-        kubernetes.io/role: worker
+        node-role.kubernetes.io/control-plane: "true"
       webhook:
         resources:
           requests:
@@ -42,7 +52,7 @@
             memory: 128Mi
         nodeSelector:
           kubernetes.io/os: linux
-          kubernetes.io/role: worker
+          node-role.kubernetes.io/control-plane: "true"
       cainjector:
         resources:
           requests:
@@ -50,7 +60,7 @@
             memory: 128Mi
         nodeSelector:
           kubernetes.io/os: linux
-          kubernetes.io/role: worker
+          node-role.kubernetes.io/control-plane: "true"
       startupapicheck:
         resources:
           requests:
@@ -58,8 +68,8 @@
             memory: 32Mi
         nodeSelector:
           kubernetes.io/os: linux
-          kubernetes.io/role: worker
-      
+          node-role.kubernetes.io/control-plane: "true"
+
 - name: Create Cloudflare API Token Secret
   no_log: true
   kubernetes.core.k8s:
@@ -69,7 +79,7 @@
       kind: Secret
       metadata:
         name: cloudflare-api-token
-        namespace: cert-manager
+        namespace: "{{ cert_manager_namespace }}"
       type: Opaque
       stringData:
         api-token: "{{ cloudflare_token }}"
@@ -94,11 +104,11 @@
                   apiTokenSecretRef:
                     name: cloudflare-api-token
                     key: api-token
-              selector: 
+              selector:
                 dnsZones:
                   - "{{ local_domain }}"
                   - "{{ domain }}"
-                  - "{{ dns.k3s }}"
+                  - "{{ cluster_domain }}"
 
 - name: Create ClusterIssuer (Production)
   kubernetes.core.k8s:
@@ -120,8 +130,8 @@
                   apiTokenSecretRef:
                     name: cloudflare-api-token
                     key: api-token
-              selector: 
+              selector:
                 dnsZones:
                   - "{{ local_domain }}"
                   - "{{ domain }}"
-                  - "{{ dns.k3s }}"
+                  - "{{ cluster_domain }}"
