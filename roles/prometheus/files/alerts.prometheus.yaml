@@ -17,62 +17,30 @@ serverFiles:
               summary: "Instance {{ $labels.instance }} down"
       - name: Nodes
         rules:
-          - alert: NodeHighCPUUsage.Sev1
-            expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+          - alert: NodeHighCPUUsage
+            expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
             for: 10m
             labels:
-              severity: sev-1
+              severity: "{{ if gt $value 90 }}sev-1{{ else }}sev-2{{ end }}"
             annotations:
-              description: "Node {{ $labels.instance }} CPU usage is above 90% for more than 10 minutes."
+              description: 'Node {{ $labels.instance }} CPU usage is above {{ if eq $labels.severity "sev-1" }}90%{{ else }}80%{{ end }} for more than 10 minutes.'
               summary: "Critical high CPU usage on node {{ $labels.instance }}"
-          - alert: NodeHighCPUUsage.Sev2
-            expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
-            for: 15m
-            labels:
-              severity: sev-2
-            annotations:
-              description: "Node {{ $labels.instance }} CPU usage is above 80% for more than 15 minutes."
-              summary: "High CPU usage on node {{ $labels.instance }}"
-          - alert: NodeHighMemoryUsage.Sev1
-            expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
-            for: 15m
-            labels:
-              severity: sev-1
-            annotations:
-              description: "Node {{ $labels.instance }} memory usage is above 90% for more than 15 minutes."
-              summary: "Critical high memory usage on node {{ $labels.instance }}"
-          - alert: NodeHighMemoryUsage.Sev2
+          - alert: NodeHighMemoryUsage
             expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 80
             for: 15m
             labels:
-              severity: sev-2
+              severity: "{{ if gt $value 90 }}sev-1{{ else }}sev-2{{ end }}"
             annotations:
-              description: "Node {{ $labels.instance }} memory usage is above 80% for more than 15 minutes."
-              summary: "High memory usage on node {{ $labels.instance }}"
-          - alert: NodeDiskSpaceLow.Sev1
-            expr: (node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} - node_filesystem_free_bytes{fstype!~"tmpfs|overlay"}) / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} * 100 > 85
-            for: 30m
-            labels:
-              severity: sev-1
-            annotations:
-              description: "Node {{ $labels.instance }} disk space usage under {{ $labels.mountpoint }} is above 85% for more than 30 minutes."
-              summary: "Critical low disk space on node {{ $labels.instance }}"
-          - alert: NodeDiskSpaceLow.Sev2
-            expr: (node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} - node_filesystem_free_bytes{fstype!~"tmpfs|overlay"}) / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} * 100 > 80
-            for: 30m
-            labels:
-              severity: sev-2
-            annotations:
-              description: "Node {{ $labels.instance }} disk space usage under {{ $labels.mountpoint }} is above 80% for more than 30 minutes."
-              summary: "Low disk space on node {{ $labels.instance }}"
-          - alert: NodeDiskSpaceLow.Sev3
+              description: 'Node {{ $labels.instance }} memory usage is above {{ if eq $labels.severity "sev-1" }}90%{{ else }}80%{{ end }} for more than 15 minutes.'
+              summary: "Critical high memory usage on node {{ $labels.instance }}"
+          - alert: NodeDiskSpaceLow
             expr: (node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} - node_filesystem_free_bytes{fstype!~"tmpfs|overlay"}) / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} * 100 > 75
             for: 30m
             labels:
-              severity: sev-3
+              severity: "{{ if gt $value 85 }}sev-1{{ else if gt $value 75 }}sev-2{{ else }}sev-3{{ end }}"
             annotations:
-              description: "Node {{ $labels.instance }} disk space usage under {{ $labels.mountpoint }} is above 75% for more than 30 minutes."
-              summary: "Moderate low disk space on node {{ $labels.instance }}"
+              description: "Node {{ $labels.instance }} disk space usage under {{ $labels.mountpoint }} is above high for more than 30 minutes."
+              summary: "Critical low disk space on node {{ $labels.instance }}"
       - name: Kubernetes
         rules:
           - alert: Tier1DeploymentUnhealthy
@@ -99,30 +67,14 @@ serverFiles:
             annotations:
               description: "Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }} has unavailable replicas for more than 60 minutes."
               summary: "Unhealthy deployment {{ $labels.deployment }} in Tier 3 namespace"
-          - alert: PVCUsage.Sev1
-            expr: (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 95
-            for: 15m
-            labels:
-              severity: sev-1
-            annotations:
-              description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} usage is above 95% for more than 15 minutes."
-              summary: "Critical PVC usage on {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }}"
-          - alert: PVCUsage.Sev2
-            expr: (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 90
-            for: 15m
-            labels:
-              severity: sev-2
-            annotations:
-              description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} usage is above 90% for more than 15 minutes."
-              summary: "High PVC usage on {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }}"
-          - alert: PVCUsage.Sev3
+          - alert: PVCUsage
             expr: (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 80
             for: 15m
             labels:
-              severity: sev-3
+              severity: "{{ if gt $value 95 }}sev-1{{ else if gt $value 90 }}sev-2{{ else }}sev-3{{ end }}"
             annotations:
               description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} usage is above 80% for more than 15 minutes."
-              summary: "Moderate PVC usage on {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }}"
+              summary: "Critical PVC usage on {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }}"
           - alert: NodeNotReady
             expr: kube_node_status_condition{condition="Ready",status="false"} == 1
             for: 5m
