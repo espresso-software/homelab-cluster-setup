@@ -37,7 +37,7 @@
         - name: FTP_PROXY
           value: "ftp://{{ internet_proxy }}"
         - name: NO_PROXY
-          value: "10.0.0/8"
+          value: "10.0.0.0/8"
       resources:
         requests:
           cpu: 100m
