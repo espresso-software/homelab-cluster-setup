@@ -1,7 +1,7 @@
 ---
 - name: Install Cilium
   hosts: k3s_managers
-  become: yes
+  become: true
   gather_facts: true
   tags:
     - cilium
@@ -12,7 +12,7 @@
 
 - name: Install MetalLB
   hosts: k3s_managers
-  become: yes
+  become: true
   run_once: true
   tags:
     - metallb
@@ -23,10 +23,15 @@
 
 - name: Longhorn prereqs
   hosts: k3s
-  become: yes
+  become: true
   tags:
     - nfs
     - longhorn
+  handlers:
+    - name: Reload multipathd
+      ansible.builtin.systemd:
+        name: multipathd
+        state: restarted
   tasks:
     - name: Install NFS
       ansible.builtin.apt:
@@ -42,17 +47,12 @@
           blacklist {
             devnode "^sd[a-z0-9]+"
           }
-      register: multipath_conf
-    - name: Reload multipathd
-      ansible.builtin.systemd:
-        name: multipathd
-        state: restarted
-      when: multipath_conf.changed
+      notify: Reload multipathd
 
 - name: Install Longhorn
   hosts: k3s_managers
   run_once: true
-  become: yes
+  become: true
   tags:
     - longhorn
   environment:
@@ -62,7 +62,7 @@
 
 - name: Install cert-manager
   hosts: k3s_managers
-  become: yes
+  become: true
   run_once: true
   tags:
     - cert-manager
@@ -73,7 +73,7 @@
 
 - name: Install Traefik
   hosts: k3s_managers
-  become: yes
+  become: true
   run_once: true
   tags:
     - traefik
@@ -84,7 +84,7 @@
 
 - name: Install Pi-hole
   hosts: k3s_managers
-  become: yes
+  become: true
   run_once: true
   tags:
     - pihole
