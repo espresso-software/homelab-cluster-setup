@@ -94,6 +94,7 @@ alertmanager:
         discord_configs:
           - webhook_url_file: /secrets/.discord/sev3
     route:
+      receiver: 'sev-3'
       routes:
         - receiver: 'sev-1'
           match:
