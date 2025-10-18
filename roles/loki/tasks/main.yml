@@ -33,7 +33,10 @@
           allow_structured_metadata: true
           volume_enabled: true
         storage:
-          type: filesystem
+          bucketNames:
+            chunks: chunks
+            ruler: ruler
+            admin: admin
       lokiCanary:
         resources:
           limits:
