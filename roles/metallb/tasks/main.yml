@@ -59,7 +59,7 @@
 - name: Setup IP Address Pools
   run_once: true
   kubernetes.core.k8s:
-    apply: yes
+    apply: true
     definition:
       apiVersion: metallb.io/v1beta1
       kind: IPAddressPool

@@ -1,18 +1,8 @@
 ---
 # - name: Install Cilium CLI
-#   ansible.builtin.script: 
+#   ansible.builtin.script:
 #     cmd: cilium-install.sh
-#     executable: /bin/bash 
-
-- name: Create cilium-system namespace
-  run_once: true
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: cilium-system
+#     executable: /bin/bash
 
 - name: Update helm chart
   run_once: true
@@ -30,6 +20,13 @@
     chart_ref: cilium/cilium
     values:
       kubeConfigPath: "{{ kube_config_path }}"
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 250m
+          memory: 256Mi
       rolloutCiliumPods: 'true'
       cluster:
         name: "{{ cluster_name }}"
@@ -37,6 +34,14 @@
         enabled: true
         type: "wireguard"
         nodeEncryption: true
+      envoy:
+        resources:
+          limits:
+            cpu: 200m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 64Mi
       operator:
         nodeSelector:
           kubernetes.io/os: linux

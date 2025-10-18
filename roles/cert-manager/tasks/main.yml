@@ -40,7 +40,10 @@
           value: "10.0.0.0/8"
       resources:
         requests:
-          cpu: 100m
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          cpu: 200m
           memory: 128Mi
       nodeSelector:
         kubernetes.io/os: linux
@@ -48,16 +51,22 @@
       webhook:
         resources:
           requests:
+            cpu: 50m
+            memory: 16Mi
+          limints:
             cpu: 100m
-            memory: 128Mi
+            memory: 64Mi
         nodeSelector:
           kubernetes.io/os: linux
           node-role.kubernetes.io/control-plane: "true"
       cainjector:
         resources:
           requests:
+            cpu: 50m
+            memory: 16Mi
+          limits:
             cpu: 100m
-            memory: 128Mi
+            memory: 64Mi
         nodeSelector:
           kubernetes.io/os: linux
           node-role.kubernetes.io/control-plane: "true"
@@ -66,6 +75,9 @@
           requests:
             cpu: 10m
             memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
         nodeSelector:
           kubernetes.io/os: linux
           node-role.kubernetes.io/control-plane: "true"

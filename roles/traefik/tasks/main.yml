@@ -129,11 +129,11 @@
           enabled: true
       resources:
         requests:
-          cpu: 250m
-          memory: 256Mi
+          cpu: 100m
+          memory: 64Mi
         limits:
-          cpu: 2000m
-          memory: 4Gi
+          cpu: 1000m
+          memory: 2Gi
       service:
         annotations:
           metallb.universe.tf/allow-shared-ip: traefik
