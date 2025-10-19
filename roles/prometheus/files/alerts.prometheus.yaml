@@ -21,7 +21,7 @@ serverFiles:
             expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
             for: 10m
             labels:
-              severity: "{{ if gt $value 90 }}sev-1{{ else }}sev-2{{ end }}"
+              severity: "{{ if gt (parseFloat $value) 90 }}sev-1{{ else }}sev-2{{ end }}"
             annotations:
               description: 'Node {{ $labels.instance }} CPU usage is above {{ if eq $labels.severity "sev-1" }}90%{{ else }}80%{{ end }} for more than 10 minutes.'
               summary: "Critical high CPU usage on node {{ $labels.instance }}"
@@ -29,7 +29,7 @@ serverFiles:
             expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 80
             for: 15m
             labels:
-              severity: "{{ if gt $value 90 }}sev-1{{ else }}sev-2{{ end }}"
+              severity: "{{ if gt (parseFloat $value) 90 }}sev-1{{ else }}sev-2{{ end }}"
             annotations:
               description: 'Node {{ $labels.instance }} memory usage is above {{ if eq $labels.severity "sev-1" }}90%{{ else }}80%{{ end }} for more than 15 minutes.'
               summary: "Critical high memory usage on node {{ $labels.instance }}"
@@ -37,13 +37,13 @@ serverFiles:
             expr: (node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} - node_filesystem_free_bytes{fstype!~"tmpfs|overlay"}) / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} * 100 > 75
             for: 30m
             labels:
-              severity: "{{ if gt $value 85 }}sev-1{{ else if gt $value 75 }}sev-2{{ else }}sev-3{{ end }}"
+              severity: "{{ if gt (parseFloat $value) 85 }}sev-1{{ else if gt (parseFloat $value) 75 }}sev-2{{ else }}sev-3{{ end }}"
             annotations:
               description: "Node {{ $labels.instance }} disk space usage under {{ $labels.mountpoint }} is above high for more than 30 minutes."
               summary: "Critical low disk space on node {{ $labels.instance }}"
       - name: Kubernetes
         rules:
-          - alert: Tier1DeploymentUnhealthy
+          - alert: Sev 1 - DeploymentUnhealthy
             expr: kube_deployment_status_replicas_unavailable{namespace=~"games|kube-system|longhorn-system|metallb-system|monitoring"} > 0
             for: 5m
             labels:
@@ -51,7 +51,7 @@ serverFiles:
             annotations:
               description: "Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }} has unavailable replicas for more than 5 minutes."
               summary: "Critical: Unhealthy deployment {{ $labels.deployment }} in Tier 1 namespace"
-          - alert: Tier2DeploymentUnhealthy
+          - alert: Sev 2 - DeploymentUnhealthy
             expr: kube_deployment_status_replicas_unavailable{namespace=~"cert-manager|cloudflare|pihole-system|traefik-system"} > 0
             for: 15m
             labels:
@@ -59,7 +59,7 @@ serverFiles:
             annotations:
               description: "Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }} has unavailable replicas for more than 15 minutes."
               summary: "Unhealthy deployment {{ $labels.deployment }} in Tier 2 namespace"
-          - alert: Tier3DeploymentUnhealthy
+          - alert: Sev 3 - DeploymentUnhealthy
             expr: kube_deployment_status_replicas_unavailable{namespace!~"games|kube-system|longhorn-system|metallb-system|monitoring|cert-manager|cloudflare|pihole-system|traefik-system"} > 0
             for: 60m
             labels:
@@ -71,7 +71,7 @@ serverFiles:
             expr: (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 80
             for: 15m
             labels:
-              severity: "{{ if gt $value 95 }}sev-1{{ else if gt $value 90 }}sev-2{{ else }}sev-3{{ end }}"
+              severity: "{{ if gt (parseFloat $value) 95 }}sev-1{{ else if gt (parseFloat $value) 90 }}sev-2{{ else }}sev-3{{ end }}"
             annotations:
               description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} usage is above 80% for more than 15 minutes."
               summary: "Critical PVC usage on {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }}"
@@ -83,6 +83,8 @@ serverFiles:
             annotations:
               description: "Node {{ $labels.node }} is not ready for more than 5 minutes."
               summary: "Node {{ $labels.node }} not ready"
+      - name: Pod Resource Usage
+        rules:
           - alert: RequestCPULowUsage
             expr: sum(rate(container_cpu_usage_seconds_total{image!=""}[5m])) by (pod, namespace) / sum(kube_pod_container_resource_requests{resource="cpu"}) by (pod, namespace) < 0.01
             for: 60m
@@ -147,3 +149,5 @@ serverFiles:
             annotations:
               description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is using more than 90% of its memory limit for more than 15 minutes."
               summary: "High memory usage on pod {{ $labels.pod }} in namespace {{ $labels.namespace }}"
+      # TODO: - name: HTTP Proxies
+      # TODO: - name: Service Health
