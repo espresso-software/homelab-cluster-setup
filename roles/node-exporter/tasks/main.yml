@@ -30,7 +30,6 @@
     create_home: false
 
 - name: Create node-exporter systemd service
-  notify: Reload systemd
   ansible.builtin.copy:
     dest: /etc/systemd/system/node_exporter.service
     content: |
@@ -48,3 +47,13 @@
       [Install]
       WantedBy=multi-user.target
     mode: '0644'
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable and start node-exporter service
+  ansible.builtin.systemd:
+    name: node_exporter
+    enabled: true
+    state: started
