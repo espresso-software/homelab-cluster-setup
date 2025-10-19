@@ -2,8 +2,7 @@
 - name: Download ARM64 node-exporter binary
   when: ansible_architecture == "aarch64"
   ansible.builtin.get_url:
-    url: |
-      "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-arm64.tar.gz"
+    url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-arm64.tar.gz"
     dest: "/tmp/node_exporter.tar.gz"
     mode: '0644'
     checksum: "sha256:{{ node_exporter_arm64_checksum }}"
@@ -11,8 +10,7 @@
 - name: Download AMD64 node-exporter binary
   when: ansible_architecture == "x86_64"
   ansible.builtin.get_url:
-    url: |
-      "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
     dest: "/tmp/node_exporter.tar.gz"
     mode: '0644'
     checksum: "sha256:{{ node_exporter_amd64_checksum }}"
