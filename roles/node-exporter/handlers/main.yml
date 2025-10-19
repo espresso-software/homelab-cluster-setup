@@ -1,0 +1,11 @@
+---
+- name: Reload systemd
+  notify: Restart node-exporter
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart node-exporter
+  ansible.builtin.systemd:
+    name: node_exporter
+    state: restarted
+    enabled: true

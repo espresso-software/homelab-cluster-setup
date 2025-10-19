@@ -1,0 +1,4 @@
+---
+node_exporter_version: "1.9.1"
+node_exporter_amd64_checksum: becb950ee80daa8ae7331d77966d94a611af79ad0d3307380907e0ec08f5b4e8
+node_exporter_arm64_checksum: 848f139986f63232ced83babe3cad1679efdbb26c694737edc1f4fbd27b96203
