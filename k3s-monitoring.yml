@@ -141,10 +141,7 @@
 
 - name: Deploy Node Exporter
   hosts:
-    - deny-list-proxies
-    - allow-list-proxies
-    - bastions
-    - desktops
+    - all:!bastions:!k3s
   become: true
   tags:
     - node-exporter
