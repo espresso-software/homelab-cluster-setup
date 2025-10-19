@@ -93,17 +93,17 @@ alertmanager:
         proxy_from_environment: true
     receivers:
       - name: 'sev-1'
-        send_resolved: true
         discord_configs:
           - webhook_url_file: /secrets/.discord/sev1
+            send_resolved: true
       - name: 'sev-2'
-        send_resolved: true
         discord_configs:
           - webhook_url_file: /secrets/.discord/sev2
+            send_resolved: true
       - name: 'sev-3'
-        send_resolved: false
         discord_configs:
           - webhook_url_file: /secrets/.discord/sev3
+            send_resolved: false
     route:
       receiver: 'sev-3'
       group_by: ['alertname']
