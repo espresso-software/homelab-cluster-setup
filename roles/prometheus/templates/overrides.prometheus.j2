@@ -58,7 +58,12 @@ extraScrapeConfigs: |
   - job_name: http-node-exporter
     static_configs:
       - targets: 
-        - 10.31.3.23:9100
+        - 10.31.3.23:9100 # bastion hypervisor node-exporter
+        - 10.26.1.1:9100 # ansible tower node-exporter
+        - 10.25.206.1:9100 # allow list proxy host node-exporter
+        - 10.24.206.1:9100 # deny proxy host node-exporter
+        - 10.24.206.2:9100 # deny proxy host node-exporter
+        - 10.24.206.3:9100 # deny proxy host node-exporter
     scheme: http
 
 # Configuration of subcharts defined in Chart.yaml
