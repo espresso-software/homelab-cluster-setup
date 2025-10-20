@@ -170,10 +170,10 @@ spec:
       volumes:
         - name: etc-pihole
           persistentVolumeClaim:
-            claimName: {{ pihole_instance }}-pihole-pvc
+            claimName: {{ pihole_instance }}-etc-pihole
         - name: etc-dnsmasq-d
           persistentVolumeClaim:
-            claimName: {{ pihole_instance }}-dnsmasq-pvc
+            claimName: {{ pihole_instance }}-etc-dnsmasq-d
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy

@@ -87,5 +87,3 @@
     state: present
     template: sync.yml.j2
     apply: true
-
-    

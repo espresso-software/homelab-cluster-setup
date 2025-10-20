@@ -20,7 +20,7 @@ job_template:
         image: mattwebbio/orbital-sync:1
         env:
           - name: PRIMARY_HOST_BASE_URL
-            value: 'https://primary-http.{{ pihole_namespace }}.svc.cluster.local'
+            value: 'http://primary-http.{{ pihole_namespace }}.svc.cluster.local'
           - name: PRIMARY_HOST_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -36,6 +36,13 @@ job_template:
           - name: RUN_ONCE
             value: "true"
     restartPolicy: Never
+    podFailurePolicy:
+      rules:
+        - action: FailJob
+          onExitCodes:
+            operator: NotIn
+            values:
+              - 0
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
