@@ -17,7 +17,7 @@ on:
           - monitoring
           - nodes
           - reset
-          - restart
+          - rolling-restart
       host:
         description: "The host to run the playbook on"
         required: false
