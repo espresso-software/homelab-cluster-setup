@@ -51,7 +51,7 @@ serverFiles:
             for: 10m
             keep_firing_for: 5m
             labels:
-              severity: "{{ if gt $value 90 }}sev-1{{ else }}sev-2{{ end }}"
+              severity: sev-2 "{{ if gt $value.Value 90 }}sev-1{{ else }}sev-2{{ end }}"
             annotations:
               description: 'Node {{ $labels.instance }} CPU usage is above {{ if eq $labels.severity "sev-1" }}90%{{ else }}80%{{ end }} for more than 10 minutes.'
               summary: "Critical high CPU usage on node {{ $labels.instance }}"
@@ -60,7 +60,7 @@ serverFiles:
             for: 15m
             keep_firing_for: 5m
             labels:
-              severity: "{{ if gt $value 90 }}sev-1{{ else }}sev-2{{ end }}"
+              severity: "{{ if gt $value.Value 90 }}sev-1{{ else }}sev-2{{ end }}"
             annotations:
               description: 'Node {{ $labels.instance }} memory usage is above {{ if eq $labels.severity "sev-1" }}90%{{ else }}80%{{ end }} for more than 15 minutes.'
               summary: "Critical high memory usage on node {{ $labels.instance }}"
@@ -69,7 +69,7 @@ serverFiles:
             for: 30m
             keep_firing_for: 5m
             labels:
-              severity: "{{ if gt $value 85 }}sev-1{{ else if gt $value 75 }}sev-2{{ else }}sev-3{{ end }}"
+              severity: "{{ if gt $value.Value 85 }}sev-1{{ else if gt $value.Value 75 }}sev-2{{ else }}sev-3{{ end }}"
             annotations:
               description: "Node {{ $labels.instance }} disk space usage under {{ $labels.mountpoint }} is above high for more than 30 minutes."
               summary: "Critical low disk space on node {{ $labels.instance }}"
@@ -86,13 +86,16 @@ serverFiles:
                   (eq $labels.namespace "kube-system") 
                   (eq $labels.namespace "longhorn-system") 
                   (eq $labels.namespace "metallb-system") 
-                  (eq $labels.namespace "monitoring") -}}sev-1
-                {{- else if or 
+                  (eq $labels.namespace "monitoring") 
+                -}}sev-1{{- else if or 
                   (eq $labels.namespace "cloudflare") 
                   (eq $labels.namespace "pihole-system") 
-                  (eq $labels.namespace "traefik-system") -}}sev-2
-                {{- else -}}sev-3
-                {{- end -}}
+                  (eq $labels.namespace "traefik-system") 
+                -}}sev-2{{- 
+                  else 
+                -}}sev-3{{- \
+                  end 
+                -}}
             annotations:
               description: "Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }} has unavailable replicas for more than 5 minutes."
               summary: "Critical: Unhealthy deployment {{ $labels.deployment }} in Tier 1 namespace"
@@ -101,7 +104,7 @@ serverFiles:
             for: 15m
             keep_firing_for: 5m
             labels:
-              severity: "{{ if gt $value 95 }}sev-1{{ else if gt $value 90 }}sev-2{{ else }}sev-3{{ end }}"
+              severity: "{{ if gt $value.Value 95 }}sev-1{{ else if gt $value.Value 90 }}sev-2{{ else }}sev-3{{ end }}"
             annotations:
               description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} usage is above 80% for more than 15 minutes."
               summary: "Critical PVC usage on {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }}"
