@@ -72,19 +72,3 @@
               memory: 64Mi
               cpu: 10m
             type: Container
-
-- name: Set ResourceQuota for kube-system
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: v1
-      kind: ResourceQuota
-      metadata:
-        name: kube-system-quota
-        namespace: kube-system
-      spec:
-        hard:
-          requests.cpu: "500m"
-          requests.memory: 1Gi
-          limits.cpu: "1500m"
-          limits.memory: 3Gi
