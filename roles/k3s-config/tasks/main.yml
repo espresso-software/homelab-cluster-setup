@@ -64,13 +64,13 @@
               cpu: 250m
             defaultRequest:
               memory: 64Mi
-              cpu: 100m
+              cpu: 50m
             max:
               memory: 512Mi
               cpu: 500m
             min:
               memory: 64Mi
-              cpu: 100m
+              cpu: 10m
             type: Container
 
 - name: Set ResourceQuota for kube-system
