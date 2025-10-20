@@ -44,7 +44,7 @@
             memory: 64Mi
           requests:
             cpu: 100m
-            memory: 16Mi
+            memory: 32Mi
       gateway:
         replicas: 2
         resources:
@@ -82,7 +82,7 @@
             memory: 1Gi
           requests:
             cpu: 100m
-            memory: 128Mi
+            memory: 512Mi
       backend:
         replicas: 2
         nodeSelector:
@@ -146,7 +146,7 @@
           memory: 32Mi
         requests:
           cpu: 100m
-          memory: 16Mi
+          memory: 32Mi
       config:
         extraFiles:
           label_map.json: |
