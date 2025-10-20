@@ -140,7 +140,7 @@
 #                   namespace: kubernetes-dashboard
 
 - name: Deploy Node Exporter
-  hosts: all:!bastions:!k3s
+  hosts: all:!k3s
   become: true
   tags:
     - node-exporter
