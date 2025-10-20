@@ -81,16 +81,9 @@ serverFiles:
             keep_firing_for: 5m
             labels:
               severity: >-
-                {{- if or (eq $labels.namespace "games")
-                   (eq $labels.namespace "kube-system")
-                   (eq $labels.namespace "longhorn-system")
-                   (eq $labels.namespace "metallb-system")
-                   (eq $labels.namespace "monitoring") -}}sev-1
-                {{- else if or (eq $labels.namespace "cloudflare")
-                   (eq $labels.namespace "pihole-system")
-                   (eq $labels.namespace "traefik-system") -}}sev-2
-                {{- else -}}sev-3
-                {{- end }}
+                {{- $tier1 := list "games" "kube-system" "longhorn-system" "metallb-system" "monitoring" -}}
+                {{- $tier2:= list "cloudflare" "pihole-system" "traefik-system" -}}
+                {{- if has $labels.namespace $tier1 -}}sev-1{{- else if has $labels.namespace $tier2 -}}sev-2{{- else -}}sev-3{{- end -}}
             annotations:
               description: "Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }} has unavailable replicas for more than 5 minutes."
               summary: "Critical: Unhealthy deployment {{ $labels.deployment }} in Tier 1 namespace"
