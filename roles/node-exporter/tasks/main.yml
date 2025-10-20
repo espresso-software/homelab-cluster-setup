@@ -1,0 +1,59 @@
+---
+- name: Download ARM64 node-exporter binary
+  when: ansible_architecture == "aarch64"
+  ansible.builtin.get_url:
+    url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-arm64.tar.gz"
+    dest: "/tmp/node_exporter.tar.gz"
+    mode: '0644'
+    checksum: "sha256:{{ node_exporter_arm64_checksum }}"
+
+- name: Download AMD64 node-exporter binary
+  when: ansible_architecture == "x86_64"
+  ansible.builtin.get_url:
+    url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/node_exporter.tar.gz"
+    mode: '0644'
+    checksum: "sha256:{{ node_exporter_amd64_checksum }}"
+
+- name: Extract node-exporter binary
+  ansible.builtin.unarchive:
+    src: "/tmp/node_exporter.tar.gz"
+    dest: "/usr/local/bin/"
+    remote_src: true
+    extra_opts: [--strip-components=1]
+
+- name: Create node-exporter user
+  ansible.builtin.user:
+    name: node_exporter
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: Create node-exporter systemd service
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/node_exporter.service
+    content: |
+      [Unit]
+      Description=Node Exporter
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      User=node_exporter
+      Group=node_exporter
+      Type=simple
+      ExecStart=/usr/local/bin/node_exporter
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: '0644'
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable and start node-exporter service
+  ansible.builtin.systemd:
+    name: node_exporter
+    enabled: true
+    state: started

@@ -139,13 +139,13 @@
 #                   name: "{{ item.name }}"
 #                   namespace: kubernetes-dashboard
 
-#TODO: deploy PVE exporter to hypervisors
-# https://github.com/prometheus-pve/prometheus-pve-exporter
-
-#TODO: deploy node exporter to hypervisors, jumpboxes, and tunnels
-# https://github.com/prometheus/node_exporter
-
-#TODO: deploy to jumpboxes
+- name: Deploy Node Exporter
+  hosts: all:!k3s
+  become: true
+  tags:
+    - node-exporter
+  roles:
+    - node-exporter
 
 - name: Deploy Prometheus Stack
   hosts: k3s_managers

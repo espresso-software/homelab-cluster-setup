@@ -28,7 +28,7 @@
               memory: 256Mi
               cpu: 200m
             defaultRequest:
-              memory: 16Mi
+              memory: 32Mi
               cpu: 10m
             type: Container
     state: present

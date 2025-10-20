@@ -4,26 +4,31 @@
     node: "{{ ansible_hostname }}"
   block:
     - block:
-      - name: Cordon node
-        delegate_to: "{{ groups['k3s_managers'][0] }}"
-        kubernetes.core.k8s_drain:
-          delete_options:
-            delete_emptydir_data: true
-            ignore_daemonsets: true
-          name: "{{ node }}"
+        - name: Cordon node
+          delegate_to: "{{ groups['k3s_managers'][0] }}"
+          kubernetes.core.k8s_drain:
+            delete_options:
+              delete_emptydir_data: true
+              ignore_daemonsets: true
+            name: "{{ node }}"
       rescue:
-      - name: Force drain node
-        delegate_to: "{{ groups['k3s_managers'][0] }}"
-        kubernetes.core.k8s_drain:
-          delete_options:
-            delete_emptydir_data: true
-            ignore_daemonsets: true
-            force: true
-          name: "{{ node }}"
-        ignore_errors: yes
+        - name: Force drain node
+          delegate_to: "{{ groups['k3s_managers'][0] }}"
+          kubernetes.core.k8s_drain:
+            delete_options:
+              delete_emptydir_data: true
+              ignore_daemonsets: true
+              force: true
+            name: "{{ node }}"
+      ignore_errors: yes
 
+    - name: Check if reboot is required
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required
 
     - name: Reboot
+      when: reboot_required.stat.exists
       ansible.builtin.reboot:
         msg: "[ANSIBLE] Rolling restart"
         post_reboot_delay: 30

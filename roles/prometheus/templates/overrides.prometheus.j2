@@ -11,7 +11,9 @@ server:
   global:
     scrape_interval: 5s
     scrape_timeout: 3s
-    evaluation_interval: 1m
+    evaluation_interval: 5s
+
+  baseUrl: https://{{ dns.prometheus }}
 
   ingress:
     enabled: true
@@ -40,7 +42,7 @@ server:
       memory: 4Gi
     requests:
       cpu: 200m
-      memory: 1Gi
+      memory: 1.5Gi
 
   retentionSize: "14GB"
 
@@ -56,7 +58,13 @@ extraScrapeConfigs: |
   - job_name: http-node-exporter
     static_configs:
       - targets: 
-        - 10.31.3.23:9100
+        - 10.31.3.23:9100 # bastion hypervisor node-exporter
+        - 10.26.1.1:9100 # ansible tower node-exporter
+        - 10.25.206.1:9100 # allow list proxy host node-exporter
+        - 10.24.206.1:9100 # deny proxy host node-exporter
+        - 10.24.206.2:9100 # deny proxy host node-exporter
+        - 10.24.206.3:9100 # deny proxy host node-exporter
+        - 10.32.206.206:9100 # cloud desktop node-exporter
     scheme: http
 
 # Configuration of subcharts defined in Chart.yaml
@@ -74,6 +82,53 @@ alertmanager:
     requests:
       cpu: 50m
       memory: 16Mi
+  extraSecretMounts:
+    - name: discord-webhooks
+      mountPath: /secrets/.discord
+      secretName: {{ discord_webhooks_secret_name }}
+      readonly: true
+  config:
+    global:
+      http_config:
+        proxy_from_environment: true
+    receivers:
+      - name: 'sev-1'
+        discord_configs:
+          - webhook_url_file: /secrets/.discord/sev1
+            send_resolved: true
+      - name: 'sev-2'
+        discord_configs:
+          - webhook_url_file: /secrets/.discord/sev2
+            send_resolved: true
+      - name: 'sev-3'
+        discord_configs:
+          - webhook_url_file: /secrets/.discord/sev3
+            send_resolved: false
+    route:
+      receiver: 'sev-3'
+      group_by: ['alertname']
+      routes:
+        - receiver: 'sev-1'
+          repeat_interval: 4h
+          matchers:
+            - severity = sev-1
+        - receiver: 'sev-2'
+          repeat_interval: 1d
+          matchers:
+            - severity = sev-2
+        - receiver: 'sev-3'
+          repeat_interval: 1d
+          matchers:
+            - severity = sev-3
+  extraEnv:
+    - name: HTTP_PROXY
+      value: "http://{{ internet_proxy }}"
+    - name: HTTPS_PROXY
+      value: "http://{{ internet_proxy }}"
+    - name: FTP_PROXY
+      value: "ftp://{{ internet_proxy }}"
+    - name: NO_PROXY
+      value: "10.0.0.0/8"
 
 ## kube-state-metrics sub-chart configurable values
 ## Please see https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-state-metrics
@@ -99,7 +154,7 @@ prometheus-node-exporter:
       memory: 64Mi
     requests:
       cpu: 50m
-      memory: 16Mi
+      memory: 32Mi
 
 ## prometheus-pushgateway sub-chart configurable values
 ## Please see https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-pushgateway
@@ -112,5 +167,5 @@ prometheus-pushgateway:
       cpu: 100m
       memory: 64Mi
     requests:
-      cpu: 50m
+      cpu: 10m
       memory: 16Mi

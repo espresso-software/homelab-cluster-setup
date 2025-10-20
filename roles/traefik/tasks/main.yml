@@ -29,8 +29,8 @@
               memory: 4Gi
               cpu: 2000m
             min:
-              memory: 128Mi
-              cpu: 100m
+              memory: 16Mi
+              cpu: 50m
             type: Container
 
 - name: Create Traefik Ingress Certificate
@@ -129,8 +129,8 @@
           enabled: true
       resources:
         requests:
-          cpu: 100m
-          memory: 64Mi
+          cpu: 50m
+          memory: 128Mi
         limits:
           cpu: 1000m
           memory: 2Gi

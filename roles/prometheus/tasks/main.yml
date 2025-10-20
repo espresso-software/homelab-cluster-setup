@@ -5,6 +5,22 @@
     repo_url: https://prometheus-community.github.io/helm-charts
     state: present
 
+- name: Create AlertManager Secrets
+  no_log: true
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ discord_webhooks_secret_name }}"
+        namespace: monitoring
+      type: Opaque
+      stringData:
+        sev1: "{{ discord_webhooks.sev1 }}"
+        sev2: "{{ discord_webhooks.sev2 }}"
+        sev3: "{{ discord_webhooks.sev3 }}"
+
 - name: Create temporary values file
   ansible.builtin.tempfile:
     suffix: '.yml'

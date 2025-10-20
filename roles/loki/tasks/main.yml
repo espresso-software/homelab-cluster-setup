@@ -41,10 +41,10 @@
         resources:
           limits:
             cpu: 100m
-            memory: 32Mi
+            memory: 64Mi
           requests:
-            cpu: 100m
-            memory: 16Mi
+            cpu: 50m
+            memory: 32Mi
       gateway:
         replicas: 2
         resources:
@@ -52,7 +52,7 @@
             cpu: 100m
             memory: 128Mi
           requests:
-            cpu: 100m
+            cpu: 50m
             memory: 16Mi
         nodeSelector:
           kubernetes.io/role: worker
@@ -70,7 +70,7 @@
             cpu: 200m
             memory: 512Mi
           requests:
-            cpu: 100m
+            cpu: 50m
             memory: 256Mi
       read:
         replicas: 3
@@ -81,8 +81,8 @@
             cpu: 200m
             memory: 1Gi
           requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 50m
+            memory: 512Mi
       backend:
         replicas: 2
         nodeSelector:
@@ -92,20 +92,23 @@
             cpu: 100m
             memory: 512Mi
           requests:
-            cpu: 100m
+            cpu: 50m
             memory: 128Mi
       chunksCache:
         allocatedMemory: 1024
+        resources:
+          requests:
+            cpu: 50m
       minio:
         enabled: true
         nodeSelector:
           kubernetes.io/role: worker
         resources:
           limits:
-            cpu: 100m
+            cpu: 200m
             memory: 256Mi
           requests:
-            cpu: 100m
+            cpu: 50m
             memory: 128Mi
       ingester:
         replicas: 0
@@ -145,8 +148,8 @@
           cpu: 100m
           memory: 32Mi
         requests:
-          cpu: 100m
-          memory: 16Mi
+          cpu: 50m
+          memory: 32Mi
       config:
         extraFiles:
           label_map.json: |

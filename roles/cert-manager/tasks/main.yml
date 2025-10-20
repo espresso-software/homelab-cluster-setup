@@ -40,7 +40,7 @@
           value: "10.0.0.0/8"
       resources:
         requests:
-          cpu: 50m
+          cpu: 10m
           memory: 32Mi
         limits:
           cpu: 200m
@@ -51,9 +51,9 @@
       webhook:
         resources:
           requests:
-            cpu: 50m
-            memory: 16Mi
-          limints:
+            cpu: 10m
+            memory: 32Mi
+          limits:
             cpu: 100m
             memory: 64Mi
         nodeSelector:
@@ -62,7 +62,7 @@
       cainjector:
         resources:
           requests:
-            cpu: 50m
+            cpu: 10m
             memory: 16Mi
           limits:
             cpu: 100m

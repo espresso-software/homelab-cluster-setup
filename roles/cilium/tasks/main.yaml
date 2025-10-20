@@ -25,7 +25,7 @@
           cpu: 500m
           memory: 512Mi
         requests:
-          cpu: 250m
+          cpu: 125m
           memory: 256Mi
       rolloutCiliumPods: 'true'
       cluster:
@@ -40,12 +40,15 @@
             cpu: 200m
             memory: 128Mi
           requests:
-            cpu: 100m
+            cpu: 50m
             memory: 64Mi
       operator:
         nodeSelector:
           kubernetes.io/os: linux
           node-role.kubernetes.io/control-plane: 'true'
+        resources:
+          requests:
+            cpu: 50m
       ipam:
         operator:
           clusterPoolIPv4PodCIDRList:
@@ -86,6 +89,7 @@
                 - traefik-system
                 - monitoring
                 - default
+                - cloudflare
         ingress:
           - {}
         egress:
@@ -114,6 +118,7 @@
                 - traefik-system
                 - default
                 - monitoring
+                - cloudflare
         egress:
           - toEndpoints:
               - matchLabels:
@@ -157,6 +162,7 @@
                 - monitoring
                 - traefik-system
                 - default
+                - cloudflare
         egress:
           - toCIDR:
               - 10.24.206.0/24
