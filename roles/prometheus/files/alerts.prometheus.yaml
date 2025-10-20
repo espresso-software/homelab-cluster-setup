@@ -80,22 +80,7 @@ serverFiles:
             for: 5m
             keep_firing_for: 5m
             labels:
-              severity: >-
-                {{- if or 
-                  (eq $labels.namespace "games") 
-                  (eq $labels.namespace "kube-system") 
-                  (eq $labels.namespace "longhorn-system") 
-                  (eq $labels.namespace "metallb-system") 
-                  (eq $labels.namespace "monitoring") 
-                -}}sev-1{{- else if or 
-                  (eq $labels.namespace "cloudflare") 
-                  (eq $labels.namespace "pihole-system") 
-                  (eq $labels.namespace "traefik-system") 
-                -}}sev-2{{- 
-                  else 
-                -}}sev-3{{- \
-                  end 
-                -}}
+              severity: sev-1 # TODO: add label to identity deployment tier (e.g., tier-1, tier-2) and adjust severity accordingly
             annotations:
               description: "Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }} has unavailable replicas for more than 5 minutes."
               summary: "Critical: Unhealthy deployment {{ $labels.deployment }} in Tier 1 namespace"
