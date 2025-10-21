@@ -20,7 +20,7 @@
     chart_ref: cilium/cilium
     values:
       kubeConfigPath: "{{ kube_config_path }}"
-      k8sServiceHost: "http://kubernetes.default.svc.cluster.local"
+      k8sServiceHost: "auto"
       resources:
         limits:
           cpu: 500m
