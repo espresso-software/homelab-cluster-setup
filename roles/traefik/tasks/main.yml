@@ -181,7 +181,6 @@
         namespace: longhorn-system
         labels:
           app: longhorn-ui
-          namespace: longhorn-system
         annotations:
           traefik.ingress.kubernetes.io/router.entrypoints: websecure
           cert-manager.io/cluster-issuer: letsencrypt-prod
