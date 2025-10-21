@@ -102,7 +102,6 @@
                 - metallb-system
                 - longhorn-system
                 - cert-manager
-                - traefik-system
                 - monitoring
                 - default
                 - cloudflare

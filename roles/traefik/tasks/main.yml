@@ -159,12 +159,6 @@
         ingress:
           - fromCIDR:
               - 10.0.0.0/8
-            toPorts:
-              - ports:
-                  - port: "80"
-                    protocol: TCP
-                  - port: "443"
-                    protocol: TCP
         egress:
           - toEntities:
               - cluster
