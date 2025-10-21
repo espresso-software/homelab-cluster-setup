@@ -19,9 +19,13 @@ on:
           - reset
           - rolling-restart
       host:
-        description: "The host to run the playbook on"
-        required: false
-        default: "all"
+        description: "The cluster to run the playbook against"
+        required: true
+        type: choice
+        options:
+          - test-k3s
+          - game-k3s
+          - all
       tags:
         description: "The tags to run"
         required: false
