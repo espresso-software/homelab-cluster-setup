@@ -53,6 +53,11 @@
         operator:
           clusterPoolIPv4PodCIDRList:
             - "{{ cluster_cidr }}"
+      hubble:
+        relay:
+          enabled: true
+        ui:
+          enabled: true
 
 # - name: Wait for Cilium to be ready
 #   run_once: true
