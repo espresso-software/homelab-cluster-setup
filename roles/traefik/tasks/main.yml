@@ -35,7 +35,7 @@
 
 - name: Create Traefik Ingress Certificate
   kubernetes.core.k8s:
-    state: patched
+    state: present
     definition:
       apiVersion: cert-manager.io/v1
       kind: Certificate
