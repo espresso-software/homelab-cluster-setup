@@ -46,7 +46,7 @@ server:
 
 serverFiles:
   prometheus.yml:
-    scrape_configs:
+    scrape_configs: # TODO: setup service discovery for minecraft exporters
       - job_name: minecraft-exporter
         static_configs:
           - targets: 

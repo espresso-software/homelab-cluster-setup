@@ -35,6 +35,9 @@ server:
 
   persistentVolume:
     size: 18Gi
+  
+  podLabels:
+    prometheus-role: server
 
   resources:
     limits:
@@ -106,7 +109,7 @@ alertmanager:
             send_resolved: false
     route:
       receiver: 'sev-3'
-      group_by: ['alertname']
+      group_by: ['alertname', 'namespace', 'job']
       routes:
         - receiver: 'sev-1'
           repeat_interval: 4h
