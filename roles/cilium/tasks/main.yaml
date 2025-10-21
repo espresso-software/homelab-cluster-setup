@@ -54,10 +54,20 @@
           clusterPoolIPv4PodCIDRList:
             - "{{ cluster_cidr }}"
       hubble:
+        redact:
+          enabled: true
         relay:
           enabled: true
         ui:
           enabled: true
+          ingress:
+            enabled: true
+            hosts:
+              - hubble.{{ cluster_domain }}
+            tls:
+              - secretName: hubble-ui-tls
+                hosts:
+                  - hubble.{{ cluster_domain }}
 
 # - name: Wait for Cilium to be ready
 #   run_once: true
