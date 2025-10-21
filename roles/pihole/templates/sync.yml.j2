@@ -17,9 +17,6 @@ spec:
   failedJobsHistoryLimit: 1
   concurrencyPolicy: Forbid
   jobTemplate:
-    metadata:
-      labels:
-        app: pihole-sync
     spec:
       parallelism: 1
       completions: 1

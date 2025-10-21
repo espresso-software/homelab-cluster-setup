@@ -12,6 +12,9 @@ pihole_version: '2024.07.0'
 pihole_namespace: pihole-system
 
 job_template:
+  metadata:
+    labels:
+      app: pihole-sync
   spec:
     nodeSelector:
       kubernetes.io/role: worker
