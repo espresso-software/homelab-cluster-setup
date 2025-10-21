@@ -196,7 +196,7 @@ spec:
               protocol: UDP
     - fromEndpoints:
         - matchLabels:
-            app: pihole-sync
+            namespace: pihole-system
       toPorts:
         - ports:
             - port: "80"
