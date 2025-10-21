@@ -159,6 +159,27 @@
         ingress:
           - fromCIDR:
               - 10.0.0.0/8
+            toPorts:
+              - ports:
+                  - port: "80"
+                    protocol: TCP
+                  - port: "443"
+                    protocol: TCP
+                  - port: "8000"
+                    protocol: TCP
+                  - port: "8080"
+                    protocol: TCP
+                  - port: "8443"
+                    protocol: TCP
+          - fromEndpoints:
+              - matchLabels:
+                  name: prometheus
+                  namespace: prometheus
+                  component: server
+            toPorts:
+              - ports:
+                  - port: "9100"
+                    protocol: TCP
         egress:
           - toEntities:
               - cluster
