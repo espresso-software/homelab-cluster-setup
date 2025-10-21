@@ -124,7 +124,7 @@ spec:
         version: {{ pihole_instance }}
     spec:
       nodeSelector:
-        kubernetes.io/role: infra
+        kubernetes.io/role: worker
       containers:
         - name: pihole
           image: pihole/pihole:{{ pihole_version | default("latest") }}
