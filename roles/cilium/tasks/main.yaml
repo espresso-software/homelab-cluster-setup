@@ -20,7 +20,6 @@
     chart_ref: cilium/cilium
     values:
       kubeConfigPath: "{{ kube_config_path }}"
-      k8sServiceHost: "auto"
       resources:
         limits:
           cpu: 500m
