@@ -171,9 +171,8 @@
                     protocol: TCP
           - fromEndpoints:
               - matchLabels:
-                  name: prometheus
-                  namespace: prometheus
-                  component: server
+                  app.kubernetes.io/component: prometheus
+                  app.kubernetes.io/name: server
             toPorts:
               - ports:
                   - port: "9100"
