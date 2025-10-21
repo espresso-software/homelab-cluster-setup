@@ -131,7 +131,6 @@
                 - metallb-system
                 - longhorn-system
                 - cert-manager
-                - traefik-system
                 - default
                 - monitoring
                 - cloudflare
@@ -176,7 +175,6 @@
                 - longhorn-system
                 - cert-manager
                 - monitoring
-                - traefik-system
                 - default
                 - cloudflare
         egress:

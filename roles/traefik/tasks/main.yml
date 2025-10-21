@@ -157,9 +157,8 @@
           matchLabels:
             app: traefik
         ingress:
-          - fromEndpoints:
-              - matchLabels:
-                  app: traefik
+          - fromCIDR:
+              - 10.0.0.0/8
             toPorts:
               - ports:
                   - port: "80"
@@ -167,8 +166,8 @@
                   - port: "443"
                     protocol: TCP
         egress:
-          - toEndpoints:
-              - {}
+          - toEntities:
+              - cluster
 
 - name: Create Longhorn Ingress
   kubernetes.core.k8s:
