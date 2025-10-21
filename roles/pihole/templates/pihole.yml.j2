@@ -204,7 +204,7 @@ spec:
 {% if pihole_instance == "primary" %}
     - fromEndpoints:
         - matchLabels:
-            name: traefik
+            namespace: traefik-system
       toPorts:
         - ports:
             - port: "80"
