@@ -123,11 +123,11 @@
 
 - name: Wait for token files to be available
   no_log: true
-  ansible.builtin.file:
+  delegate_to: localhost
+  ansible.builtin.wait_for:
     path: "{{ item }}"
-    state: file
-  retries: 30
-  delay: 5
+    state: present
+    timeout: 120
   with_items:
     - "{{ k3s_agent_token_file }}"
     - "{{ k3s_token_file }}"
