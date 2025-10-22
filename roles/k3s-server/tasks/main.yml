@@ -112,11 +112,11 @@
     - name: Wait for token
       ansible.builtin.wait_for:
         path: /var/lib/rancher/k3s/server/token
-    
+
     - name: Wait for agent token
       ansible.builtin.wait_for:
         path: /var/lib/rancher/k3s/server/agent-token
-    
+
     - name: Read k3s server token
       ansible.builtin.slurp:
         src: /var/lib/rancher/k3s/server/token
