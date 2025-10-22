@@ -1,4 +1,6 @@
 name: Auto Deploy
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
@@ -32,7 +34,7 @@ jobs:
         with:
           playbook_path: k3s-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.events.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: haproxy
           vars: ""
 
@@ -59,7 +61,7 @@ jobs:
         with:
           playbook_path: k3s-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.events.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: prereq
           vars: ""
 
@@ -86,7 +88,7 @@ jobs:
         with:
           playbook_path: k3s-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.events.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: init-managers
           vars: ""
 
@@ -113,7 +115,7 @@ jobs:
         with:
           playbook_path: k3s-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.events.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: init-workers
           vars: ""
 
