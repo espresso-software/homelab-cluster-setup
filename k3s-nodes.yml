@@ -32,20 +32,6 @@
   roles:
     - k3s-server
 
-- name: Get the agent token
-  hosts: k3s_managers
-  gather_facts: true
-  become: true
-  tags:
-    - init-workers
-    - agent
-  tasks:
-    - name: Read k3s agent token
-      ansible.builtin.fetch:
-        src: /var/lib/rancher/k3s/server/agent-token
-        dest: "{{ k3s_agent_token_file }}"
-        flat: true
-
 - name: Join k3s - workers
   hosts: k3s_workers
   gather_facts: true
@@ -66,10 +52,6 @@
     - server
     - agent
   tasks:
-    - name: Remove k3s server token file
-      ansible.builtin.file:
-        path: "{{ k3s_token_file }}"
-        state: absent
     - name: Remove k3s agent token file
       ansible.builtin.file:
         path: "{{ k3s_agent_token_file }}"
