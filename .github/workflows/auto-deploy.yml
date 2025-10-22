@@ -8,7 +8,7 @@ on:
       - main
   push:
     branches:
-      - "*"
+      - "**"
 
 jobs:
   haproxy:
