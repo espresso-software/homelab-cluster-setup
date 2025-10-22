@@ -3,14 +3,6 @@ permissions:
   contents: read
 
 on:
-  workflow_dispatch:
-    inputs:
-      cluster:
-        description: "Target cluster defined in inventory/hosts.yml"
-        required: false
-        options:
-          - test-k3s
-          - game-k3s
   pull_request:
     branches:
       - main
