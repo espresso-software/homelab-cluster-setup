@@ -42,7 +42,7 @@
   tasks:
     - name: Read k3s agent token
       ansible.builtin.fetch:
-        src: /var/lib/rancher/k3s/server/token
+        src: /var/lib/rancher/k3s/server/agent-token
         dest: "{{ k3s_agent_token_file }}"
         flat: true
 
