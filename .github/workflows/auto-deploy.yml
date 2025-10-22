@@ -105,3 +105,13 @@ jobs:
           hosts: test-k3s
           tags: init-workers
           vars: ""
+
+  # cilium:
+  # cluster-config:
+  # metallb:
+  # longhorn:
+  # pihole:
+  # traefik:
+  # prometheus:
+  # loki:
+  # grafana:
