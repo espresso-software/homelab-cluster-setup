@@ -109,6 +109,28 @@ jobs:
           tags: init-workers
           vars: ""
 
+  helm:
+    needs:
+      - managers
+    if: ${{ !failure() }}
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-helm.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          tags: helm
+          vars: ""
+
   ###
   ### MIDDLEWARE
   ###

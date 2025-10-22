@@ -30,3 +30,19 @@
       with_items:
         - ansible
         - devops
+
+    - name: Add export for KUBECONFIG to .bashrc
+      ansible.builtin.lineinfile:
+        path: /home/{{ item }}/.bashrc
+        line: "export KUBECONFIG={{ kube_config_path }}"
+      with_items:
+        - ansible
+        - devops
+
+    - name: Add alias for kubectl to .bashrc
+      ansible.builtin.lineinfile:
+        path: /home/{{ item }}/.bashrc
+        line: "alias k=kubectl"
+      with_items:
+        - ansible
+        - devops
