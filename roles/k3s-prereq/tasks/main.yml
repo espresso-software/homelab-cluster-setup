@@ -20,7 +20,19 @@
 
 - name: Disable swap
   become: true
+  changed_when: false
   ansible.builtin.command: swapoff -a
+
+- name: Create Chron for clearing cache
+  when: ansible_hostname =~ 'vl$'
+  ansible.builtin.copy:
+    dest: /etc/cron.d/clear-cache
+    content: |
+      # Clear pagecache, dentries and inodes every 15 minutes
+      */15 * * * * root /usr/bin/sync; /bin/echo 3 > /proc/sys/vm/drop_caches
+    owner: root
+    group: root
+    mode: '0644'
 
 - name: Get k3s installed version
   ansible.builtin.command: k3s --version
