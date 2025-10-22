@@ -6,7 +6,7 @@ on:
       - feature/41-setup-test-cluster
 
 jobs:
-  deploy:
+  haproxy:
     runs-on:
       - self-hosted
       - ansible
@@ -22,5 +22,113 @@ jobs:
           playbook_path: k3s-nodes.yml
           inventory_path: inventory/hosts.yml
           hosts: test-k3s
-          tags: all
+          tags: haproxy
+          vars: ""
+
+  prereq:
+    needs:
+      - haproxy
+    if: |
+      always() &&
+      (
+        needs.haproxy.result == 'success' ||
+        needs.haproxy.result == 'skipped'
+      )
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-nodes.yml
+          inventory_path: inventory/hosts.yml
+          hosts: test-k3s
+          tags: prereq
+          vars: ""
+
+  servers:
+    needs:
+      - prereq
+    if: |
+      always() &&
+      (
+        needs.prereq.result == 'success' ||
+        needs.prereq.result == 'skipped'
+      )
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-nodes.yml
+          inventory_path: inventory/hosts.yml
+          hosts: test-k3s
+          tags: init-managers
+          vars: ""
+
+  workers:
+    needs:
+      - servers
+    if: |
+      always() &&
+      (
+        needs.servers.result == 'success' ||
+        needs.servers.result == 'skipped'
+      )
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-nodes.yml
+          inventory_path: inventory/hosts.yml
+          hosts: test-k3s
+          tags: init-workers
+          vars: ""
+
+  cluster-config:
+    needs:
+      - workers
+    if: |
+      always() &&
+      (
+        needs.workers.result == 'success' ||
+        needs.workers.result == 'skipped'
+      )
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-nodes.yml
+          inventory_path: inventory/hosts.yml
+          hosts: test-k3s
+          tags: cluster-config
           vars: ""

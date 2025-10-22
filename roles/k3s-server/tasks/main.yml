@@ -19,7 +19,7 @@
     - name: Install pip
       ansible.builtin.package:
         name: python3-pip
-        state: latest
+        state: present
     - name: Install Ansible dependencies
       ansible.builtin.shell:
         cmd: pip install --break-system-packages \
@@ -28,7 +28,7 @@
       changed_when: false
   rescue:
     - name: '[WARNING] Failed to install Ansible dependencies'
-      debug:
+      ansible.builtin.debug:
         msg: 'Failed to install Ansible dependencies, check logs'
 
 - name: Create k3s group
@@ -42,7 +42,7 @@
     state: directory
     owner: root
     group: k3s
-    mode: 0755
+    mode: '0755'
 
 - name: Create k3s config file
   ansible.builtin.template:
@@ -50,7 +50,7 @@
     dest: /etc/rancher/k3s/config.yaml
     owner: root
     group: k3s
-    mode: 0640
+    mode: '0640'
 
 - name: Create k3s config directory
   ansible.builtin.file:
@@ -58,19 +58,19 @@
     state: directory
     owner: root
     group: k3s
-    mode: 0640
+    mode: '0640'
 
 - name: Init first k3s server
   when: inventory_hostname == managers[0].name
-  block: 
+  block:
     - name: Create k3s config-init config yaml
       ansible.builtin.template:
         src: config-init.yaml.j2
         dest: /etc/rancher/k3s/config.yaml.d/init.yaml
         owner: root
         group: k3s
-        mode: 0640
-    
+        mode: '0640'
+
     - name: Setup k3s if not running
       when: k3s_status.status != 'running'
       block:
@@ -80,7 +80,7 @@
             dest: /etc/systemd/system/k3s.service
             owner: root
             group: root
-            mode: 0644
+            mode: '0644'
 
         - name: Enable and check K3s service
           ansible.builtin.systemd:
@@ -88,7 +88,7 @@
             daemon_reload: true
             state: started
             enabled: true
-        
+
         - name: Pause to allow first server startup
           ansible.builtin.pause:
             seconds: 10
@@ -96,7 +96,7 @@
 
 - name: Start other servers
   when:
-    - managers | length > 1 
+    - managers | length > 1
     - inventory_hostname != managers[0].name
   block:
     - name: Create k3s config-ha config yaml
@@ -105,7 +105,7 @@
         dest: /etc/rancher/k3s/config.yaml.d/ha.yaml
         owner: root
         group: root
-        mode: 0640
+        mode: '0640'
 
     - name: Setup k3s if not running
       when: k3s_status.status != 'running'
@@ -116,8 +116,8 @@
             dest: /etc/systemd/system/k3s.service
             owner: root
             group: root
-            mode: 0644
-        
+            mode: '0644'
+
         - name: Add service environment variables
           when: extra_service_envs is defined
           ansible.builtin.lineinfile:
@@ -143,6 +143,3 @@
       retries: 20
       delay: 10
       changed_when: false
-    
-
-
