@@ -13,10 +13,27 @@
     group: root
     mode: '0600'
 
+- name: Wait for agent token
+  delegate_to: "{{ groups['k3s_managers'][0] }}"
+  ansible.builtin.wait_for:
+    path: /var/lib/rancher/k3s/server/agent-token
+
+- name: Read k3s agent token
+  delegate_to: "{{ groups['k3s_managers'][0] }}"
+  ansible.builtin.slurp:
+    src: /var/lib/rancher/k3s/server/agent-token
+  register: k3s_agent_token_content
+
+- name: Store k3s agent token
+  delegate_to: "{{ groups['k3s_managers'][0] }}"
+  ansible.builtin.set_fact:
+    k3s_agent_token: "{{ k3s_agent_token_content.content | b64decode | trim }}"
+
+- name: Set k3s agent token fact
+  ansible.builtin.set_fact:
+    k3s_agent_token: "{{ hostvars[groups['k3s_managers'][0]].k3s_agent_token }}"
+
 - name: Create k3s config file
-  notify: Restart k3s-agent
-  vars:
-    k3s_agent_token: "{{ lookup('ansible.builtin.file', k3s_agent_token_file) }}"
   ansible.builtin.template:
     src: config.yaml.j2
     dest: /etc/rancher/k3s/config.yaml
