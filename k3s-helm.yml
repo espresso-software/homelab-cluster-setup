@@ -11,7 +11,7 @@
 
     - name: Add Helm APT Repository
       ansible.builtin.apt_repository:
-        repo: deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main
+        repo: deb https://packages.buildkite.com/helm-linux/helm-debian/any/ any main
         state: present
         update_cache: true
 
