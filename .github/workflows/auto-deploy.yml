@@ -136,7 +136,7 @@ jobs:
   ###
   cilium:
     needs:
-      - workers
+      - helm
     if: ${{ !failure() }}
     runs-on:
       - self-hosted
