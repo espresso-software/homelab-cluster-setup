@@ -115,6 +115,9 @@
     src: /var/lib/rancher/k3s/server/token
     dest: "{{ k3s_token_file }}"
     flat: true
+  retries: 10
+  delay: 5
+  until: lookup('ansible.builtin.file', k3s_token_file) is not none
 
 - name: Get agent token file
   delegate_to: "{{ managers[0].name }}"
@@ -122,6 +125,9 @@
     src: /var/lib/rancher/k3s/server/agent-token
     dest: "{{ k3s_agent_token_file }}"
     flat: true
+  retries: 10
+  delay: 5
+  until: lookup('ansible.builtin.file', k3s_agent_token_file) is not none
 
 - name: Start other servers
   when:
