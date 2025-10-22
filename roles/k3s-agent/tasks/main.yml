@@ -15,6 +15,7 @@
 
 - name: Store k3s agent token
   delegate_to: "{{ groups['k3s_managers'][0] }}"
+  become: true
   ansible.builtin.set_fact:
     k3s_agent_token: "{{ lookup('ansible.builtin.file', '/var/lib/rancher/k3s/server/agent-token') | trim }}"
 

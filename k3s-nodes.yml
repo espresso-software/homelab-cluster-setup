@@ -42,21 +42,6 @@
   roles:
     - k3s-agent
 
-- name: Remove k3s token files from servers
-  hosts: k3s_managers
-  gather_facts: true
-  become: true
-  tags:
-    - init-workers
-    - init-managers
-    - server
-    - agent
-  tasks:
-    - name: Remove k3s agent token file
-      ansible.builtin.file:
-        path: "{{ k3s_agent_token_file }}"
-        state: absent
-
 - name: Validate Nodes joined cluster
   hosts: k3s_managers
   gather_facts: true
