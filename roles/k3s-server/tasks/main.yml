@@ -99,45 +99,56 @@
             state: started
             enabled: true
 
-        - name: Verify that all server nodes joined
-          ansible.builtin.command:
-            cmd: >
-              k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
-          register: nodes
-          until: nodes.rc == 0 and (nodes.stdout.split() | length) >= 1
-          retries: 20
-          delay: 5
-          changed_when: false
+    - name: Verify that all server nodes joined
+      ansible.builtin.command:
+        cmd: >
+          k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
+      register: nodes
+      until: nodes.rc == 0 and (nodes.stdout.split() | length) >= 1
+      retries: 20
+      delay: 5
+      changed_when: false
 
-- name: Get server token file
-  delegate_to: "{{ managers[0].name }}"
-  ansible.builtin.fetch:
-    src: /var/lib/rancher/k3s/server/token
-    dest: "{{ k3s_token_file }}"
-    flat: true
-  retries: 10
-  delay: 5
-  until: lookup('ansible.builtin.file', k3s_token_file) is not none
+    - name: Wait for token
+      ansible.builtin.wait_for:
+        path: /var/lib/rancher/k3s/server/token
+    
+    - name: Wait for agent token
+      ansible.builtin.wait_for:
+        path: /var/lib/rancher/k3s/server/agent-token
+    
+    - name: Read k3s server token
+      ansible.builtin.slurp:
+        src: /var/lib/rancher/k3s/server/token
+      register: k3s_token_content
 
-- name: Get agent token file
-  delegate_to: "{{ managers[0].name }}"
-  ansible.builtin.fetch:
-    src: /var/lib/rancher/k3s/server/agent-token
-    dest: "{{ k3s_agent_token_file }}"
-    flat: true
-  retries: 10
-  delay: 5
-  until: lookup('ansible.builtin.file', k3s_agent_token_file) is not none
+    - name: Read k3s agent token
+      ansible.builtin.slurp:
+        src: /var/lib/rancher/k3s/server/agent-token
+      register: k3s_agent_token_content
+
+    - name: Store k3s server token
+      ansible.builtin.set_fact:
+        k3s_token: "{{ k3s_token_content.content | b64decode | regex_replace('\n','') }}"
+
+    - name: Store k3s agent token
+      ansible.builtin.set_fact:
+        k3s_agent_token: "{{ k3s_agent_token_content.content | b64decode | regex_replace('\n','') }}"
 
 - name: Start other servers
   when:
     - managers | length > 1
     - inventory_hostname != managers[0].name
   block:
+    - name: Set k3s server token fact
+      ansible.builtin.set_fact:
+        k3s_token: "{{ hostvars[managers[0].name].k3s_token }}"
+
+    - name: Set k3s agent token fact
+      ansible.builtin.set_fact:
+        k3s_agent_token: "{{ hostvars[managers[0].name].k3s_agent_token }}"
+
     - name: Create k3s config-ha config yaml
-      vars:
-        k3s_token: "{{ lookup('ansible.builtin.file', k3s_token_file) }}"
-        k3s_agent_token: "{{ lookup('ansible.builtin.file', k3s_agent_token_file) }}"
       ansible.builtin.template:
         src: config-ha.yaml.j2
         dest: /etc/rancher/k3s/config.yaml.d/ha.yaml
