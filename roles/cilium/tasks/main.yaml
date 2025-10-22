@@ -53,6 +53,23 @@
         operator:
           clusterPoolIPv4PodCIDRList:
             - "{{ cluster_cidr }}"
+      hubble:
+        redact:
+          enabled: true
+        relay:
+          enabled: true
+          replicas: 2
+        ui:
+          enabled: true
+          replicas: 2
+          ingress:
+            enabled: true
+            hosts:
+              - hubble.{{ cluster_domain }}
+            tls:
+              - secretName: hubble-ui-tls
+                hosts:
+                  - hubble.{{ cluster_domain }}
 
 # - name: Wait for Cilium to be ready
 #   run_once: true
@@ -86,10 +103,10 @@
                 - metallb-system
                 - longhorn-system
                 - cert-manager
-                - traefik-system
                 - monitoring
                 - default
                 - cloudflare
+                - traefik-system
         ingress:
           - {}
         egress:
@@ -115,10 +132,11 @@
                 - metallb-system
                 - longhorn-system
                 - cert-manager
-                - traefik-system
                 - default
                 - monitoring
                 - cloudflare
+                - traefik-system
+
         egress:
           - toEndpoints:
               - matchLabels:
@@ -160,9 +178,10 @@
                 - longhorn-system
                 - cert-manager
                 - monitoring
-                - traefik-system
                 - default
                 - cloudflare
+                - traefik-system
+
         egress:
           - toCIDR:
               - 10.24.206.0/24

@@ -35,7 +35,7 @@
 
 - name: Create Traefik Ingress Certificate
   kubernetes.core.k8s:
-    state: patched
+    state: present
     definition:
       apiVersion: cert-manager.io/v1
       kind: Certificate
@@ -85,6 +85,8 @@
           - name: logs
             emptyDir: {}
       ingressRoute:
+        dashboard:
+          enabled: true
         healthcheck:
           enabled: true
       updateStrategy:
@@ -157,22 +159,30 @@
           matchLabels:
             app: traefik
         ingress:
-          - fromEndpoints:
-              - matchLabels:
-                  app: traefik
+          - fromCIDR:
+              - 10.0.0.0/8
             toPorts:
               - ports:
-                  - port: "80"
+                  - port: "8000"
                     protocol: TCP
-                  - port: "443"
+                  - port: "8080"
+                    protocol: TCP
+                  - port: "8443"
+                    protocol: TCP
+          - fromEndpoints:
+              - matchLabels:
+                  prometheus-role: server
+            toPorts:
+              - ports:
+                  - port: "9100"
                     protocol: TCP
         egress:
-          - toEndpoints:
-              - {}
+          - toEntities:
+              - cluster
 
 - name: Create Longhorn Ingress
   kubernetes.core.k8s:
-    state: patched
+    state: present
     definition:
       apiVersion: networking.k8s.io/v1
       kind: Ingress
@@ -181,7 +191,6 @@
         namespace: longhorn-system
         labels:
           app: longhorn-ui
-          namespace: longhorn-system
         annotations:
           traefik.ingress.kubernetes.io/router.entrypoints: websecure
           cert-manager.io/cluster-issuer: letsencrypt-prod

@@ -69,6 +69,6 @@
               memory: 512Mi
               cpu: 500m
             min:
-              memory: 64Mi
+              memory: 8Mi
               cpu: 10m
             type: Container

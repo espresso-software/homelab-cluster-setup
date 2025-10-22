@@ -46,7 +46,8 @@ server:
 
 serverFiles:
   prometheus.yml:
-    scrape_configs:
+    # https://prometheus.io/docs/prometheus/latest/configuration/configuration/#kubernetes_sd_config
+    scrape_configs: # TODO: setup service discovery for minecraft exporters
       - job_name: minecraft-exporter
         static_configs:
           - targets: 

@@ -51,7 +51,7 @@ serverFiles:
             for: 10m
             keep_firing_for: 5m
             labels:
-              severity: sev-2 "{{ if gt $value.Value 90 }}sev-1{{ else }}sev-2{{ end }}"
+              severity: sev-2 "{{ if gt $value.Value 90.0 }}sev-1{{ else }}sev-2{{ end }}"
             annotations:
               description: 'Node {{ $labels.instance }} CPU usage is above {{ if eq $labels.severity "sev-1" }}90%{{ else }}80%{{ end }} for more than 10 minutes.'
               summary: "Critical high CPU usage on node {{ $labels.instance }}"
@@ -60,7 +60,7 @@ serverFiles:
             for: 15m
             keep_firing_for: 5m
             labels:
-              severity: "{{ if gt $value.Value 90 }}sev-1{{ else }}sev-2{{ end }}"
+              severity: "{{ if gt $value.Value 90.0 }}sev-1{{ else }}sev-2{{ end }}"
             annotations:
               description: 'Node {{ $labels.instance }} memory usage is above {{ if eq $labels.severity "sev-1" }}90%{{ else }}80%{{ end }} for more than 15 minutes.'
               summary: "Critical high memory usage on node {{ $labels.instance }}"
@@ -69,7 +69,7 @@ serverFiles:
             for: 30m
             keep_firing_for: 5m
             labels:
-              severity: "{{ if gt $value.Value 85 }}sev-1{{ else if gt $value.Value 75 }}sev-2{{ else }}sev-3{{ end }}"
+              severity: "{{ if gt $value.Value 85.0 }}sev-1{{ else if gt $value.Value 75.0 }}sev-2{{ else }}sev-3{{ end }}"
             annotations:
               description: "Node {{ $labels.instance }} disk space usage under {{ $labels.mountpoint }} is above high for more than 30 minutes."
               summary: "Critical low disk space on node {{ $labels.instance }}"
@@ -89,7 +89,7 @@ serverFiles:
             for: 15m
             keep_firing_for: 5m
             labels:
-              severity: "{{ if gt $value.Value 95 }}sev-1{{ else if gt $value.Value 90 }}sev-2{{ else }}sev-3{{ end }}"
+              severity: "{{ if gt $value.Value 95.0 }}sev-1{{ else if gt $value.Value 90.0 }}sev-2{{ else }}sev-3{{ end }}"
             annotations:
               description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} usage is above 80% for more than 15 minutes."
               summary: "Critical PVC usage on {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }}"
@@ -115,12 +115,12 @@ serverFiles:
               summary: "Low CPU usage on pod {{ $labels.pod }} in namespace {{ $labels.namespace }}"
           - alert: RequestCPUHighUsage
             expr: pod:container_cpu_usage:ratio_request:1m > 150
-            for: 15m
-            keep_firing_for: 5m
+            for: 60m
+            keep_firing_for: 15m
             labels:
               severity: sev-2
             annotations:
-              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has CPU usage above 150% of its request for more than 15 minutes."
+              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has CPU usage above 150% of its request for more than 60 minutes."
               summary: "High CPU usage on pod {{ $labels.pod }} in namespace {{ $labels.namespace }}"
           - alert: RequestMemoryLowUsage
             expr: pod:container_memory_usage:ratio_request < 10
@@ -133,12 +133,12 @@ serverFiles:
               summary: "Low memory usage on pod {{ $labels.pod }} in namespace {{ $labels.namespace }}"
           - alert: RequestMemoryHighUsage
             expr: pod:container_memory_usage:ratio_request > 150
-            for: 15m
-            keep_firing_for: 5m
+            for: 60m
+            keep_firing_for: 15m
             labels:
               severity: sev-2
             annotations:
-              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has memory usage above 150% of its request for more than 15 minutes."
+              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has memory usage above 150% of its request for more than 60 minutes."
               summary: "High memory usage on pod {{ $labels.pod }} in namespace {{ $labels.namespace }}"
           - alert: LimitCPULowUsage
             expr: pod:container_cpu_usage:ratio_limit:1m < 0.1
