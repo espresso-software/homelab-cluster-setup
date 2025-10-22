@@ -111,7 +111,7 @@ jobs:
 
   helm:
     needs:
-      - managers
+      - servers
     if: ${{ !failure() }}
     runs-on:
       - self-hosted
