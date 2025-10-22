@@ -21,6 +21,9 @@ on:
       - "**"
 
 jobs:
+  ###
+  ### CLUSTER SETUP
+  ###
   haproxy:
     runs-on:
       - self-hosted
@@ -106,6 +109,9 @@ jobs:
           tags: init-workers
           vars: ""
 
+  ###
+  ### MIDDLEWARE
+  ###
   cilium:
     needs:
       - workers
@@ -150,20 +156,88 @@ jobs:
           tags: cluster-config
           vars: ""
 
-  # metallb:
-  #   needs:
-  #     - cilium
-  # longhorn:
-  #   needs:
-  #     - cilium
-  # pihole:
-  #   needs:
-  #     - metallb
-  #     - longhorn
-  # traefik:
-  #   needs:
-  #     - metallb
-  #     - longhorn
-  # prometheus:
-  # loki:
-  # grafana:
+  metallb:
+    needs:
+      - cilium
+    if: ${{ !failure() }}
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - run: echo "METALLB"
+
+  longhorn:
+    needs:
+      - cilium
+    if: ${{ !failure() }}
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - run: echo "LONGHORN"
+
+  cert-manager:
+    needs:
+      - longhorn
+    if: ${{ !failure() }}
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - run: echo "LONGHORN"
+
+  pihole:
+    needs:
+      - metallb
+      - longhorn
+    if: ${{ !failure() }}
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - run: echo "PIHOLE"
+
+  traefik:
+    needs:
+      - cert-manager
+    if: ${{ !failure() }}
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - run: echo "TRAEFIK"
+
+  ###
+  ### MONITORING
+  ###
+  prometheus:
+    needs:
+      - traefik
+    if: ${{ !failure() }}
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - run: echo "PROMETHEUS"
+
+  loki:
+    needs:
+      - metallb
+      - longhorn
+    if: ${{ !failure() }}
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - run: echo "LOKI"
+
+  grafana:
+    needs:
+      - prometheus
+      - loki
+    if: ${{ !failure() }}
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - run: echo "GRAFANA"
