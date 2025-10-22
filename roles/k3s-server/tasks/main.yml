@@ -106,7 +106,7 @@
           register: nodes
           until: nodes.rc == 0 and (nodes.stdout.split() | length) >= 1
           retries: 20
-          delay: 10
+          delay: 5
           changed_when: false
 
     - name: Get server token file
@@ -114,15 +114,25 @@
         src: /var/lib/rancher/k3s/server/token
         dest: "{{ k3s_token_file }}"
         flat: true
+      register: fetch_server_token
+      until: fetch_server_token is succeeded
+      retries: 5
+      delay: 5
 
     - name: Get agent token file
       ansible.builtin.fetch:
         src: /var/lib/rancher/k3s/server/agent-token
         dest: "{{ k3s_agent_token_file }}"
         flat: true
+      register: fetch_agent_token
+      until: fetch_agent_token is succeeded
+      retries: 5
+      delay: 5
 
 - name: Start other servers
   when:
+    - fetch_agent_token is succeeded
+    - fetch_server_token is succeeded
     - managers | length > 1
     - inventory_hostname != managers[0].name
   block:
@@ -163,5 +173,5 @@
       register: nodes
       until: nodes.rc == 0 and (nodes.stdout.split() | length) == (managers | length)
       retries: 20
-      delay: 10
+      delay: 5
       changed_when: false
