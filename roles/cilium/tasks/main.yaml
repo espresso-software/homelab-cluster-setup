@@ -1,8 +1,10 @@
 ---
-# - name: Install Cilium CLI
-#   ansible.builtin.script:
-#     cmd: cilium-install.sh
-#     executable: /bin/bash
+- name: Install Cilium CLI
+  changed_when: false
+  failed_when: false
+  ansible.builtin.script:
+    cmd: cilium-install.sh
+    executable: /bin/bash
 
 - name: Update helm chart
   run_once: true
