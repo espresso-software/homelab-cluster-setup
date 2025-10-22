@@ -21,7 +21,7 @@
   roles:
     - k3s-prereq
 
-- name: Initialize k3s servers
+- name: Bootstrap k3s cluster
   hosts: k3s_managers
   gather_facts: true
   become: true
@@ -31,6 +31,20 @@
     - agent
   roles:
     - k3s-server
+
+- name: Get the agent token
+  hosts: k3s_managers
+  gather_facts: true
+  become: true
+  tags:
+    - init-workers
+    - agent
+  tasks:
+    - name: Read k3s agent token
+      ansible.builtin.fetch:
+        src: /var/lib/rancher/k3s/server/agent-token
+        dest: "{{ k3s_agent_token_file }}"
+        flat: true
 
 - name: Join k3s - workers
   hosts: k3s_workers
@@ -42,16 +56,53 @@
   roles:
     - k3s-agent
 
-- name: Apply cluster configurations
+- name: Remove k3s token files from servers
   hosts: k3s_managers
   gather_facts: true
   become: true
-  run_once: true
-  environment:
-    KUBECONFIG: "{{ kube_config_path }}"
   tags:
-    - cluster-config
+    - init-workers
+    - init-managers
     - server
     - agent
-  roles:
-    - k3s-config
+  tasks:
+    - name: Remove k3s server token file
+      ansible.builtin.file:
+        path: "{{ k3s_token_file }}"
+        state: absent
+    - name: Remove k3s agent token file
+      ansible.builtin.file:
+        path: "{{ k3s_agent_token_file }}"
+        state: absent
+
+- name: Validate Nodes joined cluster
+  hosts: k3s_managers
+  gather_facts: true
+  become: true
+  tags:
+    - init-workers
+    - agent
+  tasks:
+    - name: Verify that all server nodes joined
+      ansible.builtin.command:
+        cmd: >
+          k3s kubectl get nodes -o=jsonpath="{.items[*].metadata.name}"
+      register: nodes
+      until: nodes.rc == 0 and (nodes.stdout.split() | length) == (managers | length + role_labels | length)
+      retries: 20
+      delay: 10
+      changed_when: false
+
+# - name: Apply cluster configurations
+#   hosts: k3s_managers
+#   gather_facts: true
+#   become: true
+#   run_once: true
+#   environment:
+#     KUBECONFIG: "{{ kube_config_path }}"
+#   tags:
+#     - cluster-config
+#     - server
+#     - agent
+#   roles:
+#     - k3s-config

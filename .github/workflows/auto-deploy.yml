@@ -1,0 +1,130 @@
+name: Auto Deploy
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      cluster:
+        description: "Target cluster defined in inventory/hosts.yml"
+        required: false
+        options:
+          - test-k3s
+          - game-k3s
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - "*"
+
+jobs:
+  haproxy:
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-nodes.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          tags: haproxy
+          vars: ""
+
+  prereq:
+    needs:
+      - haproxy
+    if: |
+      always() &&
+      (
+        needs.haproxy.result == 'success' ||
+        needs.haproxy.result == 'skipped'
+      )
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-nodes.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          tags: prereq
+          vars: ""
+
+  servers:
+    needs:
+      - prereq
+    if: |
+      always() &&
+      (
+        needs.prereq.result == 'success' ||
+        needs.prereq.result == 'skipped'
+      )
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-nodes.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          tags: init-managers
+          vars: ""
+
+  workers:
+    needs:
+      - servers
+    if: |
+      always() &&
+      (
+        needs.servers.result == 'success' ||
+        needs.servers.result == 'skipped'
+      )
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-nodes.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          tags: init-workers
+          vars: ""
+
+  # cilium:
+  # cluster-config:
+  # metallb:
+  # longhorn:
+  # pihole:
+  # traefik:
+  # prometheus:
+  # loki:
+  # grafana:

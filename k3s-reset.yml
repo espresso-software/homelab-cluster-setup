@@ -12,7 +12,8 @@
         iptables-save | grep -v cilium | iptables-restore
         ip6tables-save | grep -v cilium | ip6tables-restore
       failed_when: false
-      
+      changed_when: false
+
     - name: Uninstall k3s
       when:
         - "'k3s_managers' in group_names"
@@ -30,5 +31,9 @@
 
     - name: Remove k3s data
       ansible.builtin.file:
-        path: /var/lib/rancher/k3s
+        path: "{{ item }}"
         state: absent
+      with_items:
+        - /var/lib/rancher/k3s
+        - /etc/rancher/k3s
+      failed_when: false
