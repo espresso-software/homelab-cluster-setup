@@ -43,12 +43,7 @@ jobs:
   prereq:
     needs:
       - haproxy
-    if: |
-      !failure() &&
-      (
-        needs.haproxy.result == 'success' ||
-        needs.haproxy.result == 'skipped'
-      )
+    if: ${{ !failure() }}
     runs-on:
       - self-hosted
       - ansible
@@ -70,12 +65,7 @@ jobs:
   servers:
     needs:
       - prereq
-    if: |
-      !failure() &&
-      (
-        needs.prereq.result == 'success' ||
-        needs.prereq.result == 'skipped'
-      )
+    if: ${{ !failure() }}
     runs-on:
       - self-hosted
       - ansible
@@ -97,12 +87,7 @@ jobs:
   workers:
     needs:
       - servers
-    if: |
-      !failure() &&
-      (
-        needs.servers.result == 'success' ||
-        needs.servers.result == 'skipped'
-      )
+    if: ${{ !failure() }}
     runs-on:
       - self-hosted
       - ansible
@@ -121,12 +106,64 @@ jobs:
           tags: init-workers
           vars: ""
 
-  # cilium:
-  # cluster-config:
+  cilium:
+    needs:
+      - workers
+    if: ${{ !failure() }}
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-middleware.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          tags: cilium
+          vars: ""
+
+  cluster-config:
+    needs:
+      - cilium
+    if: ${{ !failure() }}
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-middleware.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          tags: cluster-config
+          vars: ""
+
   # metallb:
+  #   needs:
+  #     - cilium
   # longhorn:
+  #   needs:
+  #     - cilium
   # pihole:
+  #   needs:
+  #     - metallb
+  #     - longhorn
   # traefik:
+  #   needs:
+  #     - metallb
+  #     - longhorn
   # prometheus:
   # loki:
   # grafana:
