@@ -75,16 +75,16 @@
       delay: 10
       changed_when: false
 
-# - name: Apply cluster configurations
-#   hosts: k3s_managers
-#   gather_facts: true
-#   become: true
-#   run_once: true
-#   environment:
-#     KUBECONFIG: "{{ kube_config_path }}"
-#   tags:
-#     - cluster-config
-#     - server
-#     - agent
-#   roles:
-#     - k3s-config
+- name: Apply cluster configurations
+  hosts: k3s_managers
+  gather_facts: true
+  become: true
+  run_once: true
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  tags:
+    - cluster-config
+    - server
+    - agent
+  roles:
+    - k3s-config
