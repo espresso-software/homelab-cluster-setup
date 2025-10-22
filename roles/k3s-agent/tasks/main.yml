@@ -11,23 +11,26 @@
     state: directory
     owner: root
     group: root
-    mode: 0600
+    mode: '0600'
 
 - name: Create k3s config file
+  notify: Restart k3s-agent
+  vars:
+    k3s_agent_token: "{{ lookup('ansible.builtin.file', k3s_agent_token_file) }}"
   ansible.builtin.template:
     src: config.yaml.j2
     dest: /etc/rancher/k3s/config.yaml
     owner: root
     group: root
-    mode: 0600
+    mode: '0600'
 
 - name: Setup k3s if not running
   when: k3s_status.status != 'running'
   block:
     - name: Install k3s server binaries
-      ansible.builtin.command: 
+      ansible.builtin.command:
         cmd: /usr/local/bin/k3s-install.sh
-      environment: 
+      environment:
         INSTALL_K3S_SKIP_START: "true"
         INSTALL_K3S_EXEC: "agent"
         INSTALL_K3S_VERSION: "{{ k3s_version }}"
@@ -40,7 +43,7 @@
         dest: /etc/systemd/system/k3s-agent.service
         owner: root
         group: root
-        mode: 0600
+        mode: '0600'
 
     - name: Enable and check K3s service
       ansible.builtin.systemd:

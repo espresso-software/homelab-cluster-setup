@@ -21,10 +21,43 @@
   roles:
     - k3s-prereq
 
-- name: Initialize k3s servers
-  hosts: k3s_managers
+- name: Bootstrap k3s cluster
+  hosts: k3s_init_nodes
   gather_facts: true
   become: true
+  tags:
+    - init-managers
+    - server
+    - agent
+  roles:
+    - k3s-server
+
+- name: Get Token Files
+  hosts: k3s_init_nodes
+  gather_facts: true
+  become: true
+  tags:
+    - init-managers
+    - init-workers
+    - server
+    - agent
+  tasks:
+    - name: Get server token file
+      ansible.builtin.fetch:
+        src: /var/lib/rancher/k3s/server/token
+        dest: "{{ k3s_token_file }}"
+        flat: true
+    - name: Get agent token file
+      ansible.builtin.fetch:
+        src: /var/lib/rancher/k3s/server/agent-token
+        dest: "{{ k3s_agent_token_file }}"
+        flat: true
+
+- name: Initialize k3s cluster
+  hosts: k3s_peer_nodes
+  gather_facts: true
+  become: true
+  serial: 1
   tags:
     - init-managers
     - server
@@ -60,16 +93,16 @@
       delay: 10
       changed_when: false
 
-- name: Apply cluster configurations
-  hosts: k3s_managers
-  gather_facts: true
-  become: true
-  run_once: true
-  environment:
-    KUBECONFIG: "{{ kube_config_path }}"
-  tags:
-    - cluster-config
-    - server
-    - agent
-  roles:
-    - k3s-config
+# - name: Apply cluster configurations
+#   hosts: k3s_managers
+#   gather_facts: true
+#   become: true
+#   run_once: true
+#   environment:
+#     KUBECONFIG: "{{ kube_config_path }}"
+#   tags:
+#     - cluster-config
+#     - server
+#     - agent
+#   roles:
+#     - k3s-config
