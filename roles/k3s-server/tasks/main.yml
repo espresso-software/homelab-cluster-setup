@@ -126,8 +126,6 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: file
-  register: token_file_check
-  until: token_file_check is succeeded
   retries: 30
   delay: 5
   with_items:
