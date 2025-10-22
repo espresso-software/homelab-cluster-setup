@@ -24,7 +24,7 @@
   ansible.builtin.command: swapoff -a
 
 - name: Create Chron for clearing cache
-  when: ansible_hostname =~ 'vl$'
+  when: ansible_hostname.endswith('vl')
   ansible.builtin.copy:
     dest: /etc/cron.d/clear-cache
     content: |
@@ -53,4 +53,4 @@
     dest: /usr/local/bin/k3s-install.sh
     owner: root
     group: root
-    mode: 0755
+    mode: '0755'
