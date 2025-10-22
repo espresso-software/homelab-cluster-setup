@@ -3,6 +3,16 @@ permissions:
   contents: read
 
 on:
+  workflow_dispatch:
+    inputs:
+      cluster:
+        description: "The cluster to run the playbook against"
+        required: false
+        type: choice
+        options:
+          - test-k3s
+          - game-k3s
+          - all
   pull_request:
     branches:
       - main
