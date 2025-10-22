@@ -44,7 +44,7 @@ jobs:
     needs:
       - haproxy
     if: |
-      ! failure() &&
+      !failure() &&
       (
         needs.haproxy.result == 'success' ||
         needs.haproxy.result == 'skipped'
@@ -71,7 +71,7 @@ jobs:
     needs:
       - prereq
     if: |
-      ! failure() &&
+      !failure() &&
       (
         needs.prereq.result == 'success' ||
         needs.prereq.result == 'skipped'
@@ -98,7 +98,7 @@ jobs:
     needs:
       - servers
     if: |
-      ! failure() &&
+      !failure() &&
       (
         needs.servers.result == 'success' ||
         needs.servers.result == 'skipped'
