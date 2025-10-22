@@ -122,11 +122,14 @@
         flat: true
 
 - name: Wait for token files to be available
-  ansible.builtin.wait_for:
-    path: "{{ k3s_agent_token_file }}"
-    state: present
-    timeout: 300
-    delay: 5
+  no_log: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: file
+  register: token_file_check
+  until: token_file_check is succeeded
+  retries: 30
+  delay: 5
   with_items:
     - "{{ k3s_agent_token_file }}"
     - "{{ k3s_token_file }}"
