@@ -9,9 +9,12 @@ on:
         options:
           - test-k3s
           - game-k3s
+  pull_request:
+    branches:
+      - main
   push:
     branches:
-      - feature/41-setup-test-cluster
+      - "*"
 
 jobs:
   haproxy:
