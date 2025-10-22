@@ -42,6 +42,24 @@
   roles:
     - k3s-agent
 
+- name: Validate Nodes joined cluster
+  hosts: k3s_managers
+  gather_facts: true
+  become: true
+  tags:
+    - init-workers
+    - agent
+  tasks:
+    - name: Verify that all server nodes joined
+      ansible.builtin.command:
+        cmd: >
+          k3s kubectl get nodes -o=jsonpath="{.items[*].metadata.name}"
+      register: nodes
+      until: nodes.rc == 0 and (nodes.stdout.split() | length) == (managers | length + role_labels | length)
+      retries: 20
+      delay: 10
+      changed_when: false
+
 - name: Apply cluster configurations
   hosts: k3s_managers
   gather_facts: true
