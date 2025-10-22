@@ -15,19 +15,15 @@
 
 - name: Read k3s agent token
   delegate_to: "{{ groups['k3s_managers'][0] }}"
+  no_log: true
   ansible.builtin.slurp:
     src: /var/lib/rancher/k3s/server/agent-token
   register: k3s_agent_token_content
 
 - name: Store k3s agent token
   no_log: true
-  delegate_to: "{{ groups['k3s_managers'][0] }}"
   ansible.builtin.set_fact:
     k3s_agent_token: "{{ k3s_agent_token_content.content | b64decode | trim }}"
-
-- name: Set k3s agent token fact
-  ansible.builtin.set_fact:
-    k3s_agent_token: "{{ hostvars[groups['k3s_managers'][0]].k3s_agent_token }}"
 
 - name: Create k3s config file
   ansible.builtin.template:
