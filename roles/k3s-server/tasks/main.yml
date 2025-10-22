@@ -109,28 +109,19 @@
           delay: 5
           changed_when: false
 
-    - name: Get server token file
-      ansible.builtin.fetch:
-        src: /var/lib/rancher/k3s/server/token
-        dest: "{{ k3s_token_file }}"
-        flat: true
+- name: Get server token file
+  delegate_to: "{{ managers[0].name }}"
+  ansible.builtin.fetch:
+    src: /var/lib/rancher/k3s/server/token
+    dest: "{{ k3s_token_file }}"
+    flat: true
 
-    - name: Get agent token file
-      ansible.builtin.fetch:
-        src: /var/lib/rancher/k3s/server/agent-token
-        dest: "{{ k3s_agent_token_file }}"
-        flat: true
-
-- name: Wait for token files to be available
-  no_log: true
-  delegate_to: localhost
-  ansible.builtin.wait_for:
-    path: "{{ item }}"
-    state: present
-    timeout: 120
-  with_items:
-    - "{{ k3s_agent_token_file }}"
-    - "{{ k3s_token_file }}"
+- name: Get agent token file
+  delegate_to: "{{ managers[0].name }}"
+  ansible.builtin.fetch:
+    src: /var/lib/rancher/k3s/server/agent-token
+    dest: "{{ k3s_agent_token_file }}"
+    flat: true
 
 - name: Start other servers
   when:
