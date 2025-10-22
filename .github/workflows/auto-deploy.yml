@@ -21,7 +21,7 @@ jobs:
         with:
           playbook_path: k3s-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster | default('test-k3s') }}
+          hosts: ${{ if github.event.inputs.cluster != '' }}${{ github.event.inputs.cluster }}${{ else }}test-k3s${{ end }}
           tags: haproxy
           vars: ""
 
@@ -48,7 +48,7 @@ jobs:
         with:
           playbook_path: k3s-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster | default('test-k3s') }}
+          hosts: ${{ if github.event.inputs.cluster != '' }}${{ github.event.inputs.cluster }}${{ else }}test-k3s${{ end }}
           tags: prereq
           vars: ""
 
@@ -75,7 +75,7 @@ jobs:
         with:
           playbook_path: k3s-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster | default('test-k3s') }}
+          hosts: ${{ if github.event.inputs.cluster != '' }}${{ github.event.inputs.cluster }}${{ else }}test-k3s${{ end }}
           tags: init-managers
           vars: ""
 
@@ -102,7 +102,7 @@ jobs:
         with:
           playbook_path: k3s-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster | default('test-k3s') }}
+          hosts: ${{ if github.event.inputs.cluster != '' }}${{ github.event.inputs.cluster }}${{ else }}test-k3s${{ end }}
           tags: init-workers
           vars: ""
 
