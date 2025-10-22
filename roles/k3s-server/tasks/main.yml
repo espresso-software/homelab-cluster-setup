@@ -55,7 +55,6 @@
     mode: '0755'
 
 - name: Create k3s config file
-  notify: Restart k3s
   ansible.builtin.template:
     src: config.yaml.j2
     dest: /etc/rancher/k3s/config.yaml
@@ -64,7 +63,6 @@
     mode: '0640'
 
 - name: Create k3s config directory
-  notify: Restart k3s
   ansible.builtin.file:
     path: /etc/rancher/k3s/config.yaml.d
     state: directory
@@ -76,7 +74,6 @@
   when: inventory_hostname == managers[0].name
   block:
     - name: Create k3s config-init config yaml
-      notify: Restart k3s
       ansible.builtin.template:
         src: config-init.yaml.j2
         dest: /etc/rancher/k3s/config.yaml.d/init.yaml
@@ -88,7 +85,6 @@
       when: k3s_status.status != 'running'
       block:
         - name: Copy k3s service file [HA]
-          notify: Restart k3s
           ansible.builtin.template:
             src: k3s.service.j2
             dest: /etc/systemd/system/k3s.service
@@ -131,7 +127,6 @@
     - inventory_hostname != managers[0].name
   block:
     - name: Create k3s config-ha config yaml
-      notify: Restart k3s
       vars:
         k3s_token: "{{ lookup('ansible.builtin.file', k3s_token_file) }}"
         k3s_agent_token: "{{ lookup('ansible.builtin.file', k3s_agent_token_file) }}"
@@ -146,7 +141,6 @@
       when: k3s_status.status != 'running'
       block:
         - name: Copy k3s service file [HA]
-          notify: Restart k3s
           ansible.builtin.template:
             src: k3s.service.j2
             dest: /etc/systemd/system/k3s.service
