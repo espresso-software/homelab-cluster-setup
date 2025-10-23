@@ -111,7 +111,7 @@ jobs:
 
   helm:
     needs:
-      - servers
+      - prereq
     if: ${{ !failure() }}
     runs-on:
       - self-hosted
@@ -137,6 +137,7 @@ jobs:
   cilium:
     needs:
       - helm
+      - workers
     if: ${{ !failure() }}
     runs-on:
       - self-hosted
@@ -221,6 +222,8 @@ jobs:
 
   traefik:
     needs:
+      - metallb
+      - longhorn
       - cert-manager
     if: ${{ !failure() }}
     runs-on:
@@ -234,7 +237,7 @@ jobs:
   ###
   prometheus:
     needs:
-      - traefik
+      - longhorn
     if: ${{ !failure() }}
     runs-on:
       - self-hosted
@@ -257,6 +260,7 @@ jobs:
     needs:
       - prometheus
       - loki
+      - traefik
     if: ${{ !failure() }}
     runs-on:
       - self-hosted
