@@ -14,7 +14,7 @@
     mode: '0600'
 
 - name: Read k3s agent token
-  delegate_to: "{{ groups['k3s_managers'][0] }}"
+  delegate_to: "{{ groups['k3s_managers'][1] }}"
   ansible.builtin.slurp:
     src: /var/lib/rancher/k3s/server/agent-token
   register: k3s_agent_token_content
