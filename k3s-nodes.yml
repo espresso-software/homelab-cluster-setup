@@ -32,6 +32,20 @@
   roles:
     - k3s-server
 
+- name: Extract k3s join token
+  hosts: k3s_managers
+  gather_facts: false
+  become: true
+  tags:
+    - init-workers
+    - agent
+  tasks:
+    - name: Fetch k3s token file
+      ansible.builtin.fetch:
+        src: /var/lib/rancher/k3s/server/agent-token
+        dest: .secret/{{ cluster_name }}/agent-token
+        flat: true
+
 - name: Join k3s - workers
   hosts: k3s_workers
   gather_facts: true
@@ -39,8 +53,23 @@
   tags:
     - init-workers
     - agent
+  vars:
+    k3s_agent_token: "{{ lookup('file', '.secret/' + cluster_name + '/agent-token') | trim() }}"
   roles:
     - k3s-agent
+
+- name: Delete k3s join token
+  hosts: localhost
+  gather_facts: false
+  become: false
+  tags:
+    - init-workers
+    - agent
+  tasks:
+    - name: Remove k3s token file
+      ansible.builtin.file:
+        path: .secret/{{ cluster_name }}/agent-token
+        state: absent
 
 - name: Validate Nodes joined cluster
   hosts: k3s_managers
