@@ -81,6 +81,7 @@
 
 - name: Deploy Cluster Wide Default Deny
   run_once: true
+  delegate_to: localhost
   kubernetes.core.k8s:
     state: present
     definition:
