@@ -81,6 +81,8 @@
 
 - name: Deploy Cluster Wide Default Deny
   run_once: true
+  environment:
+    NO_PROXY: "{{ no_proxy }}"
   kubernetes.core.k8s:
     state: present
     definition:
