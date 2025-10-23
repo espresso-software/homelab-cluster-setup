@@ -12,7 +12,7 @@
     dest: /etc/haproxy/haproxy.cfg
     owner: root
     group: root
-    mode: 0640
+    mode: '0640'
   notify: Restart HAProxy
 
 - name: Configure Keepalived
@@ -21,5 +21,5 @@
     dest: /etc/keepalived/keepalived.conf
     owner: root
     group: root
-    mode: 0640
+    mode: '0640'
   notify: Restart Keepalived

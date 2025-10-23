@@ -3,10 +3,10 @@
   ansible.builtin.service:
     name: haproxy
     state: restarted
-    enabled: yes
+    enabled: true
 
 - name: Restart Keepalived
   ansible.builtin.service:
     name: keepalived
     state: restarted
-    enabled: yes
+    enabled: true

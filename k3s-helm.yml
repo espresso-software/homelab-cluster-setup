@@ -35,6 +35,7 @@
       ansible.builtin.lineinfile:
         path: /home/{{ item }}/.bashrc
         line: "export KUBECONFIG={{ kube_config_path }}"
+        state: absent
       with_items:
         - ansible
         - devops
