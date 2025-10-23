@@ -24,7 +24,7 @@
 - name: Setup k3s if not running
   when: k3s_status.status.SubState != 'running'
   block:
-    - name: Install k3s server binaries
+    - name: Install k3s agent binaries
       ansible.builtin.command:
         cmd: /usr/local/bin/k3s-install.sh
       environment:
