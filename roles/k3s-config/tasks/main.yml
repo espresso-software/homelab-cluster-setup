@@ -2,6 +2,7 @@
 - name: Label nodes
   kubernetes.core.k8s:
     state: present
+    no_proxy: "{{ no_proxy }}"
     definition:
       apiVersion: v1
       kind: Node
@@ -17,7 +18,7 @@
     - local-path-provisioner
     - metrics-server
   kubernetes.core.k8s:
-    state: patched
+    state: present
     definition:
       apiVersion: apps/v1
       kind: Deployment
@@ -32,7 +33,7 @@
 
 - name: Set coredns to forward to internal DNS servers
   kubernetes.core.k8s:
-    state: patched
+    state: present
     definition:
       apiVersion: apps/v1
       kind: Deployment
