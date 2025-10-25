@@ -328,6 +328,7 @@ jobs:
       - cilium
       - metallb
       - longhorn
+      - prometheus # For the namespace creation TODO: refactor to a separate job
     if: ${{ !failure() }}
     runs-on:
       - self-hosted

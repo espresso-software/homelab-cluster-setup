@@ -28,6 +28,7 @@
     src: "templates/values.j2"
     dest: "{{ cert_manager_values_file.path }}"
 
+# FIXME: needs a longer timeout to install properly
 - name: Install cert-manager
   kubernetes.core.helm:
     name: cert-manager
