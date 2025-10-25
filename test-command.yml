@@ -3,14 +3,14 @@
   gather_facts: true
   become: true
   hosts:
-    - towers #all
+    - all
   handlers:
     - name: Reboot
       ansible.builtin.reboot:
         reboot_timeout: 600
   tasks:
     - name: Run arbitrary command
-      ansible.builtin.shell: "cd /opt/gh-actions-runner; ./svc.sh stop && ./svc.sh uninstall && ./svc.sh install ansible && ./svc.sh start"
+      ansible.builtin.shell: "kubectl get ingress -A -o wide"
     # - name: Configure environment variables
     #   ansible.builtin.lineinfile:
     #     dest: /opt/gh-actions-runner/.env
