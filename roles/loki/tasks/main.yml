@@ -5,15 +5,24 @@
     repo_url: https://grafana.github.io/helm-charts
     state: present
 
+- name: Create temporary values file
+  ansible.builtin.tempfile:
+    suffix: '.yml'
+  register: loki_values_file
+
+- name: Template Loki values file
+  ansible.builtin.template:
+    src: "templates/values.j2"
+    dest: "{{ loki_values_file.path }}"
+
 - name: Install Loki
   kubernetes.core.helm:
     name: loki
     chart_ref: grafana/loki
     release_namespace: "{{ loki_namespace }}"
     state: present
-    values:
-      
-
+    values_files:
+      - "{{ loki_values_file.path }}"
 
 - name: Install Fluent Bit helm chart
   kubernetes.core.helm_repository:
