@@ -173,7 +173,7 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-middleware.yml
+          playbook_path: k3s-nodes.yml
           inventory_path: inventory/hosts.yml
           hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: cluster-config
