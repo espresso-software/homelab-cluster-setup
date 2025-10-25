@@ -65,10 +65,4 @@
             defaultRequest:
               memory: 64Mi
               cpu: 50m
-            max:
-              memory: 512Mi
-              cpu: 500m
-            min:
-              memory: 8Mi
-              cpu: 10m
             type: Container
