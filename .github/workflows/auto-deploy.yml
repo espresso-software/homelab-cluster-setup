@@ -226,7 +226,6 @@ jobs:
 
   pihole:
     needs:
-      - cluster-config
       - metallb
       - longhorn
     if: ${{ !failure() }}
@@ -238,7 +237,6 @@ jobs:
 
   traefik:
     needs:
-      - cluster-config
       - metallb
       - longhorn
       - cert-manager
@@ -254,7 +252,6 @@ jobs:
   ###
   prometheus:
     needs:
-      - cluster-config
       - cilium
       - longhorn
     if: ${{ !failure() }}
@@ -266,7 +263,6 @@ jobs:
 
   loki:
     needs:
-      - cluster-config
       - cilium
       - metallb
       - longhorn
@@ -279,7 +275,6 @@ jobs:
 
   grafana:
     needs:
-      - cluster-config
       - prometheus
       - loki
       - traefik
