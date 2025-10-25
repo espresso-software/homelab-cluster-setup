@@ -293,7 +293,7 @@ jobs:
         with:
           playbook_path: k3s-middleware.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'game-k3s' }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: traefik
           vars: ""
 
@@ -319,7 +319,7 @@ jobs:
         with:
           playbook_path: k3s-monitoring.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'game-k3s' }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: prometheus
           vars: ""
 
@@ -343,7 +343,7 @@ jobs:
         with:
           playbook_path: k3s-monitoring.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'game-k3s' }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: loki
           vars: ""
 
