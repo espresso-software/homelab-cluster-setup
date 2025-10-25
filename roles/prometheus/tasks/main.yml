@@ -97,6 +97,7 @@
       - "{{ alerts_file.path }}"
 
 - name: Deploy Game Server Prometheus
+  when: cluster_name is defined and cluster_name == 'game'
   kubernetes.core.helm:
     name: game-prometheus
     chart_ref: prometheus-community/prometheus

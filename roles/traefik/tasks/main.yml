@@ -59,91 +59,24 @@
     repo_url: https://traefik.github.io/charts
     state: present
 
+- name: Create temporary values file for Traefik
+  ansible.builtin.tempfile:
+    suffix: '.yaml'
+  register: traefik_values_file
+
+- name: Template Traefik values file
+  ansible.builtin.template:
+    src: "templates/values.j2"
+    dest: "{{ traefik_values_file.path }}"
+
 - name: Deploy Traefik with helm
   kubernetes.core.helm:
     name: traefik
     state: present
     namespace: "{{ namespace }}"
     chart_ref: traefik/traefik
-    values:
-      additionalArguments:
-        - --tcpserverstransport.tls.insecureskipverify
-      additionalVolumeMounts:
-        - name: localtime
-          mountPath: /etc/localtime
-          readOnly: true
-        - name: logs
-          mountPath: /var/log/traefik
-      deployment:
-        replicas: 3
-        labels:
-          app: traefik
-        additionalVolumes:
-          - name: localtime
-            hostPath:
-              path: /etc/localtime
-          - name: logs
-            emptyDir: {}
-      ingressRoute:
-        dashboard:
-          enabled: true
-        healthcheck:
-          enabled: true
-      updateStrategy:
-        rollingUpdate:
-          maxSurge: 1
-          maxUnavailable: 1
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: In
-                    values:
-                      - traefik
-              topologyKey: kubernetes.io/hostname
-      logs:
-        general:
-          noColor: true
-        access:
-          enabled: true
-          filePath: /var/log/traefik/access.log
-          bufferingSize: 100
-          fields:
-            headers:
-              defaultmode: redact
-      nodeSelector:
-        kubernetes.io/role: worker
-      persistence:
-        enabled: true
-        accessMode: ReadWriteMany
-      ports:
-        web:
-          entryPoint:
-            to: websecure
-            scheme: https
-            permanent: true
-      providers:
-        kubernetesCRD:
-          enabled: true
-        kubernetesIngress:
-          enabled: true
-      resources:
-        requests:
-          cpu: 50m
-          memory: 128Mi
-        limits:
-          cpu: 1000m
-          memory: 2Gi
-      service:
-        annotations:
-          metallb.universe.tf/allow-shared-ip: traefik
-          metallb.universe.tf/loadBalancerIPs: "{{ ingress_ip }}"
-      tlsStore:
-        default:
-          defaultCertificate:
-            secretName: traefik-local-wildcard-tls
+    values_files:
+      - "{{ traefik_values_file.path }}"
 
 - name: Create Traefik Network Policy
   kubernetes.core.k8s:
