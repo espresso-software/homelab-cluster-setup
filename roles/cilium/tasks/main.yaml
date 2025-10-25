@@ -20,6 +20,16 @@
     repo_url: https://helm.cilium.io/
     state: present
 
+- name: Create temporary values file for Cilium
+  ansible.builtin.tempfile:
+    suffix: '.yaml'
+  register: cilium_values_file
+
+- name: Template Cilium values file
+  ansible.builtin.template:
+    src: "templates/values.j2"
+    dest: "{{ cilium_values_file.path }}"
+
 - name: Deploy Cilium with helm
   run_once: true
   kubernetes.core.helm:
@@ -27,58 +37,8 @@
     state: present
     namespace: kube-system
     chart_ref: cilium/cilium
-    values:
-      kubeConfigPath: "{{ kube_config_path }}"
-      resources:
-        limits:
-          cpu: 500m
-          memory: 512Mi
-        requests:
-          cpu: 125m
-          memory: 256Mi
-      rolloutCiliumPods: 'true'
-      cluster:
-        name: "{{ cluster_name }}"
-      encryption:
-        enabled: true
-        type: "wireguard"
-        nodeEncryption: true
-      envoy:
-        resources:
-          limits:
-            cpu: 200m
-            memory: 128Mi
-          requests:
-            cpu: 50m
-            memory: 64Mi
-      operator:
-        nodeSelector:
-          kubernetes.io/os: linux
-          node-role.kubernetes.io/control-plane: 'true'
-        resources:
-          requests:
-            cpu: 50m
-      ipam:
-        operator:
-          clusterPoolIPv4PodCIDRList:
-            - "{{ cluster_cidr }}"
-      hubble:
-        redact:
-          enabled: true
-        relay:
-          enabled: true
-          replicas: "{{ (hubble_relay_replicas | default(2)) | int }}"
-        ui:
-          enabled: true
-          replicas: "{{ (hubble_ui_replicas | default(2)) | int }}"
-          ingress:
-            enabled: true
-            hosts:
-              - hubble.{{ cluster_domain }}
-            tls:
-              - secretName: hubble-ui-tls
-                hosts:
-                  - hubble.{{ cluster_domain }}
+    values_files:
+      - "{{ cilium_values_file.path }}"
 
 - name: Wait for Cilium to be ready
   run_once: true
