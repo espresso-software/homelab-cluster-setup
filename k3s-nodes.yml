@@ -96,6 +96,7 @@
   run_once: true
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
   tags:
     - cluster-config
     - server

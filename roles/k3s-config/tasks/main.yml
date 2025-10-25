@@ -2,7 +2,6 @@
 - name: Label nodes
   kubernetes.core.k8s:
     state: present
-    no_proxy: "{{ no_proxy }}"
     definition:
       apiVersion: v1
       kind: Node

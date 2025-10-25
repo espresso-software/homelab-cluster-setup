@@ -5,6 +5,7 @@
 #   become: yes
 #   environment:
 #     KUBECONFIG: "{{ kube_config_path }}"
+#     K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
 #   tags:
 #     - dashboard
 #     - kubernetes
@@ -13,7 +14,7 @@
 #       kubernetes.core.helm_repository:
 #         url: https://kubernetes.github.io/dashboard/
 #         name: kubernetes-dashboard
-    
+
 #     - name: Create Kubernetes Dashboard Namespace
 #       kubernetes.core.k8s:
 #         state: present
@@ -22,7 +23,7 @@
 #           kind: Namespace
 #           metadata:
 #             name: kubernetes-dashboard
-    
+
 #     - name: Create Kubernetes Dashboard LimitRange
 #       kubernetes.core.k8s:
 #         state: present
@@ -41,14 +42,14 @@
 #                   memory: 256Mi
 #                   cpu: 100m
 #                 type: Container
-    
+
 #     - name: Create Kubernetes Dashboard ResourceQuota
 #       kubernetes.core.k8s:
 #         state: present
 #         definition:
 #           apiVersion: v1
 #           kind: ResourceQuota
-#           metadata: 
+#           metadata:
 #             name: dashboard-quota
 #             namespace: kubernetes-dashboard
 #           spec:
@@ -79,7 +80,7 @@
 #             scheduling:
 #               nodeSelector:
 #                 kubernetes.io/role: worker
-    
+
 #     - name: Use MetalLB for Service
 #       run_once: true
 #       kubernetes.core.k8s:
@@ -120,8 +121,7 @@
 #               metadata:
 #                 name: "{{ item.name }}"
 #                 namespace: kubernetes-dashboard
-          
-        
+
 #         - name: Create Cluster Role Binding
 #           with_items: "{{ service_accounts }}"
 #           kubernetes.core.k8s:
@@ -156,6 +156,7 @@
     - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
   roles:
     - prometheus
 
@@ -168,6 +169,7 @@
     - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
   roles:
     - loki
 
@@ -180,5 +182,6 @@
     - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
   roles:
     - grafana
