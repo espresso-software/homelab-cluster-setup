@@ -211,7 +211,19 @@ jobs:
       - self-hosted
       - ansible
     steps:
-      - run: echo "LONGHORN"
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-middleware.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          tags: longhorn
+          vars: ""
 
   cert-manager:
     needs:
@@ -222,18 +234,44 @@ jobs:
       - self-hosted
       - ansible
     steps:
-      - run: echo "LONGHORN"
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-middleware.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          tags: cert-manager
+          vars: ""
 
   pihole:
     needs:
       - metallb
       - longhorn
-    if: ${{ !failure() }}
+    # TODO: tools-k3s cluster
+    # Pihole only needs to be deployed on one cluster for the whole homelab
+    if: ${{ !failure() && github.event.inputs.cluster == 'game-k3s' }}
     runs-on:
       - self-hosted
       - ansible
     steps:
-      - run: echo "PIHOLE"
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-middleware.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'game-k3s' }}
+          tags: pihole
+          vars: ""
 
   traefik:
     needs:

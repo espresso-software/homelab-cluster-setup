@@ -46,9 +46,9 @@
       speaker:
         enabled: true
 
-- name: Check MetalLB Controller Readiness
+- name: Wait for metallb controller to be ready
   block:
-    - name: Wait for metallb controller to be ready
+    - name: Check metallb controller
       kubernetes.core.k8s_info:
         kind: Deployment
         namespace: "{{ metallb_namespace }}"
