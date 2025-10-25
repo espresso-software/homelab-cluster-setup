@@ -7,7 +7,7 @@
     - cilium
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-    K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
   roles:
     - cilium
 
@@ -19,7 +19,7 @@
     - metallb
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-    K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
   roles:
     - metallb
 
@@ -59,7 +59,7 @@
     - longhorn
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-    K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
   roles:
     - longhorn
 
@@ -71,7 +71,7 @@
     - cert-manager
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-    K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
   roles:
     - cert-manager
 
@@ -83,7 +83,7 @@
     - traefik
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-    K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
   roles:
     - traefik
 
@@ -95,6 +95,6 @@
     - pihole
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-    K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
   roles:
     - pihole

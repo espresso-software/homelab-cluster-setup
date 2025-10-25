@@ -5,7 +5,7 @@
 #   become: yes
 #   environment:
 #     KUBECONFIG: "{{ kube_config_path }}"
-#     K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
+#     K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
 #   tags:
 #     - dashboard
 #     - kubernetes
@@ -156,7 +156,7 @@
     - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-    K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
   roles:
     - prometheus
 
@@ -169,7 +169,7 @@
     - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-    K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
   roles:
     - loki
 
@@ -182,6 +182,6 @@
     - kubernetes
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
-    K8S_AUTH_KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
   roles:
     - grafana
