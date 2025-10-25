@@ -52,14 +52,9 @@
     namespace: "{{ metallb_namespace }}"
     name: metallb-controller
   register: metallb_controller
-  # until: metallb_controller.resources[0].status.readyReplicas | default(0)
-  # retries: 10
-  # delay: 5
-
-- name: Log metallb controller status
-  ansible.builtin.debug:
-    msg: "MetalLB controller ready replicas: {{ metallb_controller.resources[0].status.readyReplicas }}"
-  failed_when: metallb_controller.resources[0].status.readyReplicas is not defined or metallb_controller.resources[0].status.readyReplicas < 1
+  until: metallb_controller.resources[1].status.unavailableReplicas == 0
+  retries: 10
+  delay: 5
 
 - name: Setup IP Address Pools
   run_once: true
