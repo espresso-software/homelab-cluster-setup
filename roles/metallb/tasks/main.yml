@@ -52,7 +52,7 @@
     namespace: "{{ metallb_namespace }}"
     name: metallb-controller
   register: metallb_controller
-  until: metallb_controller.resources[1].status.unavailableReplicas == 0
+  until: metallb_controller.resources[0].status.unavailableReplicas == 0
   retries: 10
   delay: 5
 

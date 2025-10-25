@@ -67,10 +67,10 @@
           enabled: true
         relay:
           enabled: true
-          replicas: 2
+          replicas: "{{ hubble_relay_replicas | default(2) }}"
         ui:
           enabled: true
-          replicas: 2
+          replicas: "{{ hubble_ui_replicas | default(2) }}"
           ingress:
             enabled: true
             hosts:
