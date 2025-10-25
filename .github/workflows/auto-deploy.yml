@@ -133,6 +133,7 @@ jobs:
 
   cluster-config:
     needs:
+      - servers
       - workers
     if: ${{ !failure() }}
     runs-on:
@@ -160,6 +161,7 @@ jobs:
     needs:
       - helm
       - workers
+      - cluster-config
     if: ${{ !failure() }}
     runs-on:
       - self-hosted
@@ -213,6 +215,7 @@ jobs:
 
   cert-manager:
     needs:
+      - cilium
       - longhorn
     if: ${{ !failure() }}
     runs-on:
@@ -223,6 +226,7 @@ jobs:
 
   pihole:
     needs:
+      - cluster-config
       - metallb
       - longhorn
     if: ${{ !failure() }}
@@ -234,6 +238,7 @@ jobs:
 
   traefik:
     needs:
+      - cluster-config
       - metallb
       - longhorn
       - cert-manager
@@ -249,6 +254,8 @@ jobs:
   ###
   prometheus:
     needs:
+      - cluster-config
+      - cilium
       - longhorn
     if: ${{ !failure() }}
     runs-on:
@@ -259,6 +266,8 @@ jobs:
 
   loki:
     needs:
+      - cluster-config
+      - cilium
       - metallb
       - longhorn
     if: ${{ !failure() }}
@@ -270,6 +279,7 @@ jobs:
 
   grafana:
     needs:
+      - cluster-config
       - prometheus
       - loki
       - traefik
