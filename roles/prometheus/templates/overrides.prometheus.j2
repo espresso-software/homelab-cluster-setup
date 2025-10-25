@@ -56,7 +56,7 @@ scrapeConfigFiles: []
 
 # adds additional scrape configs to prometheus.yml
 # must be a string so you have to add a | after extraScrapeConfigs:
-{{- if cluster_name == 'game' -}}
+{% if cluster_name == 'game' %}
 extraScrapeConfigs: |
   - job_name: http-node-exporter
     static_configs:
@@ -69,7 +69,7 @@ extraScrapeConfigs: |
         - 10.24.206.3:9100 # deny proxy host node-exporter
         - 10.32.206.206:9100 # cloud desktop node-exporter
     scheme: http
-{{- end -}}
+{% endif %}
 
 # Configuration of subcharts defined in Chart.yaml
 
