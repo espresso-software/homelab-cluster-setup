@@ -37,7 +37,7 @@
         - /var/lib/rancher/k3s
         - /etc/rancher/k3s
       failed_when: false
-    
+
     - name: Get longhorn directory sub-paths
       ansible.builtin.find:
         paths: /var/lib/longhorn
@@ -45,7 +45,7 @@
         recurse: true
         file_type: any
       register: collected_files
-    
+
     - name: Cleanup longhorn directory
       ansible.builtin.file:
         path: "{{ item.path }}"

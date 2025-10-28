@@ -14,6 +14,22 @@
         name: "{{ longhorn_namespace }}"
     state: present
 
+- name: Create AWS S3 Backup Secret
+  no_log: true
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ cluster_name }}-longhorn-aws-secret"
+        namespace: "{{ longhorn_namespace }}"
+      stringData:
+        AWS_ACCESS_KEY_ID: "{{ longhorn_akid }}"
+        AWS_SECRET_ACCESS_KEY: "{{ longhorn_access_key }}"
+        HTTP_PROXY: http://{{ internet_proxy }}
+        HTTPS_PROXY: http://{{ internet_proxy }}
+        NO_PROXY: "{{ no_proxy }}"
+
 - name: Create Longhorn LimitRange
   kubernetes.core.k8s:
     definition:
