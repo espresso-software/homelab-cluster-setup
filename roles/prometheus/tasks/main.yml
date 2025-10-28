@@ -5,6 +5,15 @@
     repo_url: https://prometheus-community.github.io/helm-charts
     state: present
 
+- name: Create Monitoring namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: monitoring
+
 - name: Create AlertManager Secrets
   no_log: true
   kubernetes.core.k8s:
@@ -20,15 +29,6 @@
         sev1: "{{ discord_webhooks.sev1 }}"
         sev2: "{{ discord_webhooks.sev2 }}"
         sev3: "{{ discord_webhooks.sev3 }}"
-
-- name: Create Monitoring namespace
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: monitoring
 
 - name: Create Monitoring LimitRange
   kubernetes.core.k8s:
@@ -47,12 +47,6 @@
             defaultRequest:
               memory: 128Mi
               cpu: 100m
-            max:
-              cpu: 2000m
-              memory: 4Gi
-            min:
-              cpu: 10m
-              memory: 1Mi
             type: Container
 
 - name: Create temporary values file
