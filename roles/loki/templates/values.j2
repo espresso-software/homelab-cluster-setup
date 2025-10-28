@@ -51,6 +51,8 @@ write:
   replicas: {{ loki_write_replicas | default(3) }}
   nodeSelector:
     kubernetes.io/role: worker
+  persistence:
+    size: {{ loki_write_storage_gb | default(2) }}G
   resources:
     limits:
       cpu: 200m
@@ -73,6 +75,8 @@ backend:
   replicas: {{ loki_backend_replicas | default(2) }}
   nodeSelector:
     kubernetes.io/role: worker
+  persistence:
+    size: {{ loki_backend_storage_gb | default(2) }}G
   resources:
     limits:
       cpu: 100m
@@ -89,6 +93,8 @@ minio:
   enabled: true
   nodeSelector:
     kubernetes.io/role: worker
+  persistence:
+    size: {{ loki_minio_storage_gb | default(10) }}G
   resources:
     limits:
       cpu: 200m

@@ -34,7 +34,7 @@ server:
     kubernetes.io/role: worker
 
   persistentVolume:
-    size: 18Gi
+    size: {{ prometheus_storage_gb | default('18') }}Gi
   
   podLabels:
     prometheus-role: server
@@ -47,7 +47,7 @@ server:
       cpu: 200m
       memory: 1.5Gi
 
-  retentionSize: "14GB"
+  retentionSize: "{{ ((prometheus_storage_gb | default(18)) - 4) }}GB"
 
 ## Prometheus server ConfigMap entries for scrape_config_files
 ## (allows scrape configs defined in additional files)
