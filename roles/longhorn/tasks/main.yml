@@ -57,4 +57,8 @@
       longhornDriver:
         nodeSelector:
           node-role.kubernetes.io/control-plane: "true"
+      defaultBackupStore:
+        backupTarget: s3://coffee-longhorn-backups@us-west-2/{{ cluster_name }}-k3s
+        backupTargetCredentialSecret: "{{ cluster_name }}-longhorn-aws-secret"
+        pollInterval: 300
   run_once: true
