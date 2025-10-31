@@ -64,7 +64,7 @@
         metallb_controller.resources[0].status.replicas is defined and
         metallb_controller.resources[0].status.replicas >= 1 and
         metallb_controller.resources[0].status.unavailableReplicas is not defined
-      retries: 10
+      retries: 20
       delay: 5
   rescue:
     - name: Debug metallb controller status
