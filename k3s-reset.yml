@@ -48,6 +48,6 @@
 
     - name: Cleanup longhorn directory
       ansible.builtin.file:
-        path: "{{ item.path }}"
+        path: "{{ item }}"
         state: absent
       with_items: "{{ collected_files }}"
