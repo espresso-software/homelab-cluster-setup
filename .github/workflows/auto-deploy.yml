@@ -19,8 +19,10 @@ on:
   push:
     branches:
       - "**"
-    paths:
-      - "!k3s-reset.yml"
+    paths-ignore:
+      - k3s-reset.yml
+      - .github/workflows/k3s-*.yml
+      - .github/workflows/run-playbook.yml
 
 jobs:
   ###
