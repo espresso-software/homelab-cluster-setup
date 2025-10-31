@@ -19,6 +19,8 @@ on:
   push:
     branches:
       - "**"
+    paths:
+      - "!k3s-reset.yml"
 
 jobs:
   ###
