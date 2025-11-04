@@ -1,0 +1,35 @@
+name: Reset Cluster [DESCRTUCTIVE]
+
+on:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: "The cluster to run the playbook against"
+        required: true
+        type: choice
+        options:
+          - test-k3s
+          # Uncomment the line below to enable reset for game-k3s cluster
+          # - game-k3s
+
+jobs:
+  deploy:
+    runs-on:
+      - self-hosted
+      - ansible
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: k3s-reset.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.host }}
+          tags: ""
+          vars: ""

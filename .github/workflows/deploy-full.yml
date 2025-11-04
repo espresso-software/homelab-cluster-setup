@@ -1,4 +1,4 @@
-name: Auto Deploy
+name: Deploy Full Cluster
 permissions:
   contents: read
 
@@ -19,10 +19,16 @@ on:
   push:
     branches:
       - "**"
-    paths-ignore:
-      - k3s-reset.yml
-      - .github/workflows/k3s-*.yml
-      - .github/workflows/run-playbook.yml
+    paths:
+      - ".github/workflows/deploy-full.yml"
+      - "k3s-nodes.yml"
+      - "k3s-middleware.yml"
+      - "k3s-monitoring.yml"
+      - "k3s-helm.yml"
+      - "roles/**"
+      - "group_vars/**"
+      - "host_vars/**"
+      - "inventory/**"
 
 jobs:
   ###
