@@ -1,4 +1,6 @@
-name: Reset Cluster [DESCRTUCTIVE]
+name: Reset Cluster [DESTRUCTIVE]
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:

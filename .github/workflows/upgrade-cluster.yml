@@ -1,4 +1,6 @@
 name: Upgrade k3s Version [DISRUPTIVE]
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:

@@ -1,4 +1,6 @@
 name: Restart Nodes [DISRUPTIVE]
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:

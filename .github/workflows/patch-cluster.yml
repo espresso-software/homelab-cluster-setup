@@ -1,9 +1,8 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Patch Cluster Nodes
-# Controls when the workflow will run
+permissions:
+  contents: read
+
 on:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       host:
@@ -15,23 +14,13 @@ on:
         required: false
         default: "no-downtime"
 
-  # Triggers the workflow on push or pull request events but only for the main branch
-  # push:
-  #   branches:
-  #     - main
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   deploy:
-    # The type of runner that the job will run on
     runs-on:
       - self-hosted
       - ansible
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
         with:
           submodules: "true"
@@ -49,7 +38,6 @@ jobs:
           fi
           echo "::set-output name=extra_args::${args_string}"
 
-      # Runs a single command using the runners shell
       - name: Setup vault token
         run: |
           echo "${{ secrets.VAULT_DECRYPT_TOKEN }}" > /tmp/vault_pass

@@ -1,4 +1,6 @@
 name: Deploy Cluster Middleware
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
