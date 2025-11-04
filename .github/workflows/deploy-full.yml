@@ -60,6 +60,9 @@ jobs:
   ### CLUSTER SETUP
   ###
   haproxy:
+    needs:
+      - reset-test-cluster
+    if: ${{ !failure() }}
     runs-on:
       - self-hosted
       - ansible
