@@ -5,6 +5,15 @@
     repo_url: https://prometheus-community.github.io/helm-charts
     state: present
 
+- name: Create Monitoring namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: monitoring
+
 - name: Create AlertManager Secrets
   no_log: true
   kubernetes.core.k8s:
@@ -20,45 +29,6 @@
         sev1: "{{ discord_webhooks.sev1 }}"
         sev2: "{{ discord_webhooks.sev2 }}"
         sev3: "{{ discord_webhooks.sev3 }}"
-
-- name: Create temporary values file
-  ansible.builtin.tempfile:
-    suffix: '.yml'
-  register: values_file
-
-- name: Template Prometheus values file
-  ansible.builtin.template:
-    src: "templates/overrides.prometheus.j2"
-    dest: "{{ values_file.path }}"
-
-- name: Create temporary alerts file
-  ansible.builtin.tempfile:
-    suffix: '.yaml'
-  register: alerts_file
-
-- name: Copy Prometheus alerts file
-  ansible.builtin.copy:
-    src: "files/alerts.prometheus.yaml"
-    dest: "{{ alerts_file.path }}"
-
-- name: Create temporary Game values file
-  ansible.builtin.tempfile:
-    suffix: '.yml'
-  register: game_values_file
-
-- name: Template Game values file
-  ansible.builtin.template:
-    src: "templates/overrides.game-prometheus.j2"
-    dest: "{{ game_values_file.path }}"
-
-- name: Create Monitoring namespace
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: monitoring
 
 - name: Create Monitoring LimitRange
   kubernetes.core.k8s:
@@ -77,13 +47,27 @@
             defaultRequest:
               memory: 128Mi
               cpu: 100m
-            max:
-              cpu: 2000m
-              memory: 4Gi
-            min:
-              cpu: 10m
-              memory: 1Mi
             type: Container
+
+- name: Create temporary values file
+  ansible.builtin.tempfile:
+    suffix: '.yml'
+  register: prometheus_values_file
+
+- name: Template Prometheus values file
+  ansible.builtin.template:
+    src: "templates/overrides.prometheus.j2"
+    dest: "{{ prometheus_values_file.path }}"
+
+- name: Create temporary alerts file
+  ansible.builtin.tempfile:
+    suffix: '.yaml'
+  register: prometheus_alerts_file
+
+- name: Copy Prometheus alerts file
+  ansible.builtin.copy:
+    src: "files/alerts.prometheus.yaml"
+    dest: "{{ prometheus_alerts_file.path }}"
 
 - name: Deploy Prometheus
   kubernetes.core.helm:
@@ -93,15 +77,28 @@
     release_name: prometheus
     state: present
     values_files:
-      - "{{ values_file.path }}"
-      - "{{ alerts_file.path }}"
+      - "{{ prometheus_values_file.path }}"
+      - "{{ prometheus_alerts_file.path }}"
 
 - name: Deploy Game Server Prometheus
-  kubernetes.core.helm:
-    name: game-prometheus
-    chart_ref: prometheus-community/prometheus
-    release_namespace: monitoring
-    release_name: game-prometheus
-    state: present
-    values_files:
-      - "{{ game_values_file.path }}"
+  when: cluster_name == 'game'
+  block:
+    - name: Create temporary Game values file
+      ansible.builtin.tempfile:
+        suffix: '.yml'
+      register: prometheus_game_values_file
+
+    - name: Template Game values file
+      ansible.builtin.template:
+        src: "templates/overrides.game-prometheus.j2"
+        dest: "{{ prometheus_game_values_file.path }}"
+
+    - name: Deploy Game Prometheus
+      kubernetes.core.helm:
+        name: game-prometheus
+        chart_ref: prometheus-community/prometheus
+        release_namespace: monitoring
+        release_name: game-prometheus
+        state: present
+        values_files:
+          - "{{ prometheus_game_values_file.path }}"

@@ -1,0 +1,26 @@
+---
+- name: Run command
+  gather_facts: true
+  become: true
+  hosts:
+    - all
+  handlers:
+    - name: Reboot
+      ansible.builtin.reboot:
+        reboot_timeout: 600
+  tasks:
+    - name: Run arbitrary command
+      ansible.builtin.shell: "kubectl get ingress -A -o wide"
+    # - name: Configure environment variables
+    #   ansible.builtin.lineinfile:
+    #     dest: /opt/gh-actions-runner/.env
+    #     line: "{{ item }}"
+    #     regexp: "^{{ item.split('=')[0] }}="
+    #     create: true
+    #   with_items:
+    #     - "http_proxy=http://{{ internet_proxy }}"
+    #     - "https_proxy=http://{{ internet_proxy }}"
+    #     - "ftp_proxy=ftp://{{ internet_proxy }}"
+    #     - "proxy=http://{{ internet_proxy }}"
+    #     - "no_proxy={{ no_proxy }}"
+    #   notify: Reboot

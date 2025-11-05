@@ -8,6 +8,7 @@
     kube_config_path: /etc/rancher/k3s/k3s.yaml
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
   roles:
     - k3s-restart
 
@@ -18,5 +19,6 @@
   serial: 1
   environment:
     KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
   roles:
     - k3s-restart

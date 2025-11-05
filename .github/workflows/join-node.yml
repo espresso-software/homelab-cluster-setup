@@ -1,49 +1,36 @@
-# This is a basic workflow to help you get started with Actions
+name: Join Cluster Node
+permissions:
+  contents: read
 
-name: Add Node
-
-# Controls when the workflow will run
 on:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       node:
-        description: 'The node to run the playbook against'
+        description: "The node to run the playbook against"
         required: true
         type: string
-        default: 'test-k3s'
+        default: "test-k3s"
       tags:
-        description: 'The tags to run'
+        description: "The tags to run"
         required: false
-        default: ''
+        default: ""
       extra_vars:
-        description: 'Extra vars to pass to the playbook'
+        description: "Extra vars to pass to the playbook"
         required: false
-        default: ''
-  
-  # Triggers the workflow on push or pull request events but only for the main branch
-  # push:
-  #   branches:
-  #     - main
+        default: ""
 
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   deploy:
-    # The type of runner that the job will run on
-    runs-on: 
+    runs-on:
       - self-hosted
       - ansible
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
         with:
-          submodules: 'true'
+          submodules: "true"
           token: ${{ secrets.READ_ACCESS_TOKEN }}
-      
+
       - uses: espresso-software/actions/ansible/run-playbook@main
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
@@ -53,7 +40,7 @@ jobs:
           hosts: ${{ github.event.inputs.node }}
           tags: ${{ github.event.inputs.tags }}
           vars: ${{ github.event.inputs.extra_vars }}
-      
+
       - uses: espresso-software/actions/ansible/run-playbook@main
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
@@ -63,7 +50,7 @@ jobs:
           hosts: ${{ github.event.inputs.node }}
           tags: ${{ github.event.inputs.tags }}
           vars: ${{ github.event.inputs.extra_vars }}
-      
+
       - uses: espresso-software/actions/ansible/run-playbook@main
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}

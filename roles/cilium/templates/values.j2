@@ -1,0 +1,51 @@
+kubeConfigPath: "{{ kube_config_path }}"
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 125m
+    memory: 256Mi
+rolloutCiliumPods: 'true'
+cluster:
+  name: "{{ cluster_name }}"
+encryption:
+  enabled: true
+  type: "wireguard"
+  nodeEncryption: true
+envoy:
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+operator:
+  nodeSelector:
+    kubernetes.io/os: linux
+    node-role.kubernetes.io/control-plane: 'true'
+  resources:
+    requests:
+      cpu: 50m
+ipam:
+  operator:
+    clusterPoolIPv4PodCIDRList:
+      - "{{ cluster_cidr }}"
+hubble:
+  redact:
+    enabled: true
+  relay:
+    enabled: true
+    replicas: {{ hubble_relay_replicas | default(2) }}
+  ui:
+    enabled: true
+    replicas: {{ hubble_ui_replicas | default(2) }}
+  ingress:
+    enabled: true
+    hosts:
+      - hubble.{{ cluster_domain }}
+    tls:
+      - secretName: hubble-ui-tls
+        hosts:
+          - hubble.{{ cluster_domain }}

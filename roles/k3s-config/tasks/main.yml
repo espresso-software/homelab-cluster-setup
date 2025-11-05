@@ -17,7 +17,7 @@
     - local-path-provisioner
     - metrics-server
   kubernetes.core.k8s:
-    state: patched
+    state: present
     definition:
       apiVersion: apps/v1
       kind: Deployment
@@ -32,7 +32,7 @@
 
 - name: Set coredns to forward to internal DNS servers
   kubernetes.core.k8s:
-    state: patched
+    state: present
     definition:
       apiVersion: apps/v1
       kind: Deployment
@@ -65,10 +65,4 @@
             defaultRequest:
               memory: 64Mi
               cpu: 50m
-            max:
-              memory: 512Mi
-              cpu: 500m
-            min:
-              memory: 8Mi
-              cpu: 10m
             type: Container

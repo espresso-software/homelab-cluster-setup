@@ -46,15 +46,36 @@
       speaker:
         enabled: true
 
-# - name: Wait for metallb controller to be ready
-#   kubernetes.core.k8s_info:
-#     kind: Deployment
-#     namespace: "{{ metallb_namespace }}"
-#     name: metallb-controller
-#   register: metallb_controller
-#   until: metallb_controller.resources[0].status.readyReplicas | default(0)
-#   retries: 10
-#   delay: 5
+- name: Wait for metallb controller to be ready
+  block:
+    - name: Check metallb controller
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        namespace: "{{ metallb_namespace }}"
+        name: metallb-controller
+      register: metallb_controller
+      until: |
+        metallb_controller.resources[0].status.availableReplicas is defined and
+        metallb_controller.resources[0].status.availableReplicas >= 1 and
+        metallb_controller.resources[0].status.readyReplicas is defined and
+        metallb_controller.resources[0].status.readyReplicas >= 1 and
+        metallb_controller.resources[0].status.updatedReplicas is defined and
+        metallb_controller.resources[0].status.updatedReplicas >= 1 and
+        metallb_controller.resources[0].status.replicas is defined and
+        metallb_controller.resources[0].status.replicas >= 1 and
+        metallb_controller.resources[0].status.unavailableReplicas is not defined
+      retries: 20
+      delay: 5
+  rescue:
+    - name: Debug metallb controller status
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        namespace: "{{ metallb_namespace }}"
+        name: metallb-controller
+      register: metallb_controller_debug
+    - name: Fail due to metallb controller not becoming ready
+      ansible.builtin.fail:
+        msg: "MetalLB controller failed to become ready. Status: {{ metallb_controller_debug.resources[0].status }}"
 
 - name: Setup IP Address Pools
   run_once: true

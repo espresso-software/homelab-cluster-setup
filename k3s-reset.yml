@@ -37,3 +37,27 @@
         - /var/lib/rancher/k3s
         - /etc/rancher/k3s
       failed_when: false
+
+    - name: Get longhorn directory sub-paths
+      ansible.builtin.find:
+        paths: /var/lib/longhorn
+        hidden: true
+        recurse: true
+        file_type: any
+      register: collected_files
+
+    - name: Cleanup longhorn directory
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items: "{{ collected_files }}"
+
+    - name: Uninstall cluster dependencies
+      ansible.builtin.apt:
+        name:
+          - helm
+          - nfs-common
+          - haproxy
+          - keepalived
+        state: absent
+        autoremove: true

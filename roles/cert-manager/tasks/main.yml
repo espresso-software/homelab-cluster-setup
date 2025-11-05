@@ -18,69 +18,25 @@
 
 #TODO: -name: Create ResourceQuota
 
+- name: Create temporary values file for Cert Manager
+  ansible.builtin.tempfile:
+    suffix: '.yaml'
+  register: cert_manager_values_file
+
+- name: Template Cert Manager values file
+  ansible.builtin.template:
+    src: "templates/values.j2"
+    dest: "{{ cert_manager_values_file.path }}"
+
+# FIXME: needs a longer timeout to install properly
 - name: Install cert-manager
   kubernetes.core.helm:
     name: cert-manager
     namespace: "{{ cert_manager_namespace }}"
     chart_ref: jetstack/cert-manager
     chart_version: v1.15.2
-    values:
-      crds:
-        enabled: true
-      replicaCount: 2
-      dns01RecursiveNameservers: '1.1.1.1:53,1.0.0.1:53'
-      extraEnv:
-        - name: HTTP_PROXY
-          value: "http://{{ internet_proxy }}"
-        - name: HTTPS_PROXY
-          value: "http://{{ internet_proxy }}"
-        - name: FTP_PROXY
-          value: "ftp://{{ internet_proxy }}"
-        - name: NO_PROXY
-          value: "10.0.0.0/8"
-      resources:
-        requests:
-          cpu: 10m
-          memory: 32Mi
-        limits:
-          cpu: 200m
-          memory: 128Mi
-      nodeSelector:
-        kubernetes.io/os: linux
-        node-role.kubernetes.io/control-plane: "true"
-      webhook:
-        resources:
-          requests:
-            cpu: 10m
-            memory: 32Mi
-          limits:
-            cpu: 100m
-            memory: 64Mi
-        nodeSelector:
-          kubernetes.io/os: linux
-          node-role.kubernetes.io/control-plane: "true"
-      cainjector:
-        resources:
-          requests:
-            cpu: 10m
-            memory: 16Mi
-          limits:
-            cpu: 100m
-            memory: 64Mi
-        nodeSelector:
-          kubernetes.io/os: linux
-          node-role.kubernetes.io/control-plane: "true"
-      startupapicheck:
-        resources:
-          requests:
-            cpu: 10m
-            memory: 32Mi
-          limits:
-            cpu: 100m
-            memory: 128Mi
-        nodeSelector:
-          kubernetes.io/os: linux
-          node-role.kubernetes.io/control-plane: "true"
+    values_files:
+      - "{{ cert_manager_values_file.path }}"
 
 - name: Create Cloudflare API Token Secret
   no_log: true

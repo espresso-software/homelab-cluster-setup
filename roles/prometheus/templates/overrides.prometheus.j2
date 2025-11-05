@@ -34,7 +34,7 @@ server:
     kubernetes.io/role: worker
 
   persistentVolume:
-    size: 18Gi
+    size: {{ prometheus_storage_gb | default('18') }}Gi
   
   podLabels:
     prometheus-role: server
@@ -47,7 +47,7 @@ server:
       cpu: 200m
       memory: 1.5Gi
 
-  retentionSize: "14GB"
+  retentionSize: "{{ ((prometheus_storage_gb | default(18)) - 4) }}GB"
 
 ## Prometheus server ConfigMap entries for scrape_config_files
 ## (allows scrape configs defined in additional files)
@@ -56,7 +56,7 @@ scrapeConfigFiles: []
 
 # adds additional scrape configs to prometheus.yml
 # must be a string so you have to add a | after extraScrapeConfigs:
-# example adds prometheus-blackbox-exporter scrape config
+{% if cluster_name == 'game' %}
 extraScrapeConfigs: |
   - job_name: http-node-exporter
     static_configs:
@@ -69,6 +69,7 @@ extraScrapeConfigs: |
         - 10.24.206.3:9100 # deny proxy host node-exporter
         - 10.32.206.206:9100 # cloud desktop node-exporter
     scheme: http
+{% endif %}
 
 # Configuration of subcharts defined in Chart.yaml
 
