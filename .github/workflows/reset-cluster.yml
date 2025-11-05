@@ -3,9 +3,15 @@ permissions:
   contents: read
 
 on:
+  workflow_call:
+    inputs:
+      cluster:
+        description: "The cluster to run the playbook against"
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
-      host:
+      cluster:
         description: "The cluster to run the playbook against"
         required: true
         type: choice
@@ -13,6 +19,12 @@ on:
           - test-k3s
           # Uncomment the line below to enable reset for game-k3s cluster
           # - game-k3s
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - .github/workflows/reset-cluster.yml
+      - reset-cluster.yml
 
 jobs:
   deploy:
@@ -30,8 +42,8 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-reset.yml
+          playbook_path: reset-cluster.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.host }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: ""
           vars: ""
