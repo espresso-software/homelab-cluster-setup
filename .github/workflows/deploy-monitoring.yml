@@ -109,7 +109,7 @@ jobs:
     needs:
       - loki
       - prometheus
-    if: ${{ !failure() && contains(fromJSON('["all", "grafana", ""]'), github.event.inputs.tags) }}
+    if: ${{ !failure() && contains(fromJSON('["all", "grafana", ""]'), github.event.inputs.tags) && github.event.inputs.cluster == 'game-k3s' }}
     runs-on:
       - self-hosted
       - ansible
