@@ -25,7 +25,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     uses: ./.github/workflows/reset-cluster.yml
     with:
-      host: test-k3s
+      cluster: test-k3s
     secrets: inherit
 
   deploy-nodes:
