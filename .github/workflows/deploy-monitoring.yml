@@ -3,9 +3,20 @@ permissions:
   contents: read
 
 on:
+  workflow_call:
+    inputs:
+      cluster:
+        description: "The host to run the playbook on"
+        required: false
+        type: string
+      tags:
+        description: "The tags to run"
+        required: false
+        type: string
+        default: ""
   workflow_dispatch:
     inputs:
-      host:
+      cluster:
         description: "The host to run the playbook on"
         type: choice
         options:
@@ -21,16 +32,24 @@ on:
           - prometheus
           - loki
           - grafana
-      extra_vars:
-        description: "Extra vars to pass to the playbook"
-        required: false
-        default: ""
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - .github/workflows/deploy-monitoring.yml
+      - roles/node-exporter/**
+      - roles/prometheus/**
+      - roles/loki/**
+      - roles/grafana/**
+      - deploy-monitoring.yml
+      - inventory/hosts.yml
+      - group_vars/**
+      - host_vars/**
 
 jobs:
+  # TODO: move node exporter to ansible-homelab repository
   node-exporter:
-    if: |
-      github.event.inputs.tags == 'all' ||
-      github.event.inputs.tags == 'node-exporter'
+    if: ${{ contains(fromJSON('["all", "node-exporter", ""]'), github.event.inputs.tags) }}
     runs-on:
       - self-hosted
       - ansible
@@ -43,24 +62,13 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-monitoring.yml
+          playbook_path: deploy-monitoring.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.host }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: node-exporter
-          vars: ${{ github.event.inputs.extra_vars }}
+          vars: ""
   prometheus:
-    needs:
-      - node-exporter
-    if: |
-      always() &&
-      (
-        needs.node-exporter.result == 'success' ||
-        needs.node-exporter.result == 'skipped'
-      ) &&
-      (
-        github.event.inputs.tags == 'all' ||
-        github.event.inputs.tags == 'prometheus'
-      )
+    if: ${{ !failure() && contains(fromJSON('["all", "prometheus", ""]'), github.event.inputs.tags) }}
     runs-on:
       - self-hosted
       - ansible
@@ -73,24 +81,13 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-monitoring.yml
+          playbook_path: deploy-monitoring.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.host }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: prometheus
-          vars: ${{ github.event.inputs.extra_vars }}
+          vars: ""
   loki:
-    needs:
-      - prometheus
-    if: |
-      always() &&
-      (
-        needs.prometheus.result == 'success' ||
-        needs.prometheus.result == 'skipped'
-      ) &&
-      (
-        github.event.inputs.tags == 'all' ||
-        github.event.inputs.tags == 'loki'
-      )
+    if: ${{ !failure() && contains(fromJSON('["all", "loki", ""]'), github.event.inputs.tags) }}
     runs-on:
       - self-hosted
       - ansible
@@ -103,24 +100,16 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-monitoring.yml
+          playbook_path: deploy-monitoring.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.host }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: loki
-          vars: ${{ github.event.inputs.extra_vars }}
+          vars: ""
   grafana:
     needs:
       - loki
-    if: |
-      always() &&
-      (
-        needs.loki.result == 'success' ||
-        needs.loki.result == 'skipped'
-      ) &&
-      (
-        github.event.inputs.tags == 'all' ||
-        github.event.inputs.tags == 'grafana'
-      )
+      - prometheus
+    if: ${{ !failure() && contains(fromJSON('["all", "grafana", ""]'), github.event.inputs.tags) && github.event.inputs.cluster == 'game-k3s' }}
     runs-on:
       - self-hosted
       - ansible
@@ -133,8 +122,8 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-monitoring.yml
+          playbook_path: deploy-monitoring.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.host }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: grafana
-          vars: ${{ github.event.inputs.extra_vars }}
+          vars: ""

@@ -3,6 +3,17 @@ permissions:
   contents: read
 
 on:
+  workflow_call:
+    inputs:
+      cluster:
+        description: "The cluster to run the playbook against"
+        required: true
+        type: string
+      tags:
+        description: "The tags to run"
+        required: false
+        type: string
+        default: ""
   workflow_dispatch:
     inputs:
       cluster:
@@ -19,28 +30,35 @@ on:
         type: choice
         options:
           - all
-          - server
           - agent
+          - cluster-config
           - haproxy
-          - prereq
+          - helm
           - init-managers
           - init-workers
-          - cluster-config
-          - helm
-      extra_vars:
-        description: "Extra vars to pass to the playbook"
-        required: false
-        default: ""
+          - prereq
+          - server
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - .github/workflows/deploy-nodes.yml
+      - roles/k3s-server/**
+      - roles/k3s-agent/**
+      - roles/k3s-prereq/**
+      - roles/haproxy/**
+      - roles/helm/**
+      - deploy-nodes.yml
+      - inventory/hosts.yml
+      - group_vars/**
+      - host_vars/**
 
 jobs:
+  ###
+  ### CLUSTER SETUP
+  ###
   haproxy:
-    if: |
-      always() && (
-        github.event.inputs.tags == 'all' ||
-        github.event.inputs.tags == 'haproxy' ||
-        github.event.inputs.tags == 'server' ||
-        github.event.inputs.tags == 'agent'
-      )
+    if: ${{ contains(fromJSON('["all", "haproxy", "server", "agent", ""]'), github.event.inputs.tags) }}
     runs-on:
       - self-hosted
       - ansible
@@ -53,26 +71,16 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-nodes.yml
+          playbook_path: deploy-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: haproxy
-          vars: ${{ github.event.inputs.extra_vars }}
+          vars: ""
 
   prereq:
     needs:
       - haproxy
-    if: |
-      always() && 
-      (
-        needs.haproxy.result == 'success' ||
-        needs.haproxy.result == 'skipped'
-      ) && (
-        github.event.inputs.tags == 'all' ||
-        github.event.inputs.tags == 'prereq' ||
-        github.event.inputs.tags == 'server' ||
-        github.event.inputs.tags == 'agent'
-      )
+    if: ${{ !failure() && contains(fromJSON('["all", "prereq", "server", "agent", ""]'), github.event.inputs.tags) }}
     runs-on:
       - self-hosted
       - ansible
@@ -81,31 +89,20 @@ jobs:
         with:
           submodules: "true"
           token: ${{ secrets.READ_ACCESS_TOKEN }}
-
       - uses: espresso-software/actions/ansible/run-playbook@main
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-nodes.yml
+          playbook_path: deploy-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster }}
-          tags: haproxy,prereq
-          vars: ${{ github.event.inputs.extra_vars }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          tags: prereq
+          vars: ""
 
-  init-managers:
+  servers:
     needs:
       - prereq
-    if: |
-      always() && 
-      (
-        needs.prereq.result == 'success' ||
-        needs.prereq.result == 'skipped'
-      ) && (
-        github.event.inputs.tags == 'all' ||
-        github.event.inputs.tags == 'init-managers' ||
-        github.event.inputs.tags == 'server' ||
-        github.event.inputs.tags == 'agent'
-      )
+    if: ${{ !failure() && contains(fromJSON('["all", "server", "init-managers", ""]'), github.event.inputs.tags) }}
     runs-on:
       - self-hosted
       - ansible
@@ -114,30 +111,20 @@ jobs:
         with:
           submodules: "true"
           token: ${{ secrets.READ_ACCESS_TOKEN }}
-
       - uses: espresso-software/actions/ansible/run-playbook@main
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-nodes.yml
+          playbook_path: deploy-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: init-managers
-          vars: ${{ github.event.inputs.extra_vars }}
+          vars: ""
 
-  init-workers:
+  workers:
     needs:
-      - init-managers
-    if: |
-      always() && 
-      (
-        needs.init-managers.result == 'success' ||
-        needs.init-managers.result == 'skipped'
-      ) && (
-        github.event.inputs.tags == 'all' ||
-        github.event.inputs.tags == 'init-workers' ||
-        github.event.inputs.tags == 'agent'
-      )
+      - servers
+    if: ${{ !failure() && contains(fromJSON('["all", "agent", "init-workers", ""]'), github.event.inputs.tags) }}
     runs-on:
       - self-hosted
       - ansible
@@ -150,60 +137,16 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-nodes.yml
+          playbook_path: deploy-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: init-workers
-          vars: ${{ github.event.inputs.extra_vars }}
-
-  cluster-config:
-    needs:
-      - init-managers
-      - init-workers
-    if: |
-      always() && 
-      (
-        needs.init-managers.result == 'success' ||
-        needs.init-workers.result == 'success' ||
-        needs.init-managers.result == 'skipped' ||
-        needs.init-workers.result == 'skipped'
-      ) && (
-        github.event.inputs.tags == 'all' ||
-        github.event.inputs.tags == 'cluster-config' ||
-        github.event.inputs.tags == 'server' ||
-        github.event.inputs.tags == 'agent'
-      )
-    runs-on:
-      - self-hosted
-      - ansible
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: "true"
-          token: ${{ secrets.READ_ACCESS_TOKEN }}
-      - uses: espresso-software/actions/ansible/run-playbook@main
-        env:
-          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
-        with:
-          playbook_path: k3s-nodes.yml
-          inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster }}
-          tags: cluster-config
-          vars: ${{ github.event.inputs.extra_vars }}
+          vars: ""
 
   helm:
     needs:
-      - init-managers
-    if: |
-      always() && 
-      (
-        needs.init-managers.result == 'success' ||
-        needs.init-managers.result == 'skipped'
-      ) && (
-        github.event.inputs.tags == 'all' ||
-        github.event.inputs.tags == 'helm' ||
-        github.event.inputs.tags == 'server'
-      )
+      - prereq
+    if: ${{ !failure() && contains(fromJSON('["all", "helm", "server", ""]'), github.event.inputs.tags) }}
     runs-on:
       - self-hosted
       - ansible
@@ -216,8 +159,31 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-helm.yml
+          playbook_path: deploy-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster }}
-          tags: all
-          vars: ${{ github.event.inputs.extra_vars }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          tags: helm
+          vars: ""
+
+  cluster-config:
+    needs:
+      - servers
+      - workers
+    if: ${{ !failure() && contains(fromJSON('["all", "cluster-config", "server", "agent", ""]'), github.event.inputs.tags) }}
+    runs-on:
+      - self-hosted
+      - ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: deploy-nodes.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          tags: cluster-config
+          vars: ""

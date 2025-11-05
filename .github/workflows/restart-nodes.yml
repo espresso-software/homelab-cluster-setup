@@ -5,13 +5,19 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      host:
+      cluster:
         description: "The cluster to run the playbook against"
         required: true
         type: choice
         options:
           - test-k3s
           - game-k3s
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - .github/workflows/restart-nodes.yml
+      - restart-nodes.yml
 
 jobs:
   deploy:
@@ -29,8 +35,8 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-rolling-restart.yml
+          playbook_path: restart-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.host }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: ""
           vars: ""

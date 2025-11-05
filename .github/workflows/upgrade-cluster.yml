@@ -5,10 +5,12 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      host:
-        description: "The host to run the playbook on"
-        required: false
-        default: "all"
+      cluster:
+        description: "The cluster to run the playbook on"
+        type: choice
+        options:
+          - test-k3s
+          - game-k3s
       tags:
         description: "The tags to run"
         required: false
@@ -30,30 +32,13 @@ jobs:
           submodules: "true"
           token: ${{ secrets.READ_ACCESS_TOKEN }}
 
-      - name: Set extra_args
-        id: set_extra_args
-        run: |
-          args_string=""
-          if [ -n "${{ github.event.inputs.host }}" ]; then
-            args_string="${args_string} -l ${{ github.event.inputs.host }}"
-          fi
-          if [ -n "${{ github.event.inputs.tags }}" ]; then
-            args_string="${args_string} --tags ${{ github.event.inputs.tags }}"
-          fi
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            args_string="${args_string} --extra-vars 'k3s_version=${{ github.event.inputs.version }}'"
-          fi
-          echo "::set-output name=extra_args::${args_string}"
-
-      - name: Setup vault token
-        run: |
-          echo "${{ secrets.VAULT_DECRYPT_TOKEN }}" > /tmp/vault_pass
-
-      - name: Run playbook
-        run: |
-          ansible-playbook -i inventory/hosts.ini -l ${{ github.event.inputs.host }} k3s-upgrade.yml -v --vault-password-file /tmp/vault_pass ${{ steps.set_extra_args.outputs.extra_args }}
-
-      - name: Remove vault pass
-        if: always()
-        run: |
-          rm /tmp/vault_pass
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: upgrade-cluster.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          tags: ${{ github.event.inputs.tags != '' && github.event.inputs.tags || 'no-downtime' }}
+          vars: |
+            k3s_version: "${{ github.event.inputs.version }}"

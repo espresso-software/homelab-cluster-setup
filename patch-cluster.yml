@@ -1,0 +1,33 @@
+---
+- name: Patch workers
+  hosts:
+    - k3s_workers:!game-wkr04pl
+  gather_facts: true
+  become: true
+  serial: 1
+  tags:
+    - no-downtime
+  roles:
+    - k3s-patching
+
+- name: Patch managers
+  hosts:
+    - k3s_managers
+  tags:
+    - no-downtime
+  gather_facts: true
+  become: true
+  serial: 1
+  roles:
+    - k3s-patching
+
+- name: Patch Game Node
+  hosts:
+    - game-wkr04pl
+  gather_facts: true
+  become: true
+  serial: 1
+  tags:
+    - downtime
+  roles:
+    - k3s-patching

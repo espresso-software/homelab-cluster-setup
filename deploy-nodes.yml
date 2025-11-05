@@ -103,3 +103,16 @@
     - agent
   roles:
     - k3s-config
+
+- name: Install Helm
+  hosts: k3s_managers
+  gather_facts: true
+  become: true
+  tags:
+    - helm
+    - server
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
+  roles:
+    - helm

@@ -3,6 +3,17 @@ permissions:
   contents: read
 
 on:
+  workflow_call:
+    inputs:
+      cluster:
+        description: "The cluster to run the playbook against"
+        required: true
+        type: string
+      tags:
+        description: "The tags to run"
+        required: false
+        type: string
+        default: ""
   workflow_dispatch:
     inputs:
       cluster:
@@ -18,22 +29,31 @@ on:
         type: choice
         options:
           - all
-          - cilium
-          - metallb
-          - longhorn
           - cert-manager
-          - traefik
+          - cilium
+          - longhorn
+          - metallb
           - pihole
-      extra_vars:
-        description: "Extra vars to pass to the playbook"
-        required: false
-        default: ""
+          - traefik
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - .github/workflows/deploy-middleware.yml
+      - roles/cilium/**
+      - roles/metallb/**
+      - roles/longhorn/**
+      - roles/cert-manager/**
+      - roles/traefik/**
+      - roles/pihole/**
+      - deploy-middleware.yml
+      - inventory/hosts.yml
+      - group_vars/**
+      - host_vars/**
 
 jobs:
   cilium:
-    if: |
-      github.event.inputs.tags == 'all' ||
-      github.event.inputs.tags == 'cilium'
+    if: ${{ contains(fromJSON('["all", "cilium", ""]'), github.event.inputs.tags) }}
     runs-on:
       - self-hosted
       - ansible
@@ -46,24 +66,16 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-middleware.yml
+          playbook_path: deploy-middleware.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: cilium
-          vars: ${{ github.event.inputs.extra_vars }}
+          vars: ""
 
   metallb:
     needs:
       - cilium
-    if: |
-      always() && 
-      (
-        needs.cilium.result == 'success' ||
-        needs.cilium.result == 'skipped'
-      ) && (
-        github.event.inputs.tags == 'all' ||
-        github.event.inputs.tags == 'metallb'
-      )
+    if: ${{ !failure() && contains(fromJSON('["all", "metallb", ""]'), github.event.inputs.tags) }}
     runs-on:
       - self-hosted
       - ansible
@@ -76,24 +88,16 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-middleware.yml
+          playbook_path: deploy-middleware.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: metallb
-          vars: ${{ github.event.inputs.extra_vars }}
+          vars: ""
 
   longhorn:
     needs:
-      - metallb
-    if: |
-      always() && 
-      (
-        needs.metallb.result == 'success' ||
-        needs.metallb.result == 'skipped'
-      ) && (
-        github.event.inputs.tags == 'all' ||
-        github.event.inputs.tags == 'longhorn'
-      )
+      - cilium
+    if: ${{ !failure() && contains(fromJSON('["all", "longhorn", ""]'), github.event.inputs.tags) }}
     runs-on:
       - self-hosted
       - ansible
@@ -106,24 +110,16 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-middleware.yml
+          playbook_path: deploy-middleware.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: longhorn
-          vars: ${{ github.event.inputs.extra_vars }}
+          vars: ""
 
   cert-manager:
     needs:
       - longhorn
-    if: |
-      always() && 
-      (
-        needs.longhorn.result == 'success' ||
-        needs.longhorn.result == 'skipped'
-      ) && (
-        github.event.inputs.tags == 'all' ||
-        github.event.inputs.tags == 'cert-manager'
-      )
+    if: ${{ !failure() && contains(fromJSON('["all", "cert-manager", ""]'), github.event.inputs.tags) }}
     runs-on:
       - self-hosted
       - ansible
@@ -136,24 +132,18 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-middleware.yml
+          playbook_path: deploy-middleware.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: cert-manager
-          vars: ${{ github.event.inputs.extra_vars }}
+          vars: ""
 
   traefik:
     needs:
+      - metallb
+      - longhorn
       - cert-manager
-    if: |
-      always() && 
-      (
-        needs.cert-manager.result == 'success' ||
-        needs.cert-manager.result == 'skipped'
-      ) && (
-        github.event.inputs.tags == 'all' ||
-        github.event.inputs.tags == 'traefik'
-      )
+    if: ${{ !failure() && contains(fromJSON('["all", "traefik", ""]'), github.event.inputs.tags) }}
     runs-on:
       - self-hosted
       - ansible
@@ -166,24 +156,17 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-middleware.yml
+          playbook_path: deploy-middleware.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: traefik
-          vars: ${{ github.event.inputs.extra_vars }}
+          vars: ""
 
   pihole:
     needs:
-      - traefik
-    if: |
-      always() && 
-      (
-        needs.traefik.result == 'success' ||
-        needs.traefik.result == 'skipped'
-      ) && (
-        github.event.inputs.tags == 'all' ||
-        github.event.inputs.tags == 'pihole'
-      )
+      - longhorn
+      - metallb
+    if: ${{ !failure() && contains(fromJSON('["all", "pihole", ""]'), github.event.inputs.tags) && github.event.inputs.cluster == 'game-k3s' }}
     runs-on:
       - self-hosted
       - ansible
@@ -196,8 +179,8 @@ jobs:
         env:
           VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
         with:
-          playbook_path: k3s-middleware.yml
+          playbook_path: deploy-middleware.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: pihole
-          vars: ${{ github.event.inputs.extra_vars }}
+          vars: ""
