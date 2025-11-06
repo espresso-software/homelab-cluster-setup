@@ -17,6 +17,7 @@ on:
       - main
     paths:
       - .github/workflows/restart-nodes.yml
+      - roles/k3s-restart/tasks/main.yml
       - restart-nodes.yml
 
 jobs:
