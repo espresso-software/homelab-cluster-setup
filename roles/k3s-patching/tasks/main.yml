@@ -27,7 +27,7 @@
 
 - name: Perform k3s cleanup
   changed_when: false
-  ansible.builtin.shell: crictl rmi --prune
+  ansible.builtin.command: crictl rmi --prune
 
 - name: Check if /var/run/reboot-required exists
   ansible.builtin.stat:
@@ -43,13 +43,8 @@
   block:
     - name: Cordon node
       delegate_to: "{{ cluster_name }}-mgr01{{ 'pl' if cluster_name == 'game' else 'vl' }}"
-      kubernetes.core.k8s_drain:
-        name: "{{ node }}"
-        state: drain
-        delete_options:
-          delete_emptydir_data: true
-          ignore_daemonsets: true
-          wait_timeout: 0
+      ansible.builtin.command: kubectl drain "{{ node }}" --ignore-daemonsets --delete-local-data --timeout=0
+      changed_when: true
 
     - name: Reboot
       ansible.builtin.reboot:
@@ -69,6 +64,5 @@
       delegate_to: "{{ cluster_name }}-mgr{{ '02' if 'mgr01' in ansible_hostname else '01' }}{{ 'pl' if cluster_name == 'game' else 'vl' }}"
       environment:
         KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
-      kubernetes.core.k8s_drain:
-        name: "{{ node }}"
-        state: uncordon
+      ansible.builtin.command: kubectl uncordon "{{ node }}"
+      changed_when: true
