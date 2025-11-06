@@ -9,8 +9,11 @@ on:
     inputs:
       cluster:
         description: "The cluster to run the playbook on"
-        required: false
-        default: "all"
+        type: choice
+        options:
+          - test-k3s
+          - game-k3s
+          - all
       tags:
         description: "The tags to run"
         required: false
