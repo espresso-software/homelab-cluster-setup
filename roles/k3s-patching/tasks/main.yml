@@ -43,7 +43,7 @@
   block:
     - name: Cordon node
       delegate_to: "{{ cluster_name }}-mgr01{{ 'pl' if cluster_name == 'game' else 'vl' }}"
-      ansible.builtin.command: kubectl drain "{{ node }}" --ignore-daemonsets --delete-local-data --timeout=0
+      ansible.builtin.command: kubectl drain "{{ node }}" --ignore-daemonsets --delete-emptydir-data --timeout=0
       changed_when: true
 
     - name: Reboot
