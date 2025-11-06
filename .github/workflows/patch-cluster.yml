@@ -23,6 +23,7 @@ on:
       - main
     paths:
       - .github/workflows/patch-cluster.yml
+      - roles/k3s-patching/tasks/main.yml
       - patch-cluster.yml
       - inventory/hosts.yml
       - group_vars/**
