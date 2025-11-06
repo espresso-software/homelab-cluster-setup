@@ -3,12 +3,18 @@ permissions:
   contents: read
 
 on:
+  schedule:
+    # Run at 12:00 PM UTC every day
+    - cron: "0 12 * * *"
   workflow_dispatch:
     inputs:
       cluster:
         description: "The cluster to run the playbook on"
-        required: false
-        default: "all"
+        type: choice
+        options:
+          - test-k3s
+          - game-k3s
+          - all
       tags:
         description: "The tags to run"
         required: false
@@ -18,13 +24,14 @@ on:
       - main
     paths:
       - .github/workflows/patch-cluster.yml
+      - roles/k3s-patching/tasks/main.yml
       - patch-cluster.yml
       - inventory/hosts.yml
       - group_vars/**
       - host_vars/**
 
 jobs:
-  deploy:
+  test-cluster:
     runs-on:
       - self-hosted
       - ansible
@@ -42,5 +49,24 @@ jobs:
           playbook_path: patch-cluster.yml
           inventory_path: inventory/hosts.yml
           hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
-          tags: ${{ github.event.inputs.tags != '' && github.event.inputs.tags || 'no-downtime' }}
+          tags: ${{ github.event.inputs.tags != '' && github.event.inputs.tags || 'all' }}
+          vars: ""
+
+  game-cluster:
+    runs-on:
+      - self-hosted
+      - ansible
+    needs:
+      - test-cluster
+    if: ${{ success() && github.event.schedule == '0 12 * * 1' }}
+    steps:
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        # Only run downtime patches on game-k3s cluster on Mondays at 12:00 PM UTC
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: patch-cluster.yml
+          inventory_path: inventory/hosts.yml
+          hosts: "game-k3s"
+          tags: "downtime"
           vars: ""

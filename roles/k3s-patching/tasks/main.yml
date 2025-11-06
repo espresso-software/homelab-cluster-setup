@@ -1,15 +1,15 @@
 ---
 - name: Update apt cache
   ansible.builtin.apt:
-    update_cache: yes
+    update_cache: true
 
 - name: Perform safe upgrade
   ansible.builtin.apt:
-    upgrade: yes
+    upgrade: true
 
 - name: Perform auto-remove
   ansible.builtin.apt:
-    autoremove: yes
+    autoremove: true
 
 - name: Check if docker sock exists
   ansible.builtin.stat:
@@ -18,13 +18,19 @@
 
 - name: Perform docker cleanup
   when: docker_status.stat.exists
-  ansible.builtin.shell: docker system prune -f
+  community.docker.docker_prune:
+    builder_cache_all: true
+    containers: true
+    images: true
+    networks: true
+    volumes: true
 
 - name: Perform k3s cleanup
-  ansible.builtin.shell: crictl rmi --prune
+  changed_when: false
+  ansible.builtin.command: crictl rmi --prune
 
 - name: Check if /var/run/reboot-required exists
-  ansible.builtin.stat: 
+  ansible.builtin.stat:
     path: /var/run/reboot-required
   register: reboot_required
 
@@ -36,9 +42,9 @@
     KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
   block:
     - name: Cordon node
-      delegate_to: "{{ groups['k3s_managers'][0] }}"
-      ansible.builtin.command:
-        cmd: kubectl drain --ignore-daemonsets --delete-emptydir-data --timeout=0 {{ node }}
+      delegate_to: "{{ cluster_name }}-mgr01{{ 'pl' if cluster_name == 'game' else 'vl' }}"
+      ansible.builtin.command: kubectl drain "{{ node }}" --ignore-daemonsets --delete-emptydir-data --timeout=0
+      changed_when: true
 
     - name: Reboot
       ansible.builtin.reboot:
@@ -48,16 +54,15 @@
     - name: Wait for all k8s nodes to be ready
       environment:
         KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
-      delegate_to: "{{ groups['k3s_managers'][0] if ansible_hostname != groups['k3s_managers'][0] else groups['k3s_managers'][1] }}"
-      ansible.builtin.shell: kubectl wait --for=condition=Ready nodes --all --timeout=30s
+      delegate_to: "{{ cluster_name }}-mgr{{ '02' if 'mgr01' in ansible_hostname else '01' }}{{ 'pl' if cluster_name == 'game' else 'vl' }}"
+      ansible.builtin.command: kubectl wait --for=condition=Ready nodes --all --timeout=30s
       changed_when: false
       retries: 50
       delay: 15
 
     - name: Uncordon node
-      delegate_to: "{{ groups['k3s_managers'][0] }}"
+      delegate_to: "{{ cluster_name }}-mgr{{ '02' if 'mgr01' in ansible_hostname else '01' }}{{ 'pl' if cluster_name == 'game' else 'vl' }}"
       environment:
         KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
-      kubernetes.core.k8s_drain:
-        name: "{{ node }}"
-        state: uncordon
+      ansible.builtin.command: kubectl uncordon "{{ node }}"
+      changed_when: true
