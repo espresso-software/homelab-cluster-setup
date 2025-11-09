@@ -131,6 +131,11 @@
         dest: .secret/{{ cluster_name }}/agent-token
         flat: true
 
+- name: Start other servers
+  when:
+    - managers | length > 1
+    - inventory_hostname != managers[0].name
+  block:
     - name: Store k3s server token
       no_log: true
       ansible.builtin.set_fact:
@@ -140,21 +145,6 @@
       no_log: true
       ansible.builtin.set_fact:
         k3s_agent_token: "{{ lookup('file', '.secret/' + cluster_name + '/agent-token') | trim }}"
-
-- name: Start other servers
-  when:
-    - managers | length > 1
-    - inventory_hostname != managers[0].name
-  block:
-    - name: Set k3s server token fact
-      no_log: true
-      ansible.builtin.set_fact:
-        k3s_token: "{{ hostvars[managers[0].name].k3s_token }}"
-
-    - name: Set k3s agent token fact
-      no_log: true
-      ansible.builtin.set_fact:
-        k3s_agent_token: "{{ hostvars[managers[0].name].k3s_agent_token }}"
 
     - name: Create k3s config-ha config yaml
       ansible.builtin.template:
