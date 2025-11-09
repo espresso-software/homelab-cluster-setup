@@ -4,6 +4,11 @@
     url: https://packages.buildkite.com/helm-linux/helm-debian/gpgkey
     state: present
 
+- name: Remove old Helm APT Repository
+  ansible.builtin.apt_repository:
+    repo: deb https://baltocdn.com/helm/stable/debian/ all main
+    state: absent
+
 - name: Add Helm APT Repository
   ansible.builtin.apt_repository:
     repo: deb https://packages.buildkite.com/helm-linux/helm-debian/any/ any main
