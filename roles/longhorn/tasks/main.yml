@@ -61,4 +61,10 @@
         backupTarget: s3://coffee-longhorn-backups@us-west-2/{{ cluster_name }}-k3s
         backupTargetCredentialSecret: "{{ cluster_name }}-longhorn-aws-secret"
         pollInterval: 300
+      service:
+        ui:
+          type: LoadBalancer
+          annotations:
+            metallb.universe.tf/allow-shared-ip: longhorn
+            metallb.universe.tf/loadBalancerIPs: "{{ longhorn_ip }}"
   run_once: true
