@@ -8,7 +8,6 @@
   ansible.builtin.apt_repository:
     repo: deb https://packages.buildkite.com/helm-linux/helm-debian/any/ any main
     state: present
-    update_cache: true
 
 - name: Install Helm
   ansible.builtin.apt:
