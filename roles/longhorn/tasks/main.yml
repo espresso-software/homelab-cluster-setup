@@ -51,6 +51,7 @@
     name: longhorn
     chart_ref: longhorn/longhorn
     release_namespace: "{{ longhorn_namespace }}"
+    chart_version: '1.7.0'
     values:
       persistence:
         defaultDataLocality: "best-effort"
