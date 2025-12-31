@@ -26,7 +26,9 @@
     volumes: true
 
 - name: Perform k3s cleanup
+  become: true
   changed_when: false
+  failed_when: false
   ansible.builtin.command: crictl rmi --prune
 
 - name: Check if /var/run/reboot-required exists
