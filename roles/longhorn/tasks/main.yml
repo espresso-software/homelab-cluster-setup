@@ -15,7 +15,7 @@
     state: present
 
 - name: Create AWS S3 Backup Secret
-  no_log: true
+  # no_log: true
   kubernetes.core.k8s:
     definition:
       apiVersion: v1
@@ -26,9 +26,9 @@
       stringData:
         AWS_ACCESS_KEY_ID: "{{ longhorn_akid }}"
         AWS_SECRET_ACCESS_KEY: "{{ longhorn_access_key }}"
-        HTTP_PROXY: http://{{ internet_proxy }}
-        HTTPS_PROXY: http://{{ internet_proxy }}
-        NO_PROXY: "{{ no_proxy }}"
+        # HTTP_PROXY: "{{ internet_proxy }}"
+        # HTTPS_PROXY: "{{ internet_proxy }}"
+        # NO_PROXY: "{{ no_proxy }}"
 
 - name: Create Longhorn LimitRange
   kubernetes.core.k8s:
@@ -51,7 +51,7 @@
     name: longhorn
     chart_ref: longhorn/longhorn
     release_namespace: "{{ longhorn_namespace }}"
-    chart_version: '1.7.0'
+    chart_version: '1.8.0'
     values:
       persistence:
         defaultDataLocality: "best-effort"

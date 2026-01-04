@@ -1,5 +1,7 @@
 ---
 - name: Check if Cilium CLI is installed
+  environment:
+    PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
   ansible.builtin.command:
     cmd: cilium version
   register: cilium_cli_check
@@ -43,6 +45,8 @@
 - name: Wait for Cilium to be ready
   run_once: true
   changed_when: false
+  environment:
+    PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
   ansible.builtin.command:
     cmd: cilium status --wait
 
@@ -71,6 +75,7 @@
                 - default
                 - cloudflare
                 - traefik-system
+                - games
         ingress:
           - {}
         egress:
@@ -99,7 +104,7 @@
                 - monitoring
                 - cloudflare
                 - traefik-system
-
+                - games
         egress:
           - toEndpoints:
               - matchLabels:
@@ -143,6 +148,7 @@
                 - default
                 - cloudflare
                 - traefik-system
+                - games
         egress:
           - toCIDR:
               - 10.24.206.0/24

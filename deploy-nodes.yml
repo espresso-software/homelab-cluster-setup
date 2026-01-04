@@ -82,7 +82,7 @@
     - name: Verify that all server nodes joined
       ansible.builtin.command:
         cmd: >
-          k3s kubectl get nodes -o=jsonpath="{.items[*].metadata.name}"
+          /usr/local/bin/kubectl get nodes -o=jsonpath="{.items[*].metadata.name}"
       register: nodes
       until: nodes.rc == 0 and (nodes.stdout.split() | length) == (managers | length + role_labels | length)
       retries: 20

@@ -21,11 +21,10 @@
         name: python3-pip
         state: present
     - name: Install Ansible dependencies
-      ansible.builtin.shell:
-        cmd: pip install --break-system-packages \
-          pyyaml \
-          kubernetes
-      changed_when: false
+      ansible.builtin.pip:
+        name:
+          - pyyaml
+          - kubernetes
   rescue:
     - name: '[WARNING] Failed to install Ansible dependencies'
       ansible.builtin.debug:
@@ -100,9 +99,9 @@
             enabled: true
 
     - name: Verify that all server nodes joined
-      ansible.builtin.command:
-        cmd: >
-          k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
+      become: true
+      ansible.builtin.command: >
+          /usr/local/bin/kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
       register: nodes
       until: nodes.rc == 0 and (nodes.stdout.split() | length) >= 1
       retries: 20
@@ -182,9 +181,9 @@
 
     - name: Verify that all server nodes joined
       when: (managers | length) > 1
-      ansible.builtin.command:
-        cmd: >
-          k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
+      delegate_to: "{{ managers[0].name }}"
+      ansible.builtin.command: >
+        /usr/local/bin/kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
       register: nodes
       until: nodes.rc == 0 and (nodes.stdout.split() | length) == (managers | length)
       retries: 20

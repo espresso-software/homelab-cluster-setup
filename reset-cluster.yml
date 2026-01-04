@@ -53,7 +53,7 @@
       with_items: "{{ collected_files }}"
 
     - name: Uninstall cluster dependencies
-      ansible.builtin.apt:
+      ansible.builtin.package:
         name:
           - helm
           - nfs-common
