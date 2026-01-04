@@ -1,6 +1,6 @@
 ---
 - name: Enable cgroup via cmdline.txt
-  when: pi
+  when: pi | default(false)
   ansible.builtin.lineinfile:
     path: /boot/firmware/cmdline.txt
     backrefs: true
@@ -10,7 +10,7 @@
 
 - name: Enable cgroup via grub
   become: true
-  when: not (pi | default(false))
+  when: not (pi | default(false)) and ansible_distribution == 'Ubuntu'
   ansible.builtin.lineinfile:
     path: /etc/default/grub
     backrefs: true

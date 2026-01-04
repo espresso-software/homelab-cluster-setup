@@ -1,6 +1,6 @@
 ---
 - name: Install Dependencies
-  ansible.builtin.apt:
+  ansible.builtin.package:
     name:
       - haproxy
       - keepalived
@@ -15,6 +15,17 @@
     mode: '0640'
   notify: Restart HAProxy
 
+- name: Set selinux boolean for HAProxy
+  ansible.builtin.command: setsebool -P haproxy_connect_any 1
+  when: ansible_facts.selinux.status == "enabled"
+  changed_when: false
+
+- name: Enable HAProxy service
+  ansible.builtin.systemd:
+    name: haproxy
+    enabled: true
+    state: started
+
 - name: Configure Keepalived
   ansible.builtin.template:
     src: keepalived.conf.j2
@@ -23,3 +34,14 @@
     group: root
     mode: '0640'
   notify: Restart Keepalived
+
+- name: Set selinux boolean for Keepalived
+  ansible.builtin.command: setsebool -P keepalived_connect_any 1
+  when: ansible_facts.selinux.status == "enabled"
+  changed_when: false
+
+- name: Enable Keepalived service
+  ansible.builtin.systemd:
+    name: keepalived
+    enabled: true
+    state: started
