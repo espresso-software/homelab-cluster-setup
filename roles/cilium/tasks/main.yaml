@@ -6,6 +6,7 @@
     cmd: cilium version
   register: cilium_cli_check
   ignore_errors: true
+  changed_when: false
 
 - name: Install Cilium CLI
   changed_when: false
@@ -14,6 +15,13 @@
   ansible.builtin.script:
     cmd: cilium-install.sh
     executable: /bin/bash
+
+- name: Enable IPv4 forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+    reload: true
 
 - name: Update helm chart
   run_once: true
@@ -26,11 +34,13 @@
   ansible.builtin.tempfile:
     suffix: '.yaml'
   register: cilium_values_file
+  changed_when: false
 
 - name: Template Cilium values file
   ansible.builtin.template:
     src: "templates/values.j2"
     dest: "{{ cilium_values_file.path }}"
+  changed_when: false
 
 - name: Deploy Cilium with helm
   run_once: true

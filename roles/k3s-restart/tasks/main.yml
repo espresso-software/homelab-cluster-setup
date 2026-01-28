@@ -5,7 +5,7 @@
   block:
     - name: Cordon node
       delegate_to: "{{ cluster_name }}-mgr01{{ 'pl' if cluster_name == 'game' else 'vl' }}"
-      ansible.builtin.command: kubectl drain "{{ node }}" --ignore-daemonsets --delete-emptydir-data --timeout=0
+      ansible.builtin.command: /usr/local/bin/kubectl drain "{{ node }}" --ignore-daemonsets --delete-emptydir-data --timeout=0
       changed_when: true
 
     - name: Reboot
@@ -17,7 +17,7 @@
       environment:
         KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
       delegate_to: "{{ cluster_name }}-mgr{{ '02' if 'mgr01' in ansible_hostname else '01' }}{{ 'pl' if cluster_name == 'game' else 'vl' }}"
-      ansible.builtin.command: kubectl wait --for=condition=Ready nodes --all --timeout=30s
+      ansible.builtin.command: /usr/local/bin/kubectl wait --for=condition=Ready nodes --all --timeout=30s
       changed_when: false
       retries: 50
       delay: 15
@@ -26,5 +26,5 @@
       delegate_to: "{{ cluster_name }}-mgr{{ '02' if 'mgr01' in ansible_hostname else '01' }}{{ 'pl' if cluster_name == 'game' else 'vl' }}"
       environment:
         KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
-      ansible.builtin.command: kubectl uncordon "{{ node }}"
+      ansible.builtin.command: /usr/local/bin/kubectl uncordon "{{ node }}"
       changed_when: true

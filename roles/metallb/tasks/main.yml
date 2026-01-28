@@ -103,6 +103,6 @@
         name: "{{ item.name }}"
         namespace: "{{ metallb_namespace }}"
       spec:
-        ipAddressePools:
+        ipAddressPools:
           - "{{ item.name }}"
   with_items: "{{ metallb_pools }}"

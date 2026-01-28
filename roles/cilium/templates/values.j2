@@ -41,6 +41,14 @@ hubble:
   ui:
     enabled: true
     replicas: {{ hubble_ui_replicas | default(2) }}
+{% if hubble_ip is defined and hubble_ip != "" %}
+    service:
+      type: LoadBalancer
+      annotations:
+        metallb.universe.tf/address-pool: "assigned-vips"
+        metallb.universe.tf/loadBalancerIPs: "{{ hubble_ip }}"
+{% endif %}
+{% if ingress_ip is defined and ingress_ip != "" %}  
   ingress:
     enabled: true
     hosts:
@@ -49,3 +57,4 @@ hubble:
       - secretName: hubble-ui-tls
         hosts:
           - hubble.{{ cluster_domain }}
+{% endif %}
