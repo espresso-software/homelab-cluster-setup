@@ -25,6 +25,7 @@
         name:
           - pyyaml
           - kubernetes
+        break_system_packages: true
   rescue:
     - name: '[WARNING] Failed to install Ansible dependencies'
       ansible.builtin.debug:
