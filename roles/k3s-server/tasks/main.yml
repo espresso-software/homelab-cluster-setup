@@ -31,8 +31,8 @@
       ansible.builtin.debug:
         msg: 'Failed to install Ansible dependencies, check logs'
 
-- name: Install Ansible K3S dependencies Ubuntu'
-  when: ansible_distribution in 'Ubuntu'
+- name: Install Ansible K3S dependencies Ubuntu
+  when: ansible_distribution == 'Ubuntu'
   block:
     - name: Install pip
       ansible.builtin.package:
