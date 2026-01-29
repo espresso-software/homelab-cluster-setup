@@ -2,6 +2,13 @@ crds:
   enabled: true
 replicaCount: {{ cert_manager_replicas | default(2) }}
 dns01RecursiveNameservers: '1.1.1.1:53,1.0.0.1:53'
+extraEnv:
+  - name: HTTP_PROXY
+    value: "{{ http_proxy | default('') }}"
+  - name: HTTPS_PROXY
+    value: "{{ https_proxy | default('') }}"
+  - name: NO_PROXY
+    value: "{{ no_proxy | default('') }}"
 resources:
   requests:
     cpu: 10m
