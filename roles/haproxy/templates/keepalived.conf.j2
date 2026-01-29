@@ -5,7 +5,7 @@ vrrp_script chk_haproxy {
 
 vrrp_instance k3s-vip {
     state {{ k3s_vip_state }}
-    interface {{ ethernet.device }}
+    interface {% if ansible_hostname.endswith('pl') %}vlan{% else %}{{ ethernet.device }}{% endif %}
     priority {{ k3s_vip_priority }}
 
     virtual_router_id {{ vip_router_id }}
