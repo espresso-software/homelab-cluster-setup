@@ -11,6 +11,18 @@
     name: "{{ item.name }}"
   with_items: "{{ role_labels | default([]) }}"
 
+- name: Apply extra labels:
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Node
+      metadata:
+        labels:
+          "{{ item.key }}": "{{ item.value }}"
+    name: "{{ item.name }}"
+  with_items: "{{ extra_node_labels | default([]) }}"
+
 - name: Restrict kube-system pods to managers
   with_items:
     - coredns
