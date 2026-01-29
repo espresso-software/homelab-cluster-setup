@@ -49,6 +49,7 @@
     state: present
     namespace: kube-system
     chart_ref: cilium/cilium
+    chart_version: "{{ cilium_helm_chart_version }}"
     values_files:
       - "{{ cilium_values_file.path }}"
 

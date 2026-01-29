@@ -39,6 +39,7 @@
     name: metallb
     chart_ref: metallb/metallb
     release_namespace: "{{ metallb_namespace }}"
+    chart_version: "{{ metallb_helm_chart_version }}"
     values:
       controller:
         nodeSelector:

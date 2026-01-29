@@ -19,6 +19,7 @@
   kubernetes.core.helm:
     name: loki
     chart_ref: grafana/loki
+    chart_version: "{{ loki_helm_chart_version }}"
     release_namespace: "{{ loki_namespace }}"
     state: present
     values_files:
@@ -34,6 +35,7 @@
   kubernetes.core.helm:
     name: fluent-bit
     chart_ref: fluent/fluent-bit
+    chart_version: "0.55.0"
     release_namespace: "{{ loki_namespace }}"
     state: present
     values:

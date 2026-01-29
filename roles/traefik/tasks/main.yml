@@ -75,6 +75,7 @@
     state: present
     namespace: "{{ namespace }}"
     chart_ref: traefik/traefik
+    chart_version: "{{ traefik_helm_chart_version }}"
     values_files:
       - "{{ traefik_values_file.path }}"
 
