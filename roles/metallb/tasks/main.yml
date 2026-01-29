@@ -39,6 +39,7 @@
     name: metallb
     chart_ref: metallb/metallb
     release_namespace: "{{ metallb_namespace }}"
+    chart_version: "{{ metallb_helm_chart_version }}"
     values:
       controller:
         nodeSelector:
@@ -103,6 +104,6 @@
         name: "{{ item.name }}"
         namespace: "{{ metallb_namespace }}"
       spec:
-        ipAddressePools:
+        ipAddressPools:
           - "{{ item.name }}"
   with_items: "{{ metallb_pools }}"

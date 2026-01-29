@@ -34,7 +34,7 @@
     name: cert-manager
     namespace: "{{ cert_manager_namespace }}"
     chart_ref: jetstack/cert-manager
-    chart_version: v1.15.2
+    chart_version: "{{ cert_manager_helm_chart_version }}"
     values_files:
       - "{{ cert_manager_values_file.path }}"
 

@@ -15,6 +15,7 @@
   changed_when: true
 
 - name: Install Ansible K3S dependencies
+  when: ansible_distribution == 'Rocky'
   block:
     - name: Install pip
       ansible.builtin.package:
@@ -25,6 +26,21 @@
         name:
           - pyyaml
           - kubernetes
+  rescue:
+    - name: '[WARNING] Failed to install Ansible dependencies'
+      ansible.builtin.debug:
+        msg: 'Failed to install Ansible dependencies, check logs'
+
+- name: Install Ansible K3S dependencies Ubuntu
+  when: ansible_distribution == 'Ubuntu'
+  block:
+    - name: Install pip
+      ansible.builtin.package:
+        name:
+          - python3-yaml
+          - python3-kubernetes
+          - python3-pip
+        state: present
   rescue:
     - name: '[WARNING] Failed to install Ansible dependencies'
       ansible.builtin.debug:

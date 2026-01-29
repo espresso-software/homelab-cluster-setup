@@ -73,6 +73,7 @@
   kubernetes.core.helm:
     name: prometheus
     chart_ref: prometheus-community/prometheus
+    chart_version: "{{ prometheus_helm_chart_version }}"
     release_namespace: monitoring
     release_name: prometheus
     state: present
