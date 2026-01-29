@@ -8,8 +8,20 @@
       metadata:
         labels:
           kubernetes.io/role: "{{ item.role }}"
-    name: "{{ item.name }}"
+    name: "{{ item.node }}"
   with_items: "{{ role_labels | default([]) }}"
+
+- name: Apply extra labels
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Node
+      metadata:
+        labels:
+          "{{ item.label }}": "{{ item.value }}"
+    name: "{{ item.node }}"
+  with_items: "{{ extra_labels | default([]) }}"
 
 - name: Restrict kube-system pods to managers
   with_items:

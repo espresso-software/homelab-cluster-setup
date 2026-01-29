@@ -2,7 +2,8 @@
 - name: Add MetalLB Helm Repo
   kubernetes.core.helm_repository:
     name: metallb
-    repo_url: https://metallb.github.io/metallb
+    url: https://metallb.github.io/metallb
+    force_update: true
     state: present
 
 - name: Create MetalLB Namespace

@@ -19,18 +19,11 @@ on:
           - test-k3s
           # Uncomment the line below to enable reset for game-k3s cluster
           # - game-k3s
-  push:
-    branches-ignore:
-      - main
-    paths:
-      - .github/workflows/reset-cluster.yml
-      - reset-cluster.yml
 
 jobs:
   deploy:
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
 
     steps:
       - uses: actions/checkout@v4

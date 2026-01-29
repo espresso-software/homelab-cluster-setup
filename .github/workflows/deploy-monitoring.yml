@@ -51,8 +51,7 @@ jobs:
   node-exporter:
     if: ${{ contains(fromJSON('["all", "node-exporter", ""]'), github.event.inputs.tags) }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:
@@ -70,8 +69,7 @@ jobs:
   prometheus:
     if: ${{ !failure() && contains(fromJSON('["all", "prometheus", ""]'), github.event.inputs.tags) }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:
@@ -89,8 +87,7 @@ jobs:
   loki:
     if: ${{ !failure() && contains(fromJSON('["all", "loki", ""]'), github.event.inputs.tags) }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:
@@ -111,8 +108,7 @@ jobs:
       - prometheus
     if: ${{ !failure() && contains(fromJSON('["all", "grafana", ""]'), github.event.inputs.tags) && github.event.inputs.cluster == 'game-k3s' }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:

@@ -55,8 +55,7 @@ jobs:
   cilium:
     if: ${{ contains(fromJSON('["all", "cilium", ""]'), github.event.inputs.tags) }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:
@@ -77,8 +76,7 @@ jobs:
       - cilium
     if: ${{ !failure() && contains(fromJSON('["all", "metallb", ""]'), github.event.inputs.tags) }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:
@@ -99,8 +97,7 @@ jobs:
       - cilium
     if: ${{ !failure() && contains(fromJSON('["all", "longhorn", ""]'), github.event.inputs.tags) }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:
@@ -121,8 +118,7 @@ jobs:
       - longhorn
     if: ${{ !failure() && contains(fromJSON('["all", "cert-manager", ""]'), github.event.inputs.tags) }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:
@@ -145,8 +141,7 @@ jobs:
       - cert-manager
     if: ${{ !failure() && contains(fromJSON('["all", "traefik", ""]'), github.event.inputs.tags) }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:
@@ -168,8 +163,7 @@ jobs:
       - metallb
     if: ${{ !failure() && contains(fromJSON('["all", "pihole", ""]'), github.event.inputs.tags) && github.event.inputs.cluster == 'game-k3s' }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:
