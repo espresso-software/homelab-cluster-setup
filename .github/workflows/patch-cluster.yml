@@ -33,8 +33,7 @@ on:
 jobs:
   test-cluster:
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
 
     steps:
       - uses: actions/checkout@v4
@@ -54,8 +53,7 @@ jobs:
 
   game-cluster:
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     needs:
       - test-cluster
     if: ${{ success() && github.event.schedule == '0 12 * * 1' }}

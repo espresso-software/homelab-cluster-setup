@@ -60,8 +60,7 @@ jobs:
   haproxy:
     if: ${{ contains(fromJSON('["all", "haproxy", "server", "agent", ""]'), github.event.inputs.tags) }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:
@@ -82,8 +81,7 @@ jobs:
       - haproxy
     if: ${{ !failure() && contains(fromJSON('["all", "prereq", "server", "agent", ""]'), github.event.inputs.tags) }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:
@@ -104,8 +102,7 @@ jobs:
       - prereq
     if: ${{ !failure() && contains(fromJSON('["all", "server", "init-managers", ""]'), github.event.inputs.tags) }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:
@@ -126,8 +123,7 @@ jobs:
       - servers
     if: ${{ !failure() && contains(fromJSON('["all", "agent", "init-workers", ""]'), github.event.inputs.tags) }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:
@@ -148,8 +144,7 @@ jobs:
       - prereq
     if: ${{ !failure() && contains(fromJSON('["all", "helm", "server", ""]'), github.event.inputs.tags) }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:
@@ -171,8 +166,7 @@ jobs:
       - workers
     if: ${{ !failure() && contains(fromJSON('["all", "cluster-config", "server", "agent", ""]'), github.event.inputs.tags) }}
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
     steps:
       - uses: actions/checkout@v4
         with:

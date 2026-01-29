@@ -23,8 +23,7 @@ on:
 jobs:
   deploy:
     runs-on:
-      - self-hosted
-      - ansible
+      group: ansible
 
     steps:
       - uses: actions/checkout@v4
