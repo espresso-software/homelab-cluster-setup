@@ -2,7 +2,8 @@
 - name: Install Loki Helm Charts
   kubernetes.core.helm_repository:
     name: grafana
-    repo_url: https://grafana.github.io/helm-charts
+    url: https://grafana.github.io/helm-charts
+    force_update: true
     state: present
 
 - name: Create temporary values file
@@ -28,7 +29,8 @@
 - name: Install Fluent Bit helm chart
   kubernetes.core.helm_repository:
     name: fluent
-    repo_url: https://fluent.github.io/helm-charts
+    url: https://fluent.github.io/helm-charts
+    force_update: true
     state: present
 
 - name: Install Fluent Bit

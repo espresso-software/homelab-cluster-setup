@@ -27,7 +27,8 @@
   run_once: true
   kubernetes.core.helm_repository:
     name: cilium
-    repo_url: https://helm.cilium.io/
+    url: https://helm.cilium.io/
+    force_update: true
     state: present
 
 - name: Create temporary values file for Cilium

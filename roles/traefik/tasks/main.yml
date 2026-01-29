@@ -56,7 +56,8 @@
 - name: Install helm chart
   kubernetes.core.helm_repository:
     name: traefik
-    repo_url: https://traefik.github.io/charts
+    url: https://traefik.github.io/charts
+    force_update: true
     state: present
 
 - name: Create temporary values file for Traefik
