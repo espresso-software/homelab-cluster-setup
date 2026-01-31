@@ -2,7 +2,7 @@
 - name: Enable cgroup via cmdline.txt
   when: pi | default(false)
   ansible.builtin.lineinfile:
-    path: "{{ if ansible_distribution == 'Ubuntu' }}/boot/firmware/cmdline.txt{{ else }}/boot/cmdline.txt{{ endif }}"
+    path: "{{ '/boot/firmware/cmdline.txt' if ansible_distribution == 'Ubuntu' else '/boot/cmdline.txt' }}"
     backrefs: true
     regexp: '^((?!.*\bcgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory\b).*)$'
     line: '\1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory'
