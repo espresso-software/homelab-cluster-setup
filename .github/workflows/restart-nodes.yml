@@ -11,6 +11,7 @@ on:
         type: choice
         options:
           - test-k3s
+          - proxy-k3s
           - game-k3s
   push:
     branches-ignore:

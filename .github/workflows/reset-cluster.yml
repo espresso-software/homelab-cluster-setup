@@ -17,7 +17,8 @@ on:
         type: choice
         options:
           - test-k3s
-          # Uncomment the line below to enable reset for game-k3s cluster
+          # Uncomment the line below to enable reset for production clusters
+          # - proxy-k3s
           # - game-k3s
 
 jobs:

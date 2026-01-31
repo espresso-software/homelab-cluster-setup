@@ -10,6 +10,7 @@ on:
         type: choice
         options:
           - test-k3s
+          - proxy-k3s
           - game-k3s
       tags:
         description: "The tags to run"

@@ -13,6 +13,7 @@ on:
         type: choice
         options:
           - test-k3s
+          - proxy-k3s
           - game-k3s
           - all
       tags:
@@ -49,6 +50,23 @@ jobs:
           inventory_path: inventory/hosts.yml
           hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
           tags: ${{ github.event.inputs.tags != '' && github.event.inputs.tags || 'all' }}
+          vars: ""
+
+  proxy-cluster:
+    runs-on:
+      group: ansible
+    needs:
+      - test-cluster
+    if: ${{ success() }}
+    steps:
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: patch-cluster.yml
+          inventory_path: inventory/hosts.yml
+          hosts: "proxy-k3s"
+          tags: ""
           vars: ""
 
   game-cluster:
