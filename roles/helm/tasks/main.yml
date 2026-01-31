@@ -12,8 +12,17 @@
         state: present
         update_cache: true
 
+- name: Rocky Linux - Helm prerequisites
+  when: ansible_distribution == "Rocky"
+  block:
+    - name: Add EPEL repository
+      ansible.builtin.package:
+        name: epel-release
+        state: present
+
 - name: Install Helm
   ansible.builtin.package:
+    update_cache: true
     name: helm
     state: present
 
