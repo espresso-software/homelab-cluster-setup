@@ -12,9 +12,17 @@
   changed_when: false
   failed_when: false
   when: cilium_cli_check.rc != 0
-  ansible.builtin.script:
-    cmd: cilium-install.sh
-    executable: /bin/bash
+  block:
+    - name: install dependencies for Cilium CLI
+      ansible.builtin.package:
+        name:
+          - curl
+          - tar
+        state: present
+    - name: Download Cilium CLI
+      ansible.builtin.script:
+        cmd: cilium-install.sh
+        executable: /bin/bash
 
 - name: Enable IPv4 forwarding
   ansible.posix.sysctl:
