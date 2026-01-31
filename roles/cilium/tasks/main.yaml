@@ -9,8 +9,6 @@
   changed_when: false
 
 - name: Install Cilium CLI
-  changed_when: false
-  failed_when: false
   when: cilium_cli_check.rc != 0
   block:
     - name: install dependencies for Cilium CLI
@@ -20,6 +18,8 @@
           - tar
         state: present
     - name: Download Cilium CLI
+      changed_when: false
+      failed_when: false
       ansible.builtin.script:
         cmd: cilium-install.sh
         executable: /bin/bash
