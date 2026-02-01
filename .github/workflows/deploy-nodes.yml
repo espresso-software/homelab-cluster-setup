@@ -143,6 +143,7 @@ jobs:
   helm:
     needs:
       - prereq
+      - servers
     if: ${{ !failure() && contains(fromJSON('["all", "helm", "server", ""]'), github.event.inputs.tags) }}
     runs-on:
       group: ansible
