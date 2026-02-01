@@ -19,7 +19,7 @@
       kind: Node
       metadata:
         labels:
-          "{{ item.label }}": "{{ item.value }}"
+          "{{ item.labels }}"
     name: "{{ item.node }}"
   with_items: "{{ extra_labels | default([]) }}"
 
