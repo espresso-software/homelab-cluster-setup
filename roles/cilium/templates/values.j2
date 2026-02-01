@@ -28,6 +28,7 @@ operator:
   resources:
     requests:
       cpu: 50m
+  replicaCount: {{ cilium_operator_replicas | default(2) }}
 ipam:
   operator:
     clusterPoolIPv4PodCIDRList:
