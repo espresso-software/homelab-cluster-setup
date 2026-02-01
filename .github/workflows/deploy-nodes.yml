@@ -21,7 +21,7 @@ on:
         required: true
         type: choice
         options:
-          - test-k3s
+          - proxy-k3s
           - proxy-k3s
           - game-k3s
           - all
@@ -73,7 +73,7 @@ jobs:
         with:
           playbook_path: deploy-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'proxy-k3s' }}
           tags: haproxy
           vars: ""
 
@@ -94,7 +94,7 @@ jobs:
         with:
           playbook_path: deploy-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'proxy-k3s' }}
           tags: prereq
           vars: ""
 
@@ -115,7 +115,7 @@ jobs:
         with:
           playbook_path: deploy-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'proxy-k3s' }}
           tags: init-managers
           vars: ""
 
@@ -136,7 +136,7 @@ jobs:
         with:
           playbook_path: deploy-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'proxy-k3s' }}
           tags: init-workers
           vars: ""
 
@@ -157,7 +157,7 @@ jobs:
         with:
           playbook_path: deploy-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'proxy-k3s' }}
           tags: helm
           vars: ""
 
@@ -179,6 +179,6 @@ jobs:
         with:
           playbook_path: deploy-nodes.yml
           inventory_path: inventory/hosts.yml
-          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'test-k3s' }}
+          hosts: ${{ github.event.inputs.cluster != '' && github.event.inputs.cluster || 'proxy-k3s' }}
           tags: cluster-config
           vars: ""
