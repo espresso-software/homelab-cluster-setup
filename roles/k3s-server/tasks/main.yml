@@ -24,6 +24,7 @@
     - name: Install Ansible dependencies
       ansible.builtin.pip:
         name:
+          - setuptools
           - pyyaml
           - kubernetes
   rescue:
