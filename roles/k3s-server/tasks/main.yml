@@ -24,13 +24,22 @@
     - name: Install Ansible dependencies
       ansible.builtin.pip:
         name:
-          - setuptools
           - pyyaml
           - kubernetes
   rescue:
     - name: '[WARNING] Failed to install Ansible dependencies'
       ansible.builtin.debug:
         msg: 'Failed to install Ansible dependencies, check logs'
+
+    - name: Upgrate setuptools
+      ansible.builtin.command: pip3 install --upgrade setuptools
+      changed_when: false
+
+    - name: Install Ansible dependencies retry
+      ansible.builtin.pip:
+        name:
+          - pyyaml
+          - kubernetes
 
 - name: Install Ansible K3S dependencies Ubuntu
   when: ansible_distribution == 'Ubuntu'
