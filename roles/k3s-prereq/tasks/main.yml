@@ -9,6 +9,7 @@
           - /boot
         file_type: file
         patterns: 'cmdline.txt'
+        recurse: true
       register: cmdline_txt_path
 
     - name: Update cmdline.txt with cgroup settings
