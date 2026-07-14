@@ -23,7 +23,7 @@ on:
 jobs:
   deploy:
     runs-on:
-      group: ansible
+      group: ansible-deploy
 
     steps:
       - uses: actions/checkout@v4
