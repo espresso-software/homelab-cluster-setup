@@ -18,7 +18,7 @@ on:
         options:
           - test-k3s
           # Uncomment the line below to enable reset for game-k3s cluster
-          # - game-k3s
+          - game-k3s
 
 jobs:
   deploy:
