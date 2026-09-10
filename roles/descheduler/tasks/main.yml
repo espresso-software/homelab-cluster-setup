@@ -54,7 +54,6 @@
     release_namespace: "{{ descheduler_namespace }}"
     create_namespace: true
     state: present
-    reset_values: true
     wait: true
     timeout: 5m0s
     values: "{{ lookup('ansible.builtin.template', 'values.yml.j2') | from_yaml }}"
