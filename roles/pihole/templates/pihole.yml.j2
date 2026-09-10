@@ -40,8 +40,9 @@ metadata:
   name: {{ pihole_instance }}-dns
   namespace: {{ pihole_namespace }}
   annotations:
-      metallb.universe.tf/allow-shared-ip: "{{ pihole_instance }}-dns"
-      metallb.universe.tf/loadBalancerIPs: "{{ pihole_ip }}"
+      metallb.io/allow-shared-ip: "{{ pihole_instance }}-dns"
+      metallb.io/address-pool: "tools-vips"
+      metallb.io/loadBalancerIPs: "{{ pihole_ip }}"
 spec:
   selector:
     app: pihole

@@ -45,8 +45,9 @@ gateway:
   service:
     type: LoadBalancer
     annotations:
-      metallb.universe.tf/allow-shared-ip: "loki"
-      metallb.universe.tf/loadBalancerIps: "{{ loki_ip }}"
+      metallb.io/allow-shared-ip: "loki"
+      metallb.io/address-pool: "assigned-vips"
+      metallb.io/loadBalancerIPs: "{{ loki_ip }}"
 write:
   replicas: {{ loki_write_replicas | default(3) }}
   nodeSelector:

@@ -67,6 +67,7 @@
         ui:
           type: LoadBalancer
           annotations:
-            metallb.universe.tf/allow-shared-ip: longhorn
-            metallb.universe.tf/loadBalancerIPs: "{{ longhorn_ip }}"
+            metallb.io/allow-shared-ip: longhorn
+            metallb.io/address-pool: "assigned-vips"
+            metallb.io/loadBalancerIPs: "{{ longhorn_ip }}"
   run_once: true

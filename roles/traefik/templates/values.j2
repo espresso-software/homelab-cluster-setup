@@ -70,8 +70,9 @@ resources:
     memory: 2Gi
 service:
   annotations:
-    metallb.universe.tf/allow-shared-ip: traefik
-    metallb.universe.tf/loadBalancerIPs: "{{ ingress_ip }}"
+    metallb.io/allow-shared-ip: traefik
+    metallb.io/address-pool: "assigned-vips"
+    metallb.io/loadBalancerIPs: "{{ ingress_ip }}"
 tlsStore:
   default:
     defaultCertificate:
