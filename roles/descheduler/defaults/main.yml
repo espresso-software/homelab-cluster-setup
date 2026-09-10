@@ -1,0 +1,25 @@
+---
+descheduler_namespace: kube-system
+descheduler_interval: 5m
+descheduler_memory_deviation: 10
+descheduler_dry_run: false
+descheduler_min_pod_age: 10m
+descheduler_max_evictions_per_node: 1
+descheduler_max_evictions_per_namespace: 1
+descheduler_max_evictions_total: 2
+descheduler_excluded_namespaces:
+  - kube-system
+  - kube-public
+  - kube-node-lease
+  - longhorn-system
+  - monitoring
+  - metallb-system
+  - cert-manager
+  - traefik-system
+descheduler_resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi

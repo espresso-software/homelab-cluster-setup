@@ -31,6 +31,7 @@ on:
           - all
           - cert-manager
           - cilium
+          - descheduler
           - longhorn
           - metallb
           - pihole
@@ -41,6 +42,7 @@ on:
     paths:
       - .github/workflows/deploy-middleware.yml
       - roles/cilium/**
+      - roles/descheduler/**
       - roles/metallb/**
       - roles/longhorn/**
       - roles/cert-manager/**
@@ -52,6 +54,27 @@ on:
       - host_vars/**
 
 jobs:
+  descheduler:
+    needs:
+      - cilium
+    if: ${{ !cancelled() && !failure() && contains(fromJSON('["all", "descheduler", ""]'), inputs.tags || '') }}
+    runs-on:
+      group: ansible
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ secrets.READ_ACCESS_TOKEN }}
+      - uses: espresso-software/actions/ansible/run-playbook@main
+        env:
+          VAULT_DECRYPT_TOKEN: ${{ secrets.VAULT_DECRYPT_TOKEN }}
+        with:
+          playbook_path: deploy-middleware.yml
+          inventory_path: inventory/hosts.yml
+          hosts: ${{ inputs.cluster || 'test-k3s' }}
+          tags: descheduler
+          vars: ""
+
   cilium:
     if: ${{ contains(fromJSON('["all", "cilium", ""]'), github.event.inputs.tags) }}
     runs-on:

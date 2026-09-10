@@ -1,0 +1,60 @@
+---
+- name: Validate Descheduler settings
+  ansible.builtin.assert:
+    that:
+      - descheduler_helm_chart_version is defined
+      - descheduler_memory_deviation | float > 0
+      - descheduler_memory_deviation | float <= 100
+      - descheduler_max_evictions_per_node | int > 0
+      - descheduler_max_evictions_per_namespace | int > 0
+      - descheduler_max_evictions_total | int > 0
+      - descheduler_namespace in descheduler_excluded_namespaces
+    fail_msg: Configure a pinned chart, a positive deviation up to 100, positive eviction limits, and exclude the controller namespace.
+
+- name: Check Metrics Server availability
+  kubernetes.core.k8s_info:
+    api_version: apiregistration.k8s.io/v1
+    kind: APIService
+    name: v1beta1.metrics.k8s.io
+  register: descheduler_metrics_api
+
+- name: Require a healthy Metrics API
+  ansible.builtin.assert:
+    that:
+      - descheduler_metrics_api.resources | length == 1
+      - >-
+        descheduler_metrics_api.resources[0].status.conditions | default([])
+        | selectattr('type', 'equalto', 'Available')
+        | selectattr('status', 'equalto', 'True') | list | length == 1
+    fail_msg: Descheduler requires a healthy K3s Metrics Server; restore metrics.k8s.io before deploying.
+
+- name: Read measured node usage
+  kubernetes.core.k8s_info:
+    api_version: metrics.k8s.io/v1beta1
+    kind: NodeMetrics
+  register: descheduler_node_metrics
+
+- name: Require measured memory usage
+  ansible.builtin.assert:
+    that:
+      - descheduler_node_metrics.resources | default([]) | length > 0
+    fail_msg: Metrics Server returned no node metrics; verify kubectl top nodes before deploying Descheduler.
+
+- name: Add Descheduler Helm repository
+  kubernetes.core.helm_repository:
+    name: descheduler
+    repo_url: https://kubernetes-sigs.github.io/descheduler/
+    state: present
+
+- name: Deploy memory-balancing controller
+  kubernetes.core.helm:
+    name: descheduler
+    chart_ref: descheduler/descheduler
+    chart_version: "{{ descheduler_helm_chart_version }}"
+    release_namespace: "{{ descheduler_namespace }}"
+    create_namespace: true
+    state: present
+    reset_values: true
+    wait: true
+    timeout: 5m0s
+    values: "{{ lookup('ansible.builtin.template', 'values.yml.j2') | from_yaml }}"
