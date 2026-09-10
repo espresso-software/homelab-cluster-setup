@@ -1,0 +1,66 @@
+kind: Deployment
+replicas: 1
+deschedulingInterval: {{ descheduler_interval | to_json }}
+leaderElection:
+  # Descheduler rejects leader election combined with dry-run.
+  enabled: {{ (not (descheduler_dry_run | bool)) | to_json }}
+cmdOptions:
+  v: 3
+  dry-run: {{ descheduler_dry_run | bool | to_json }}
+resources: {{ descheduler_resources | to_json }}
+priorityClassName: system-cluster-critical
+rbac:
+  create: true
+serviceAccount:
+  create: true
+deschedulerPolicyAPIVersion: descheduler/v1alpha2
+deschedulerPolicy:
+  metricsCollector:
+    enabled: true
+  maxNoOfPodsToEvictPerNode: {{ descheduler_max_evictions_per_node | int }}
+  maxNoOfPodsToEvictPerNamespace: {{ descheduler_max_evictions_per_namespace | int }}
+  maxNoOfPodsToEvictTotal: {{ descheduler_max_evictions_total | int }}
+  # Omit gracePeriodSeconds so each pod retains its termination grace period.
+  profiles:
+    - name: memory-balancing
+      pluginConfig:
+        - name: DefaultEvictor
+          args:
+            nodeFit: true
+            minReplicas: 2
+            minPodAge: {{ descheduler_min_pod_age | to_json }}
+            ignorePvcPods: true
+            evictLocalStoragePods: false
+            evictDaemonSetPods: false
+            evictSystemCriticalPods: false
+            evictFailedBarePods: false
+            labelSelector:
+              matchExpressions:
+                - key: statefulset.kubernetes.io/pod-name
+                  operator: DoesNotExist
+        - name: LowNodeUtilization
+          args:
+            useDeviationThresholds: true
+            # Zero disables a resource in deviation mode (100 does not).
+            thresholds:
+              cpu: 0
+              pods: 0
+              memory: {{ descheduler_memory_deviation | float }}
+            targetThresholds:
+              cpu: 0
+              pods: 0
+              memory: {{ descheduler_memory_deviation | float }}
+            metricsUtilization:
+              metricsServer: true
+            evictableNamespaces:
+              exclude: {{ descheduler_excluded_namespaces | to_json }}
+      plugins:
+        filter:
+          enabled:
+            - DefaultEvictor
+        preEvictionFilter:
+          enabled:
+            - DefaultEvictor
+        balance:
+          enabled:
+            - LowNodeUtilization

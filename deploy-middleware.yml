@@ -98,3 +98,22 @@
     K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
   roles:
     - pihole
+
+- name: Install Descheduler
+  hosts: k3s_managers
+  become: true
+  gather_facts: false
+  tags:
+    - descheduler
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+    K8S_AUTH_NO_PROXY: "{{ no_proxy }}"
+  tasks:
+    # Select one manager per cluster from the hosts included by --limit.
+    - name: Deploy Descheduler once per selected cluster
+      ansible.builtin.include_role:
+        name: descheduler
+      when: >-
+        inventory_hostname ==
+        (groups[cluster_name ~ '-k3s-managers']
+        | intersect(ansible_play_hosts_all) | sort | first)
