@@ -45,8 +45,8 @@ hubble:
     service:
       type: LoadBalancer
       annotations:
-        metallb.universe.tf/address-pool: "assigned-vips"
-        metallb.universe.tf/loadBalancerIPs: "{{ hubble_ip }}"
+        metallb.io/address-pool: "assigned-vips"
+        metallb.io/loadBalancerIPs: "{{ hubble_ip }}"
 {% endif %}
 {% if ingress_ip is defined and ingress_ip != "" %}  
   ingress:
